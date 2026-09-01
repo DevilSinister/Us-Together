@@ -1,0 +1,16 @@
+node_modules/
+.next/
+out/
+coverage/
+.env
+.env.local
+.env.*.local
+!.env.example
+.vercel/
+*.tsbuildinfo
+npm-debug.log*
+supabase/.branches/
+supabase/.temp/
+.impeccable/qa/
+graphify-out/cache/
+graphify-out/2026-*/

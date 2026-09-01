@@ -1,0 +1,2 @@
+-- Application demo data will be added only after the couple model exists.
+-- Authentication fixtures belong in tests, not production-capable seed data.

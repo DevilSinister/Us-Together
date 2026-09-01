@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-01T04:21:28.6590740+05:00",
+  "title": "Design System: Us Together",
+  "extensions": {
+    "colorMeta": {
+      "warm-paper": { "role": "neutral", "displayName": "Warm Paper", "canonical": "#fbf7f3", "tonalRamp": ["oklch(15% 0.012 45)", "oklch(27% 0.012 45)", "oklch(39% 0.012 45)", "oklch(51% 0.012 45)", "oklch(63% 0.012 45)", "oklch(75% 0.012 45)", "oklch(87% 0.012 45)", "oklch(95% 0.012 45)"] },
+      "charcoal-ink": { "role": "neutral", "displayName": "Charcoal Ink", "canonical": "#2f2527", "tonalRamp": ["oklch(15% 0.018 8)", "oklch(27% 0.018 8)", "oklch(39% 0.018 8)", "oklch(51% 0.018 8)", "oklch(63% 0.018 8)", "oklch(75% 0.018 8)", "oklch(87% 0.018 8)", "oklch(95% 0.018 8)"] },
+      "field-paper": { "role": "neutral", "displayName": "Field Paper", "canonical": "#fffdfb", "tonalRamp": ["oklch(15% 0.008 55)", "oklch(27% 0.008 55)", "oklch(39% 0.008 55)", "oklch(51% 0.008 55)", "oklch(63% 0.008 55)", "oklch(75% 0.008 55)", "oklch(87% 0.008 55)", "oklch(95% 0.008 55)"] },
+      "card-paper": { "role": "neutral", "displayName": "Card Paper", "canonical": "#fffaf6", "tonalRamp": ["oklch(15% 0.014 45)", "oklch(27% 0.014 45)", "oklch(39% 0.014 45)", "oklch(51% 0.014 45)", "oklch(63% 0.014 45)", "oklch(75% 0.014 45)", "oklch(87% 0.014 45)", "oklch(95% 0.014 45)"] },
+      "deep-wine": { "role": "primary", "displayName": "Deep Wine", "canonical": "#6f1730", "tonalRamp": ["oklch(15% 0.10 8)", "oklch(27% 0.10 8)", "oklch(39% 0.10 8)", "oklch(51% 0.10 8)", "oklch(63% 0.10 8)", "oklch(75% 0.10 8)", "oklch(87% 0.10 8)", "oklch(95% 0.10 8)"] },
+      "deep-wine-strong": { "role": "primary", "displayName": "Deep Wine Strong", "canonical": "#591124", "tonalRamp": ["oklch(15% 0.09 8)", "oklch(27% 0.09 8)", "oklch(39% 0.09 8)", "oklch(51% 0.09 8)", "oklch(63% 0.09 8)", "oklch(75% 0.09 8)", "oklch(87% 0.09 8)", "oklch(95% 0.09 8)"] },
+      "warm-white": { "role": "neutral", "displayName": "Warm White", "canonical": "#fff9f6", "tonalRamp": ["oklch(15% 0.012 35)", "oklch(27% 0.012 35)", "oklch(39% 0.012 35)", "oklch(51% 0.012 35)", "oklch(63% 0.012 35)", "oklch(75% 0.012 35)", "oklch(87% 0.012 35)", "oklch(95% 0.012 35)"] },
+      "quiet-blush": { "role": "secondary", "displayName": "Quiet Blush", "canonical": "#f4e7e5", "tonalRamp": ["oklch(15% 0.024 25)", "oklch(27% 0.024 25)", "oklch(39% 0.024 25)", "oklch(51% 0.024 25)", "oklch(63% 0.024 25)", "oklch(75% 0.024 25)", "oklch(87% 0.024 25)", "oklch(95% 0.024 25)"] },
+      "blush-ink": { "role": "secondary", "displayName": "Blush Ink", "canonical": "#542b34", "tonalRamp": ["oklch(15% 0.04 8)", "oklch(27% 0.04 8)", "oklch(39% 0.04 8)", "oklch(51% 0.04 8)", "oklch(63% 0.04 8)", "oklch(75% 0.04 8)", "oklch(87% 0.04 8)", "oklch(95% 0.04 8)"] },
+      "muted-ink": { "role": "neutral", "displayName": "Muted Ink", "canonical": "#74676a", "tonalRamp": ["oklch(15% 0.014 5)", "oklch(27% 0.014 5)", "oklch(39% 0.014 5)", "oklch(51% 0.014 5)", "oklch(63% 0.014 5)", "oklch(75% 0.014 5)", "oklch(87% 0.014 5)", "oklch(95% 0.014 5)"] },
+      "fine-rule": { "role": "neutral", "displayName": "Fine Rule", "canonical": "#decfca", "tonalRamp": ["oklch(15% 0.018 35)", "oklch(27% 0.018 35)", "oklch(39% 0.018 35)", "oklch(51% 0.018 35)", "oklch(63% 0.018 35)", "oklch(75% 0.018 35)", "oklch(87% 0.018 35)", "oklch(95% 0.018 35)"] },
+      "restrained-rose": { "role": "secondary", "displayName": "Restrained Rose", "canonical": "#b75a6d", "tonalRamp": ["oklch(15% 0.08 8)", "oklch(27% 0.08 8)", "oklch(39% 0.08 8)", "oklch(51% 0.08 8)", "oklch(63% 0.08 8)", "oklch(75% 0.08 8)", "oklch(87% 0.08 8)", "oklch(95% 0.08 8)"] },
+      "night-paper": { "role": "neutral", "displayName": "Night Paper", "canonical": "#211a20", "tonalRamp": ["oklch(15% 0.018 340)", "oklch(27% 0.018 340)", "oklch(39% 0.018 340)", "oklch(51% 0.018 340)", "oklch(63% 0.018 340)", "oklch(75% 0.018 340)", "oklch(87% 0.018 340)", "oklch(95% 0.018 340)"] },
+      "night-card": { "role": "neutral", "displayName": "Night Card", "canonical": "#2a2127", "tonalRamp": ["oklch(15% 0.018 350)", "oklch(27% 0.018 350)", "oklch(39% 0.018 350)", "oklch(51% 0.018 350)", "oklch(63% 0.018 350)", "oklch(75% 0.018 350)", "oklch(87% 0.018 350)", "oklch(95% 0.018 350)"] },
+      "night-rose": { "role": "primary", "displayName": "Night Rose", "canonical": "#df879a", "tonalRamp": ["oklch(15% 0.08 5)", "oklch(27% 0.08 5)", "oklch(39% 0.08 5)", "oklch(51% 0.08 5)", "oklch(63% 0.08 5)", "oklch(75% 0.08 5)", "oklch(87% 0.08 5)", "oklch(95% 0.08 5)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "First-view relationship statements and narrative headlines." },
+      "headline": { "displayName": "Headline", "purpose": "Signed-in page headings." },
+      "title": { "displayName": "Title", "purpose": "Journey entries and panel headings." },
+      "body": { "displayName": "Body", "purpose": "Readable explanations and form support." },
+      "label": { "displayName": "Label", "purpose": "Controls, fields, eyebrows, and navigation." }
+    },
+    "shadows": [
+      { "name": "paper-ambient", "value": "0 24px 70px -45px rgba(58, 25, 34, 0.45)", "purpose": "Large landing and authentication paper surfaces." },
+      { "name": "action-tactile", "value": "0 10px 28px -16px var(--color-wine)", "purpose": "Primary buttons." },
+      { "name": "thread-marker", "value": "0 6px 20px -12px rgba(80, 20, 40, 0.8)", "purpose": "Circular relationship-thread markers." }
+    ],
+    "motion": [
+      { "name": "state-standard", "value": "200ms ease", "purpose": "Button and input state transitions." },
+      { "name": "reveal", "value": "560ms cubic-bezier(.16, 1, .3, 1)", "purpose": "A single first-load content reveal; omitted for reduced-motion users." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The high-confidence action for form submission and the page's principal next step.",
+      "html": "<button class=\"ds-btn-primary\">Create your space</button>",
+      "css": ".ds-btn-primary { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 8px; padding: 0 20px; background: var(--primary, #6f1730); color: var(--primary-foreground, #fff9f6); font: 600 14px/1.25 Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif; box-shadow: 0 10px 28px -16px var(--wine, #6f1730); transition: background-color 200ms, box-shadow 200ms, transform 200ms; } .ds-btn-primary:hover { background: var(--primary-strong, #591124); } .ds-btn-primary:focus-visible { outline: 2px solid var(--ring, #8f2943); outline-offset: 2px; } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "A secondary action that keeps the paper surface visible.",
+      "html": "<button class=\"ds-btn-outline\">Welcome back</button>",
+      "css": ".ds-btn-outline { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border, #decfca); border-radius: 8px; padding: 0 20px; background: transparent; color: var(--foreground, #2f2527); font: 600 14px/1.25 Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif; transition: background-color 200ms, color 200ms, transform 200ms; } .ds-btn-outline:hover { background: var(--secondary, #f4e7e5); } .ds-btn-outline:focus-visible { outline: 2px solid var(--ring, #8f2943); outline-offset: 2px; } .ds-btn-outline:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A bright paper field for identity and planning details.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-email\">Email</label><input class=\"ds-text-field\" id=\"ds-email\" type=\"email\" placeholder=\"you@example.com\">",
+      "css": ".ds-field-label { display: block; margin-bottom: 8px; color: var(--foreground, #2f2527); font: 600 14px/1.25 Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif; } .ds-text-field { width: 100%; height: 48px; border: 1px solid var(--border, #decfca); border-radius: 8px; padding: 0 16px; background: var(--field, #fffdfb); color: var(--foreground, #2f2527); font: 400 16px/1.5 Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif; box-shadow: 0 1px 0 rgba(72, 35, 43, 0.03); transition: border-color 200ms, box-shadow 200ms; } .ds-text-field::placeholder { color: var(--muted-foreground, #74676a); } .ds-text-field:hover { border-color: var(--primary, #6f1730); } .ds-text-field:focus-visible { border-color: var(--primary, #6f1730); outline: 2px solid color-mix(in srgb, var(--ring, #8f2943) 25%, transparent); outline-offset: 0; }"
+    },
+    {
+      "name": "Active Navigation Item",
+      "kind": "nav",
+      "refersTo": "navigation-active",
+      "description": "The current signed-in destination in the persistent app navigation.",
+      "html": "<a class=\"ds-nav-active\" href=\"#\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m3 10 9-7 9 7v11a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z\"/></svg>Home</a>",
+      "css": ".ds-nav-active { min-height: 44px; display: flex; align-items: center; gap: 12px; border-radius: 14px; padding: 0 16px; background: var(--secondary, #f4e7e5); color: var(--secondary-foreground, #542b34); font: 600 16px/1.25 Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif; text-decoration: none; transition: background-color 200ms, color 200ms; } .ds-nav-active:hover { color: var(--primary, #6f1730); } .ds-nav-active:focus-visible { outline: 2px solid var(--ring, #8f2943); outline-offset: 2px; }"
+    },
+    {
+      "name": "Relationship Thread",
+      "kind": "custom",
+      "description": "The signature sequence connecting a meaningful plan, experience, or memory journey.",
+      "html": "<div class=\"ds-thread\"><div class=\"ds-thread-item\"><span class=\"ds-thread-marker\">1</span><div><h3>Plan</h3><p>Turn a wish into something on the calendar.</p></div></div><div class=\"ds-thread-item\"><span class=\"ds-thread-marker\">2</span><div><h3>Remember</h3><p>Carry the story home after the experience.</p></div></div></div>",
+      "css": ".ds-thread { position: relative; color: var(--foreground, #2f2527); } .ds-thread::before { content: ''; position: absolute; left: 18px; top: 36px; bottom: 36px; width: 1px; background: linear-gradient(var(--border, #decfca), var(--rose, #b75a6d), var(--border, #decfca)); } .ds-thread-item { position: relative; display: flex; gap: 20px; padding: 20px 0; } .ds-thread-marker { position: relative; z-index: 1; width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 9999px; background: var(--card, #fffaf6); color: var(--primary, #6f1730); font: 600 12px/1 Aptos, sans-serif; box-shadow: 0 6px 20px -12px rgba(80, 20, 40, 0.8); } .ds-thread h3 { margin: 0; font: 400 24px/1.25 'Iowan Old Style', Baskerville, 'Times New Roman', serif; } .ds-thread p { margin: 4px 0 0; color: var(--muted-foreground, #74676a); font: 400 16px/1.5 Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif; } .ds-thread-item:focus-within .ds-thread-marker { outline: 2px solid var(--ring, #8f2943); outline-offset: 2px; }"
+    },
+    {
+      "name": "Supporting Panel",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "A quiet contextual panel beside the primary narrative path.",
+      "html": "<aside class=\"ds-support-panel\"><span>Private by default</span><h3>Nothing is shared until you choose a partner.</h3><p>Your account remains separate until you connect it.</p></aside>",
+      "css": ".ds-support-panel { border-radius: 16px; padding: 24px; background: var(--secondary, #f4e7e5); color: var(--foreground, #2f2527); } .ds-support-panel span { color: var(--primary, #6f1730); font: 600 14px/1.25 Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif; } .ds-support-panel h3 { margin: 12px 0 0; font: 400 30px/1.1 'Iowan Old Style', Baskerville, 'Times New Roman', serif; } .ds-support-panel p { margin: 16px 0 0; color: var(--muted-foreground, #74676a); font: 400 16px/1.75 Aptos, 'Segoe UI Variable', 'Segoe UI', sans-serif; } .ds-support-panel:hover { background: color-mix(in srgb, var(--secondary, #f4e7e5) 90%, var(--card, #fffaf6)); } .ds-support-panel:focus-within { outline: 2px solid var(--ring, #8f2943); outline-offset: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Shared-Journal Thread",
+    "overview": "Us Together feels like a modern private letter meeting a shared calendar. Warm paper surfaces, restrained blush fields, deep-wine controls, and editorial serif headlines make the product intimate without becoming decorative or nostalgic. The interface stays calm and content-led: relationship continuity is the organizing structure, not a grid of equal administrative cards.\n\nThe system pairs generous reading space with compact, dependable controls. Fine rules and a single vertical thread connect what partners plan, experience, and remember. Dark mode preserves the same warm chromatic relationships rather than turning the product neutral or blue-black.",
+    "keyCharacteristics": [
+      "Warm paper surfaces with deep-wine actions and quiet blush grouping fields",
+      "Editorial serif headlines paired with a highly legible system sans-serif",
+      "Content-led vertical rhythm and a recurring relationship thread",
+      "Fine borders, restrained ambient shadow, and rounded but not pill-heavy forms",
+      "Clear privacy language presented as part of the experience"
+    ],
+    "rules": [
+      { "name": "The One Wine Voice Rule", "body": "Deep wine carries primary action and active emphasis; do not introduce a second competing accent for ordinary interaction.", "section": "colors" },
+      { "name": "The Warm Dark Rule", "body": "Dark mode keeps plum, rose, and warm-paper relationships. It does not collapse into neutral black with electric accent colors.", "section": "colors" },
+      { "name": "The Serif Tells the Story Rule", "body": "Use the display serif for emotional hierarchy and relationship language; keep controls, validation, navigation, and explanatory copy in the sans-serif.", "section": "typography" },
+      { "name": "The One Narrative Path Rule", "body": "A page should make the next meaningful relationship step visually dominant. Supporting material may sit beside it, but must not flatten the story into an equal-card dashboard.", "section": "layout" },
+      { "name": "The Bounded Paper Rule", "body": "Prefer a tonal shift and fine rule before adding elevation; reserve shadow for the outer paper, a primary action, or a small thread marker.", "section": "elevation" },
+      { "name": "The Radius Follows Scale Rule", "body": "Small controls use the smallest established radius, panels step up once, and only whole-page paper surfaces use the largest radius.", "section": "shapes" }
+    ],
+    "dos": [
+      "Do organize major experiences around one clear narrative path and one dominant next step.",
+      "Do reserve deep wine for primary action, active emphasis, and the brand voice.",
+      "Do pair large serif relationship language with sans-serif controls and explanations.",
+      "Do preserve visible focus, 44px touch targets, high-contrast text, and reduced-motion behavior.",
+      "Do use privacy state as explicit, readable interface content."
+    ],
+    "donts": [
+      "Don't turn relationship progress into a generic grid of equal metric cards.",
+      "Don't use hearts, rose, or wine as all-over decoration; their restraint is part of the premium tone.",
+      "Don't introduce unrelated bright accents, cool gray dashboards, or blue-black dark mode.",
+      "Don't add shadow to every container; use tonal grouping and fine rules first.",
+      "Don't use pill shapes for ordinary buttons, fields, or panels."
+    ]
+  }
+}
