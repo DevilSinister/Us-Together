@@ -1,20 +1,25 @@
 # Graph Report - Uss  (2026-09-01)
 
 ## Corpus Check
-- 68 files · ~26,392 words
+- 78 files · ~29,408 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 298 nodes · 385 edges · 37 communities (21 shown, 16 thin omitted)
-- Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 37 edges (avg confidence: 0.89)
+- 364 nodes · 583 edges · 39 communities (23 shown, 16 thin omitted)
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 41 edges (avg confidence: 0.88)
 - Token cost: 0 input · 0 output
+
+## Graph Freshness
+- Built from commit: `7d1ec263`
+- Run `git rev-parse HEAD` and compare to check if the graph is stale.
+- Run `graphify update .` after code changes (no API cost).
 
 ## Community Hubs (Navigation)
 - Security Objectives
 - Phase Completion Gate
 - Tenancy and Ownership
 - RLS and Visibility Test Matrix
-- auth-form.tsx
+- onboarding-forms.tsx
 - Required Skill Routing
 - PostgreSQL RLS and Storage Isolation
 - Secure Couple Pairing
@@ -44,18 +49,20 @@
 - next-env.d.ts
 - postcss.config.mjs
 - sw.js
+- Design System: Us Together
+- dev-session.ts
 
 ## God Nodes (most connected - your core abstractions)
-1. `createServerSupabaseClient()` - 20 edges
-2. `compilerOptions` - 16 edges
-3. `Button()` - 10 edges
-4. `scripts` - 9 edges
-5. `cn()` - 9 edges
-6. `requireSupabaseConfig()` - 7 edges
-7. `aliases` - 6 edges
-8. `BrandMark()` - 6 edges
-9. `include` - 6 edges
-10. `tailwind` - 5 edges
+1. `createServerSupabaseClient()` - 30 edges
+2. `getCurrentIdentity()` - 22 edges
+3. `readDeveloperState()` - 19 edges
+4. `compilerOptions` - 16 edges
+5. `Button()` - 13 edges
+6. `writeDeveloperState()` - 12 edges
+7. `cn()` - 11 edges
+8. `scripts` - 9 edges
+9. `Design System: Us Together` - 9 edges
+10. `hasDeveloperSession()` - 8 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Secret Content Non-Inference` --conceptually_related_to--> `Security Objectives`  [INFERRED]
@@ -77,7 +84,7 @@
 - **Dream-to-Memory Continuity** — product_relationship_loop, arch_dream_to_memory_flow, docs_features_bucket_plan_memory, docs_ux_flows_bucket_to_memory, docs_testing_browser_dream_to_memory [INFERRED 0.95]
 - **Verified Phase Governance** — agents_phase_completion_gate, docs_implementation_plan_phased_delivery, docs_testing_release_checklist, docs_traceability_coverage_gate [INFERRED 0.85]
 
-## Communities (37 total, 16 thin omitted)
+## Communities (39 total, 16 thin omitted)
 
 ### Community 0 - "Security Objectives"
 Cohesion: 0.18
@@ -95,9 +102,9 @@ Nodes (13): Product Source of Truth, Dream-to-Memory Data Flow, Tenancy and Owne
 Cohesion: 0.29
 Nodes (7): Wishlist Purchase Secret Separation, ADR-006 Purchaser State Separation, Wishlist Secret Purchase Non-Disclosure, Incident Response Lifecycle, Mandatory Negative Security Scenarios, Cross-Tenant Deterministic Demo Seed, RLS and Visibility Test Matrix
 
-### Community 4 - "auth-form.tsx"
-Cohesion: 0.15
-Nodes (15): updateProfileAction(), AppShell(), AuthAction, AuthFormProps, SubmitButton(), BrandMark(), ProfileForm(), ThemeToggle() (+7 more)
+### Community 4 - "onboarding-forms.tsx"
+Cohesion: 0.14
+Nodes (17): dynamic, ProtectedLayout(), AppShell(), AuthAction, AuthFormProps, SubmitButton(), BrandMark(), avatarStyles (+9 more)
 
 ### Community 5 - "Required Skill Routing"
 Cohesion: 0.50
@@ -120,16 +127,16 @@ Cohesion: 0.07
 Nodes (27): class-variance-authority, clsx, lucide-react, next, next-themes, dependencies, class-variance-authority, clsx (+19 more)
 
 ### Community 22 - "auth.ts"
-Cohesion: 0.13
-Nodes (16): configurationError(), forgotPasswordAction(), signInAction(), signUpAction(), updatePasswordAction(), metadata, metadata, metadata (+8 more)
+Cohesion: 0.10
+Nodes (23): configurationError(), forgotPasswordAction(), signInAction(), signOutAction(), signUpAction(), updatePasswordAction(), metadata, dynamic (+15 more)
 
 ### Community 23 - "devDependencies"
 Cohesion: 0.08
 Nodes (25): eslint, eslint-config-next, devDependencies, eslint, eslint-config-next, supabase, @supabase/cli-windows-x64, tailwindcss (+17 more)
 
 ### Community 24 - "createServerSupabaseClient"
-Cohesion: 0.17
-Nodes (13): signOutAction(), HomePage(), metadata, dynamic, ProtectedLayout(), metadata, ProfilePage(), GET() (+5 more)
+Cohesion: 0.16
+Nodes (30): allowedAvatarTypes, completeDeveloperPairingAction(), createCoupleAction(), finishSoloOnboardingAction(), joinCoupleAction(), readInvitePreview(), saveOnboardingProfileAction(), saveRelationshipAction() (+22 more)
 
 ### Community 25 - "components.json"
 Cohesion: 0.12
@@ -151,24 +158,32 @@ Nodes (4): metadata, viewport, PwaRegister(), ThemeProvider()
 Cohesion: 0.50
 Nodes (3): Direction contract, Fidelity inventory, Foundation auth and home surface
 
+### Community 37 - "Design System: Us Together"
+Cohesion: 0.08
+Nodes (24): Buttons, Cards / Containers, Colors, Components, Design System: Us Together, Do:, Do's and Don'ts, Don't: (+16 more)
+
+### Community 38 - "dev-session.ts"
+Cohesion: 0.33
+Nodes (8): developerLoginAction(), metadata, SignInPage(), defaultState, DevState, encodeState(), isDeveloperLoginEnabled(), startDeveloperSession()
+
 ## Knowledge Gaps
-- **123 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+118 more)
+- **149 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+144 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
+- **Why does `createServerSupabaseClient()` connect `createServerSupabaseClient` to `config.ts`, `auth.ts`?**
+  _High betweenness centrality (0.024) - this node is a cross-community bridge._
 - **Why does `dependencies` connect `dependencies` to `scripts`?**
-  _High betweenness centrality (0.031) - this node is a cross-community bridge._
-- **Why does `devDependencies` connect `devDependencies` to `scripts`?**
-  _High betweenness centrality (0.029) - this node is a cross-community bridge._
-- **Why does `createServerSupabaseClient()` connect `createServerSupabaseClient` to `config.ts`, `auth-form.tsx`, `auth.ts`?**
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
+- **Why does `devDependencies` connect `devDependencies` to `scripts`?**
+  _High betweenness centrality (0.019) - this node is a cross-community bridge._
 - **What connects `$schema`, `style`, `rsc` to the rest of the system?**
-  _123 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `auth-form.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.14583333333333334 - nodes in this community are weakly interconnected._
+  _149 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `onboarding-forms.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.13663663663663664 - nodes in this community are weakly interconnected._
 - **Should `compilerOptions` be split into smaller, more focused modules?**
   _Cohesion score 0.07142857142857142 - nodes in this community are weakly interconnected._
 - **Should `dependencies` be split into smaller, more focused modules?**
