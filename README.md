@@ -6,9 +6,9 @@
 
 ## Status
 
-The project now has its **Phase 1 MVP foundation**: a Next.js application shell, Supabase SSR authentication boundaries, profile and password-recovery flows, theme support, an installable PWA shell, and the first RLS-protected profile migration. Couple pairing and the Dream-to-Memory feature loop begin in Phase 2. No production infrastructure has been provisioned.
+The project now has its **Phase 1–4 MVP implementation** plus active Plans/Memories vertical slices: a Next.js application shell, typed Supabase SSR clients, authentication/profile recovery, hardened couple pairing, a privacy-safe relationship dashboard, basic milestones, content-minimal in-app notifications/preferences, bucket lists with ordered steps, filters and completion, retry-safe Bucket-to-Plan/Memory conversion, and the direct Plan-to-Memory journey. The migrations are applied to the managed Us-Together Supabase project; application deployment is still pending.
 
-The current development build also includes the first Phase 2 vertical slice: guided onboarding, optional profile-photo upload, relationship start date, secure pairing-code contracts, database-enforced two-partner membership, and a local developer preview that exercises the flow without Docker.
+The deterministic paired developer fixture (Alex + Maya) now includes a featured milestone and generic unread notification. Playwright covers the named-partner, Plan-to-Memory, milestone, notification, preferences, mobile, keyboard, and reduced-motion journey.
 
 ## Product pillars
 
@@ -53,12 +53,11 @@ Exact package versions are pinned in `package-lock.json`. Current official docum
 ## Local workflow
 
 ```bash
-npm install
-supabase start
+npm ci
 npm run dev
 ```
 
-For local interface testing without Supabase, set `DEV_LOGIN_ENABLED=true` in `.env.local`, open `/sign-in`, and choose **Enter developer preview**. This server-only bypass is forcibly disabled whenever `NODE_ENV=production`.
+For local interface testing without Supabase, set `DEV_LOGIN_ENABLED=true` in `.env.local`, open `/sign-in`, and choose **Enter paired preview** for Alex + Maya or **Test onboarding from scratch** for a clean solo account. This server-only bypass is forcibly disabled whenever `NODE_ENV=production`.
 
 The expected quality commands are:
 
@@ -66,10 +65,12 @@ The expected quality commands are:
 npm run lint
 npm run typecheck
 npm run test
+npm run test:rls
+npm run test:e2e
 npm run build
 ```
 
-The application quality commands are runnable now. Local database reset and RLS tests additionally require a Docker-compatible runtime. See [Setup](docs/SETUP.md).
+The application quality commands are runnable now without containers. Hosted migrations and rollback-only RLS verification are supported; Docker/Podman is optional. Real pairing is deferred to final integration, and clean migration replay remains an open release gate. See [Setup](docs/SETUP.md) and [Phase 4 evidence](docs/PHASE4_VERIFICATION.md).
 
 ## Security posture
 

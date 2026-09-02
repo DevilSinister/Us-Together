@@ -11,19 +11,19 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 3 | Technology stack | [Architecture](../ARCHITECTURE.md), [Setup](SETUP.md) | Phase 1 | Install, types, build |
 | 4 | Multi-tenant architecture | [Architecture](../ARCHITECTURE.md), [Database](DATABASE.md) | Phases 1–2 | RLS matrix |
 | 5 | Users/profiles | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 1 | Auth/profile tests |
-| 6 | Couples/members | [Database](DATABASE.md), [Features](FEATURES.md) | Phase 2 | Capacity/concurrency tests |
-| 7 | Invite link and six-digit code | [Features](FEATURES.md), [Security](SECURITY.md) | Phase 2 | Pairing negative suite |
-| 8 | Onboarding | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Phase 2 | Browser/a11y tests |
+| 6 | Couples/members | [Database](DATABASE.md), [Features](FEATURES.md) | Phase 2, lifecycle implemented | Capacity/leave/delete pgTAP; concurrency gate open |
+| 7 | Invite link and six-digit code | [Features](FEATURES.md), [Security](SECURITY.md) | Phase 2, hardened | Attempt-limit/revoke/used-code pgTAP; local execution pending runtime |
+| 8 | Onboarding | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Phase 2 | Paired/solo fixture and desktop/mobile browser tests; real-account journey open |
 | 9 | Navigation | [Design Brief](DESIGN_BRIEF.md) | Phase 1 | Responsive browser tests |
-| 10 | Home dashboard | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 3 | Privacy/state tests |
-| 11 | Plans/date planner | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 5 | Plan CRUD/validation |
+| 10 | Home dashboard | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 3, implemented | Empty/populated/mixed-privacy and two-timezone unit cases; paired desktop/mobile browser journey |
+| 11 | Plans/date planner | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 5, vertical slice in progress | Create/completion validation; remaining CRUD/calendar gates open |
 | 12 | Plan details/checklist | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 5 | Checklist/detail tests |
 | 13 | Calendar views | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 5 | Timezone/responsive tests |
 | 14 | Google Calendar | [Google Calendar](GOOGLE_CALENDAR.md) | R2 | OAuth/privacy suite |
-| 15 | Bucket lists/items | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 4 | CRUD/filter/RLS |
-| 16 | Bucket subtasks | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 4 | Reorder/progress tests |
-| 17 | Bucket to plan | [UX Flows](UX_FLOWS.md), [API Contracts](API_CONTRACTS.md) | Phases 4–5 | Idempotent conversion |
-| 18 | Bucket to memory | [UX Flows](UX_FLOWS.md), [Features](FEATURES.md) | Phase 6 | Provenance/upload tests |
+| 15 | Bucket lists/items | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 4 implemented | Hosted 33-assertion RLS suite; desktop/mobile CRUD/filter journey |
+| 16 | Bucket subtasks | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 4 implemented | Keyboard reorder/progress; hosted stale-version rejection; overlapping-session timing open |
+| 17 | Bucket to plan | [UX Flows](UX_FLOWS.md), [API Contracts](API_CONTRACTS.md) | Phases 4–5 | Source-locking conversion, retry uniqueness and desktop/mobile handoff verified |
+| 18 | Bucket to memory | [UX Flows](UX_FLOWS.md), [Features](FEATURES.md) | Phase 4 story conversion; Phase 6 media | Completed-bucket conversion/retry verified; media upload remains open |
 | 19 | Wishlist | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 7 | Owner/partner matrix |
 | 20 | Secret purchases | [Security](SECURITY.md), [Database](DATABASE.md) | Phase 7 | Non-inference suite |
 | 21 | Product links/manual entry | [Features](FEATURES.md) | Phase 7 | URL/input validation |
@@ -34,16 +34,16 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 26 | Surprise notes | [Features](FEATURES.md), [Security](SECURITY.md) | R2 | Pre-reveal non-disclosure |
 | 27 | Scheduled notes/timezones | [Features](FEATURES.md), [Operations](OPERATIONS.md) | R2 | Timing/idempotency |
 | 28 | Open-when letters | [Features](FEATURES.md), [UX Flows](UX_FLOWS.md) | R2 | Eligibility/read tests |
-| 29 | Memories | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 6 | CRUD/provenance/RLS |
-| 30 | Memory media | [Database](DATABASE.md), [Security](SECURITY.md) | Phase 6 | Storage/upload suite |
+| 29 | Memories | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 6, vertical slice in progress | Direct/create-from-plan provenance, unit/RLS specification; full CRUD open |
+| 30 | Memory media | [Database](DATABASE.md), [Security](SECURITY.md) | Phase 6, boundary implemented | Private bucket/policy specification present; upload/signed-viewer suite open |
 | 31 | Our Story timeline | [Features](FEATURES.md) | R2 | Visibility/projection tests |
-| 32 | Milestones | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3/R2 | CRUD/dashboard tests |
+| 32 | Milestones | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3 basic create/list/feature implemented; richer R2 | Negative RLS specification, generated types, create/list browser journey; edit/delete UI remains later |
 | 33 | Vault purpose | [Vault](VAULT.md) | R2 | Threat-model gate |
 | 34 | PIN/passkey/auto-lock | [Vault](VAULT.md) | R2 | Unlock/timeout tests |
 | 35 | Private vault storage | [Vault](VAULT.md), [Security](SECURITY.md) | R2 | URL/storage negatives |
 | 36 | Vault encryption boundary | [Vault](VAULT.md), [Decisions](DECISIONS.md) | R2/Later | Claim/security review |
 | 37 | File upload security | [Security](SECURITY.md), [API Contracts](API_CONTRACTS.md) | Phase 6/R2 | MIME/size/path suite |
-| 38 | In-app notifications | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3/MVP | Recipient/privacy tests |
+| 38 | In-app notifications | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3 foundation implemented | Generic-envelope trigger, recipient/membership RLS, preference suppression pgTAP specification, browser read/preferences journey |
 | 39 | Push notifications | [Features](FEATURES.md) | R2 | Opt-in/secret exclusion |
 | 40 | Couple activity feed | [Features](FEATURES.md), [Security](SECURITY.md) | R2 candidate | Inference tests before enablement |
 | 41 | Rule-based date generator | [Features](FEATURES.md) | Later | Input/output/conversion tests |
@@ -59,7 +59,7 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 51 | Error handling | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Every feature | Failure-state tests |
 | 52 | Empty states | [Design Brief](DESIGN_BRIEF.md), [Features](FEATURES.md) | Every feature | First-run/empty tests |
 | 53 | Global search | [Features](FEATURES.md), [Security](SECURITY.md) | R2 | Source-equivalent RLS |
-| 54 | Export/delete/leave | [UX Flows](UX_FLOWS.md), [Operations](OPERATIONS.md) | MVP/R2 expansion | Lifecycle tests |
+| 54 | Export/delete/leave | [UX Flows](UX_FLOWS.md), [Operations](OPERATIONS.md), [Decisions](DECISIONS.md) | Leave/empty-delete implemented; account/export Phase 8 | Lifecycle pgTAP and confirmation UI; full account workflow open |
 | 55 | Audit logging | [Security](SECURITY.md), [Operations](OPERATIONS.md) | MVP/R2 | Redaction/retention review |
 | 56 | Migrations/indexes/FKs | [Database](DATABASE.md), [Setup](SETUP.md) | Every data phase | Reset/list/advisors |
 | 57 | RLS requirements | [Database](DATABASE.md), [Security](SECURITY.md) | Every data phase | Full RLS matrix |
@@ -72,12 +72,12 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 64 | Media thumbnails/lazy viewers | [Features](FEATURES.md), [Security](SECURITY.md) | Phase 6/R2 | Media/performance tests |
 | 65 | Selective Realtime | [Architecture](../ARCHITECTURE.md), [Features](FEATURES.md) | R2 | Channel/privacy tests |
 | 66 | Onboarding personalization | [UX Flows](UX_FLOWS.md) | Phase 2 | Skip/first-run tests |
-| 67 | Home personalization | [Features](FEATURES.md) | Phase 3 | Relevance/privacy tests |
+| 67 | Home personalization | [Features](FEATURES.md) | Phase 3, implemented | Stable relevance selector and no private/secret inference tests |
 | 68 | Connected product flows | [Product](../PRODUCT.md), [UX Flows](UX_FLOWS.md) | MVP onward | End-to-end journey |
 | 69 | Settings | [Features](FEATURES.md), [UX Flows](UX_FLOWS.md) | MVP/R2 | Auth/destructive tests |
 | 70 | First-run experience | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Phase 2–3 | Activation browser test |
 | 71 | Warm copywriting | [Design Brief](DESIGN_BRIEF.md), [Product](../PRODUCT.md) | Every UI phase | Content review |
-| 72 | Responsive dashboard example | [Design Brief](DESIGN_BRIEF.md) | Phase 3 | Mobile redesign review |
+| 72 | Responsive dashboard example | [Design Brief](DESIGN_BRIEF.md) | Phase 3, implemented | Desktop/mobile Playwright, reduced motion, overflow and keyboard focus; Impeccable detector clean |
 | 73 | Consumer quality bar | [Agents](../AGENTS.md), [Testing](TESTING.md) | Every phase | Phase/release gates |
 | 74 | Phased development | [Implementation Plan](IMPLEMENTATION_PLAN.md) | All | Completion evidence |
 | 75 | Required documentation | [README](../README.md) and all linked docs | Phase 0 onward | Link/existence check |

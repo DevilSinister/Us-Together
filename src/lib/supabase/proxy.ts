@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getSupabaseConfig } from "@/lib/supabase/config";
+import type { Database } from "@/lib/supabase/database.types";
 
 const protectedPaths = ["/home", "/profile", "/onboarding", "/pairing"];
 const authPaths = ["/sign-in", "/sign-up", "/forgot-password"];
@@ -32,7 +33,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   let response = NextResponse.next({ request });
-  const supabase = createServerClient(config.url, config.publishableKey, {
+  const supabase = createServerClient<Database>(config.url, config.publishableKey, {
     cookies: {
       getAll: () => request.cookies.getAll(),
       setAll(cookiesToSet) {

@@ -87,7 +87,6 @@ a, button, input { -webkit-tap-highlight-color: transparent; }
 
 .paper-surface {
   background: var(--card);
-  box-shadow: 0 24px 70px -45px rgba(58, 25, 34, 0.45);
 }
 
 .field-error { color: var(--danger); font-size: 0.875rem; line-height: 1.25rem; }

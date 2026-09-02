@@ -17,12 +17,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <aside className="relative hidden flex-col justify-between overflow-hidden bg-primary p-10 text-primary-foreground lg:flex xl:p-14">
           <BrandMark className="text-primary-foreground" />
           <div className="relative z-10 max-w-lg">
-            <p className="font-display text-6xl leading-[.98] tracking-[-0.03em] xl:text-7xl">A quiet place for everything you’re building together.</p>
+            <p className="font-display text-6xl leading-[1.35] tracking-[-0.03em] xl:text-7xl">A quiet place for everything you’re building together.</p>
             <p className="mt-7 max-w-md text-lg leading-8 text-primary-foreground/78">Private by design, warm by nature, and ready when the next little moment becomes a memory.</p>
           </div>
-          <div className="flex items-center gap-3 text-sm text-primary-foreground/75"><LockKeyhole className="size-4" />Your account is separate. Sharing starts only when you connect a partner.</div>
-          <div className="absolute -bottom-40 -right-32 size-[34rem] rounded-full border border-primary-foreground/10" aria-hidden="true" />
-          <div className="absolute -bottom-20 -right-12 size-[22rem] rounded-full border border-primary-foreground/10" aria-hidden="true" />
+          <div className="relative z-10 flex items-center gap-3 text-sm text-primary-foreground/75"><LockKeyhole className="size-4" />Your account is separate. Sharing starts only when you connect a partner.</div>
+          <div className="pointer-events-none absolute -bottom-40 -right-32 z-0 size-[34rem] rounded-full border border-primary-foreground/10" aria-hidden="true" />
+          <div className="pointer-events-none absolute -bottom-20 -right-12 z-0 size-[22rem] rounded-full border border-primary-foreground/10" aria-hidden="true" />
         </aside>
         <div className="flex flex-col bg-card">
           <header className="flex items-center justify-between border-b px-5 py-4"><Link href="/" className="lg:hidden"><BrandMark /></Link><span className="hidden lg:block" /><ThemeToggle /></header>

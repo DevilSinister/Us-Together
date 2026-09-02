@@ -8,6 +8,7 @@ import { onboardingProfileSchema, pairingCodeSchema, relationshipSchema } from "
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState, writeDeveloperState } from "@/lib/auth/dev-session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/supabase/database.types";
 
 const INVITE_PREVIEW_COOKIE = "us_together_invite_preview";
 const allowedAvatarTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -40,7 +41,7 @@ export async function saveOnboardingProfileAction(_previous: ActionState, formDa
     if (uploadError) return { status: "error", message: "We couldn't upload that photo. Try another image." };
   }
 
-  const profileUpdate: Record<string, string> = {
+  const profileUpdate: Database["public"]["Tables"]["profiles"]["Insert"] = {
     user_id: identity.userId,
     display_name: parsed.data.displayName,
     timezone: parsed.data.timezone,
@@ -88,7 +89,9 @@ export async function createCoupleAction(_previous: ActionState, _formData: Form
     ]);
     const rpc = membership
       ? supabase.rpc("create_pairing_invite")
-      : supabase.rpc("create_couple_with_invite", { started_on: profile?.relationship_started_on ?? null });
+      : profile?.relationship_started_on
+        ? supabase.rpc("create_couple_with_invite", { started_on: profile.relationship_started_on })
+        : supabase.rpc("create_couple_with_invite");
     const { data, error } = await rpc.single();
     if (error || !data) return { status: "error", message: error?.message ?? "We couldn't create your shared space." };
     inviteCode = String((data as { invite_code: string }).invite_code);
@@ -110,8 +113,9 @@ export async function joinCoupleAction(_previous: ActionState, formData: FormDat
     await writeDeveloperState({ ...state, coupleStatus: "paired", inviteCode: undefined, onboardingCompleted: true });
   } else {
     const supabase = await createServerSupabaseClient();
-    const { error } = await supabase.rpc("join_couple_by_code", { pairing_code: parsed.data.pairingCode });
+    const { data, error } = await supabase.rpc("join_couple_by_code", { pairing_code: parsed.data.pairingCode });
     if (error) return { status: "error", message: error.message };
+    if (!data) return { status: "error", message: "That code is invalid, expired, or temporarily blocked." };
     await supabase.from("profiles").update({ onboarding_completed: true }).eq("user_id", identity.userId);
   }
   redirect("/onboarding?step=complete");
@@ -140,4 +144,70 @@ export async function finishSoloOnboardingAction() {
 
 export async function readInvitePreview() {
   return (await cookies()).get(INVITE_PREVIEW_COOKIE)?.value ?? null;
+}
+
+export async function revokePairingInviteAction(_previous: ActionState, _formData: FormData): Promise<ActionState> {
+  void _previous;
+  void _formData;
+  const identity = await getCurrentIdentity();
+  if (!identity) return { status: "error", message: "Your session expired. Sign in again." };
+
+  if (identity.kind === "developer") {
+    const state = await readDeveloperState();
+    if (state.coupleStatus !== "waiting") return { status: "error", message: "There is no active invitation to revoke." };
+    await writeDeveloperState({ ...state, inviteCode: undefined });
+  } else {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase.rpc("revoke_pairing_invite");
+    if (error || !data) return { status: "error", message: "There is no active invitation to revoke." };
+  }
+  (await cookies()).delete(INVITE_PREVIEW_COOKIE);
+  revalidatePath("/pairing");
+  return { status: "success", message: "The invitation has been revoked." };
+}
+
+export async function leaveCoupleAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  if (formData.get("confirmation") !== "LEAVE") return { status: "error", message: "Type LEAVE to confirm." };
+  const identity = await getCurrentIdentity();
+  if (!identity) return { status: "error", message: "Your session expired. Sign in again." };
+
+  if (identity.kind === "developer") {
+    const state = await readDeveloperState();
+    if (state.coupleStatus !== "paired") return { status: "error", message: "You are not connected to a partner." };
+    await writeDeveloperState({
+      ...state,
+      coupleStatus: "solo",
+      partnerProfile: undefined,
+      relationshipStartedOn: "",
+      plans: [],
+      memories: [],
+    });
+  } else {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase.rpc("leave_current_couple");
+    if (error || !data) return { status: "error", message: "We couldn't leave this shared space." };
+  }
+  revalidatePath("/", "layout");
+  redirect("/pairing");
+}
+
+export async function deleteEmptyCoupleAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
+  if (formData.get("confirmation") !== "DELETE") return { status: "error", message: "Type DELETE to confirm." };
+  const identity = await getCurrentIdentity();
+  if (!identity) return { status: "error", message: "Your session expired. Sign in again." };
+
+  if (identity.kind === "developer") {
+    const state = await readDeveloperState();
+    if (state.coupleStatus !== "waiting" || state.plans.length || state.memories.length) {
+      return { status: "error", message: "Only an empty, unpaired space can be deleted." };
+    }
+    await writeDeveloperState({ ...state, coupleStatus: "solo", inviteCode: undefined, relationshipStartedOn: "" });
+  } else {
+    const supabase = await createServerSupabaseClient();
+    const { data, error } = await supabase.rpc("delete_empty_couple");
+    if (error || !data) return { status: "error", message: "Only an empty, unpaired space can be deleted." };
+  }
+  (await cookies()).delete(INVITE_PREVIEW_COOKIE);
+  revalidatePath("/", "layout");
+  redirect("/pairing");
 }

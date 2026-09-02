@@ -27,7 +27,7 @@ npm run test:e2e
 npm run build
 ```
 
-Database verification also includes a clean local reset, migration list/status, generated type drift check, and current Supabase database/security advisors. Exact CLI commands are discovered with `supabase --help` and documented when created.
+Database verification includes clean migration replay on an empty disposable database, migration list/status, generated type drift checks, and current Supabase database/security advisors. ADR-014 adopts hosted verification without requiring Docker/Podman; clean replay and deferred real pairing remain explicitly open until performed. Exact CLI commands are discovered with `supabase --help` and documented when created.
 
 ## Authentication
 
@@ -67,6 +67,12 @@ Mandatory negative cases:
 
 ## Domain behavior
 
+Phase 3 adds deterministic unit coverage for empty and populated dashboards, viewer-timezone relationship day counts in `Asia/Karachi` and `America/Los_Angeles`, stable relevance ordering, and mixed shared/private/secret candidates. `0004_phase3_dashboard_rls.test.sql` specifies cross-couple milestone denial, recipient-only notification reads, immutable notification payloads, preference suppression, and former-member denial. The signed-in Playwright journey creates and features a milestone, marks the generic inbox row read, persists notification preferences, and checks mobile reduced-motion/overflow/focus behavior.
+
+### Phase 4 executed evidence
+
+See [Phase 4 verification](PHASE4_VERIFICATION.md) for the hosted 33-assertion suite, self-cleaning migration, indexed query plan, advisor findings and outstanding simultaneous-session checks. The bucket browser journey uses actual server actions through fictional development sessions, not hosted auth. It covers list/item CRUD, keyboard reorder, completion/progress, filters and conversion/deletion continuity on desktop and mobile.
+
 ### Bucket and plans
 
 - CRUD, validation, filters, ordered subtasks, concurrent reorder, progress
@@ -102,6 +108,8 @@ Mandatory negative cases:
 - R2 vault lock/unlock/timeout/background and Calendar consent/share/disconnect
 
 Run at representative narrow mobile and desktop widths, plus targeted tablet/calendar coverage. Use actual test sessions, not mocked client-only authorization.
+
+Current automated evidence: `tests/e2e/paired-journey.spec.ts` verifies the deterministic connected-partner profile and the direct plan → complete → memory journey on desktop and mobile Chromium, plus mobile reduced-motion, keyboard focus, and horizontal-reflow checks. This fixture exercises real Server Actions but is a development-only session; the two-real-account Supabase browser journey remains a Phase 2 gate.
 
 ## Accessibility and design QA
 

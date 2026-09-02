@@ -19,8 +19,13 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
       <AuthForm action={signInAction} mode="sign-in" />
       {isDeveloperLoginEnabled() ? (
         <div className="mt-6 border-t pt-6">
-          <form action={developerLoginAction}>
-            <Button type="submit" variant="outline" className="w-full">Enter developer preview</Button>
+          <form action={developerLoginAction} className="grid gap-3">
+            <input type="hidden" name="fixture" value="paired" />
+            <Button type="submit" variant="outline" className="w-full">Enter paired preview</Button>
+          </form>
+          <form action={developerLoginAction} className="mt-3">
+            <input type="hidden" name="fixture" value="solo" />
+            <Button type="submit" variant="ghost" className="w-full">Test onboarding from scratch</Button>
           </form>
           <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">Local testing only. This bypass is unavailable in production builds.</p>
         </div>

@@ -33,6 +33,7 @@ Couple, creator, credential kind, strong digest, expiry, maximum/used attempts, 
 ## Dream-to-Memory domain
 
 ### `bucket_lists`, `bucket_list_items`, `bucket_item_subtasks`
+Phase 4 adds monotonic item version, database-derived completion actor/time, max 100 lists per couple and max 50 steps per item. Deferrable (item_id, position) uniqueness allows atomic reorder; a parent lock/version check prevents stale overwrites. Children cannot be reparented. delete_empty_bucket_list locks and refuses populated lists; item deletion cascades steps while plan/memory source FKs become null. create_plan_from_bucket and create_memory_from_bucket lock the source and return existing linked records on retry. All new RPCs are security invokers, revoked from public/anon and granted only to authenticated users, with ownership-aware RLS providing actual authorization. Category/status/list cursor indexes support bounded UUID ordering. See ADR-015 and [verification](PHASE4_VERIFICATION.md).
 
 Lists belong to a couple. Items include creator, list, title, description, category, priority, cost/currency, target date, location, status, completion actor/time, and timestamps. Subtasks include item, label, completed state, stable order key, and timestamps.
 
@@ -40,9 +41,9 @@ Lists belong to a couple. Items include creator, list, title, description, categ
 
 Plans include couple, creator, optional source bucket item, type/status, title/description, start/end instants, originating timezone, location/map fields, coordinates, budget/currency, and timestamps. Checklist items have stable ordering. Reminders store due instant, channel, processing state, deterministic delivery key, attempts, and delivered timestamp.
 
-### `memories`, `memory_media`, `memory_tags`
+### `memories`, `memory_media`, `memory_tags`, `memory_tag_links`
 
-Memories include couple, creator, optional source bucket/plan, title/description, date, location/coordinates, rating, favorite, and timestamps. Media contains memory, private storage path, media type, MIME, size, dimensions/duration, derivative path, creator, and timestamps. Tags are relational; do not encode the collection as an opaque JSON state.
+Memories include couple, creator, optional source bucket/plan, title/description, date, location/coordinates, rating, favorite, and timestamps. Media contains memory, private storage path, media type, MIME, size, dimensions/duration, derivative path, creator, and timestamps. `memory_tags` is a couple-scoped tag catalog and `memory_tag_links` is the many-to-many join; tags are never encoded as an opaque JSON state.
 
 Source relationships are nullable foreign keys. Deleting a source should normally preserve the memory and null or restrict the link according to the confirmed deletion UX; it must not cascade-delete meaningful memories.
 
@@ -66,11 +67,11 @@ Private notes select only for author. Surprise notes select for author and, afte
 
 ### `milestones`
 
-Couple, creator, title/description, date, type, featured state, timestamps.
+Couple, immutable creator, title/description, date, constrained type, featured state, and timestamps. Active members can read, update, or delete shared milestones; inserts derive the creator from `auth.uid()`. Date/ID, creator, and featured access paths are indexed.
 
-### `notifications`
+### `notifications`, `notification_preferences`
 
-Recipient user, couple, type, title/body, safe reference type/ID, read time, timestamps. Creation services must prove the recipient may discover the referenced record. Secret records cannot be referenced.
+Notifications store recipient user, optional couple, constrained category, a generic non-content title, safe target type/ID, idempotency key, read time, and creation time. They deliberately do not copy shared titles, descriptions, note bodies, or other private payloads. Couple notifications remain selectable only while the recipient is both the row owner and an active member; only read state is mutable by the client. Milestone creation fans out a generic envelope to eligible partners and respects current preferences. `notification_preferences` is keyed by `user_id`, created for every auth user, and protected by owner-only select/insert/update policies.
 
 ### `audit_events`
 
@@ -148,7 +149,8 @@ Avoid redundant indexes and review RLS predicate indexes. Run Supabase/Postgres 
 ## Deletion and retention
 
 - Hard deletion is appropriate for revocable credentials and explicitly deleted drafts when no audit/legal requirement exists.
-- Shared couple data requires a documented choice during leave/delete: ownership transfer, retained shared access, export then deletion, or scheduled deletion. Implementation must not invent this silently.
+- On leave, the departing membership receives `left_at` immediately and RLS access ends; shared couple data remains for the continuing active member (ADR-012).
+- Hard deletion is limited to a one-member couple with no bucket lists, plans, or memories. Populated-couple deletion/export remains a later controlled workflow.
 - User deletion first revokes sessions. Auth deletion alone does not guarantee existing access-token invalidation.
 - Audit events retain minimal metadata for a defined period; content is never copied into them.
 - Signed URLs expire naturally; storage objects and metadata are removed consistently by idempotent cleanup.
@@ -156,3 +158,13 @@ Avoid redundant indexes and review RLS predicate indexes. Run Supabase/Postgres 
 ## Migration workflow
 
 Discover the current Supabase CLI commands with `--help`. Create named migrations through the CLI, iterate locally, run advisors, reset from zero, review the diff, verify the migration list, regenerate database types, and commit migration plus generated types together. Production schema changes are never made manually without a matching migration.
+
+## Implemented plans and memories slice
+
+Migration `20260901024653_plans_memories.sql` establishes the normalized prerequisite bucket tables, plans/checklists/reminders, memories/tags/media, immutable couple/creator keys, same-couple provenance triggers, explicit authenticated Data API grants, operation-specific RLS policies, FK/composite/partial indexes, and the private `memory-media` bucket. Storage paths use `couple_id/memory_id/object-name`; the private policy parses both identifiers, proves that the memory matches the couple, and then checks active membership. Path shape alone never authorizes access.
+
+The migration deliberately prepares reminder and media boundaries before their delivery/upload UI. It does not claim that reminder jobs, upload finalization, derivatives, or signed media viewers are complete.
+
+## Implemented pairing lifecycle hardening
+
+Migration `20260901112427_pairing_lifecycle_hardening.sql` moves privileged pairing logic into the private schema and leaves only security-invoker wrappers in `public`. It adds account and invitation attempt counters, temporary blocking, invite-creation cooldown, revocation/leave/empty-delete functions, a single self-or-partner profile SELECT policy, and indexes for previously uncovered foreign keys. Invitation rows remain RLS-enabled with no Data API table grants because all access is RPC-only. Hosted security advisors are clear of function/RLS warnings; leaked-password protection remains a project setting to enable before launch.

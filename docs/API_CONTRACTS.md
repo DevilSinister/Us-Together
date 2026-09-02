@@ -50,16 +50,22 @@ Authorization failures may map to `NOT_FOUND` when `FORBIDDEN` would disclose a 
 
 Pairing verification and redemption are rate-limited by account, credential digest, and network signals as appropriate. Attempt counts update atomically.
 
+Implemented now: public Data API functions are security-invoker wrappers around revoked, authenticated private-schema implementations. `create_couple_with_invite` and `create_pairing_invite` issue a raw six-digit code once while storing only SHA-256; invite creation has a one-minute account cooldown. `join_couple_by_code` uses an atomic ten-minute account window with a fifteen-minute block after repeated attempts plus a per-invitation maximum, returning one generic invalid/expired/blocked result. `revoke_pairing_invite`, `leave_current_couple`, and `delete_empty_couple` implement ADR-012. Network-signal throttling remains an application/edge concern before public launch.
+
 ## Bucket and plan actions
 
-- `createBucketItem`, `updateBucketItem`, `deleteBucketItem`
-- `reorderBucketSubtasks` with item version/precondition to prevent lost updates
-- `completeBucketItem` with idempotency key
+Phase 4 list/item/step actions return { ok, message, id? }. filterBucketItems validates list/status/priority/category/cursor and returns { page?, error? }, with 12 rows and a next UUID cursor. Filters stay in the request body. List/item deletion requires literal DELETE; lists must be empty. Conversion forms prefill content but commit only on submit. Completed-idea memory creation calls create_memory_from_bucket; both conversion RPCs are security invokers and retry on source identity. No supplied actor/couple field is accepted.
+
+- Implemented `mutateBucket(unknown)`: discriminated Zod operations `createList`, `renameList`, `deleteList`, `createItem`, `updateItem`, `deleteItem`, `completeItem`, `subtask`
+- `subtask` kinds `add`, `update`, `delete`, `reorder`: item UUID/version and complete ordered-ID permutation; server session supplies identity; database locks/checks the parent
+- `completeItem` uses item UUID and expected version; an already-completed item returns success without duplicate completion
 - `createPlan`, `updatePlan`, `cancelPlan`, `deletePlan`
 - `createPlanFromBucketItem` returning the existing link on safe retry
 - `completePlan`
 
 Inputs accept public record IDs only as lookup keys. The server loads the row under RLS and checks couple membership. Date inputs include ISO instants and IANA timezone when local interpretation matters. Money input is validated as currency plus minor units/fixed precision.
+
+Implemented now: `createPlanAction` derives a couple with exactly two active partners from the authenticated session, validates form data with Zod, resolves local date/time through the supplied IANA timezone, rejects DST gaps and invalid intervals, converts money to integer minor units, and creates only an RLS-visible row. `completePlanAction` reloads the public plan ID under RLS before recording the authenticated actor and completion instant. With `sourceBucketId`, `createPlanAction` instead calls the RLS-protected, source-locking `create_plan_from_bucket` RPC and returns the existing linked plan on retry. Any active membership can operate on retained shared ideas, including the continuing member after leave. Full plan update/cancel/delete remains planned.
 
 ## Memory and media contracts
 
@@ -71,6 +77,8 @@ Inputs accept public record IDs only as lookup keys. The server loads the row un
 - `getMemoryMediaUrl` returns a short-lived signed URL after authorization
 
 Client-supplied storage paths are never used directly. Upload/finalize has an expiry and cannot attach an object from another couple or feature.
+
+Implemented now: `createMemoryAction` supports direct creation and completed-plan provenance. The server reloads a source plan under RLS, requires completion, derives its couple, and returns the existing memory on a safe retry. The metadata schema and private Storage policy are present; upload authorization/finalization and signed URL actions remain deliberately unavailable in the UI until their verification suite exists.
 
 ## Wishlist and note actions
 
@@ -84,6 +92,8 @@ Purchase-secret results are returned only to the purchaser and never embedded in
 ## Notifications and dashboard reads
 
 Dashboard data is composed server-side from individually authorized queries or security-invoker projections. It returns only display-ready safe summaries. Notification references are dereferenced only if the recipient can still access the target; otherwise the notification is removed or shown without leaking content.
+
+Implemented Phase 3 server actions are `createMilestoneAction`, `markNotificationReadAction`, and `updateNotificationPreferencesAction`. Each derives identity and ownership from the authenticated server session, validates form boundaries, relies on RLS for the final row check, and revalidates only affected routes. The Home projection reads only allow-listed shared tables; private and secret candidate classes are filtered before relevance selection and never affect counts. Notification records contain a generic event title and target pointer, so opening the target performs a fresh authorization check rather than trusting inbox content.
 
 ## Route Handlers
 

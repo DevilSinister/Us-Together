@@ -9,7 +9,7 @@ select col_is_pk('public', 'profiles', 'user_id', 'profile owner is the primary 
 select policies_are(
   'public',
   'profiles',
-  array['profiles_insert_own', 'profiles_select_own', 'profiles_update_own'],
+  array['profiles_insert_own', 'profiles_select_self_or_partner', 'profiles_update_own'],
   'profiles has only the intended owner policies'
 );
 select table_privs_are(

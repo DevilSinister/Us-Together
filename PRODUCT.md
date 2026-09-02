@@ -32,7 +32,7 @@ Us Together connects planning, personal knowledge, surprises, and memories aroun
 - Mobile use is critical for quick additions, media uploads, reminders, and viewing plans while away from home.
 - Dates and scheduled delivery are stored in UTC and displayed in each user's configured timezone.
 - The launch language is English, with locale-aware dates and ISO currency codes. Multilingual UI is future work.
-- The production target is Vercel plus managed Supabase, with a local Supabase development workflow.
+- The production target is Vercel plus managed Supabase. Development and database verification use the confirmed hosted project without requiring Docker/Podman; real-account pairing is deferred to final integration (ADR-014).
 
 ## Capabilities and Constraints
 
@@ -70,7 +70,7 @@ The visual commitment is premium, cozy, romantic, and modern, using rose/pink la
 
 ## Evidence on Hand
 
-The master product prompt supplied by the project owner is the only product source at this stage. There is no implemented interface, user research, production data, logo, photography library, customer proof, pricing, or performance benchmark. Future work must not fabricate those forms of evidence.
+The product-owner prompt remains the primary discovery input. Shipped evidence now includes responsive auth/onboarding/pairing, a privacy-safe relationship dashboard, basic milestones and content-minimal notifications/preferences, the direct Plan-to-Memory slice, a managed Supabase schema, and automated desktop/mobile browser coverage. There is still no user research, production customer data, final logo/photography library, customer proof, pricing, or performance benchmark; future work must not fabricate them.
 
 ## Product Principles
 

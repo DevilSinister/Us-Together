@@ -2,6 +2,8 @@
 
 ## Delivery method
 
+Current workflow (ADR-014, 2026-09-02): use hosted Supabase without Docker/Podman; real two-account pairing is deferred to final integration by user direction. Earlier phase status paragraphs retain historical evidence and do not require installing a local runtime. Clean migration replay and genuinely concurrent-session checks remain open release obligations, not silently passed tests.
+
 Work in small, deployable phases. A phase is complete only after its behavior, security policies, negative tests, accessibility, documentation, migrations, lint, types, tests, and production build all pass. Never start a dependent phase on a knowingly broken foundation.
 
 Before each phase, read [Agent Instructions](../AGENTS.md), query an existing Graphify graph, check current platform documentation, and confirm the relevant decisions in [Decisions](DECISIONS.md).
@@ -16,7 +18,7 @@ Exit gate: all documented requirements are assigned to MVP, R2, Later, or an exp
 
 ## Phase 1 — Foundation
 
-Status: **implemented, pending local-database gate**. The application, authentication/profile contracts, PWA/theme shell, migration, pgTAP specification, responsive browser QA, lint, types, unit tests, and production build are complete. A clean database reset, live RLS execution, generated database types, and advisors remain blocked until a Docker-compatible local runtime is available.
+Status: **implemented, hosted migration applied; local-database gate pending**. The application, authentication/profile contracts, PWA/theme shell, migrations, generated hosted database types, responsive Playwright QA, lint, unit tests, and production build are complete. Foundation, onboarding, Plans/Memories, and pairing-hardening migrations are applied to the verified managed Us-Together project. A clean local reset and pgTAP execution remain pending because Docker/Podman is unavailable. The in-app browser runtime also fails during Windows sandbox startup; Playwright desktop/mobile coverage and a clean rendered Impeccable detector pass provide the current UI evidence.
 
 - Create Next.js App Router project with strict TypeScript and pinned lockfile.
 - Configure Tailwind, customized shadcn/ui foundation, lint, formatting policy, unit tests, browser tests, and build/typecheck scripts.
@@ -31,7 +33,7 @@ Rollback: application deployment may roll back only while schema remains backwar
 
 ## Phase 2 — Couple system and onboarding
 
-Status: **in progress**. The normalized couple/membership/invitation migration, capacity trigger, hashed short-lived pairing-code functions, onboarding UI, avatar upload contract, and local developer preview are implemented. Hosted migration verification, two-account browser tests, rate limiting, revocation UI, and leave/delete behavior remain before the phase gate can close.
+Status: **in progress; lifecycle implementation complete, local/concurrency gates pending**. The normalized couple/membership/invitation model, capacity trigger, hashed short-lived pairing codes, account/credential attempt limits, invite cooldown/revocation, leave behavior, empty-couple deletion, partner-aware UI, deterministic Alex + Maya fixture, and hosted advisor verification are implemented. The remaining phase blockers are a clean local migration reset/pgTAP run, a concurrent-final-slot test, and a real two-Supabase-account browser journey (the current browser journey uses the server-only developer fixture).
 
 - Add couples, memberships, invitations, transactionally enforced two-member capacity, and RLS.
 - Implement link/code creation, redemption, revocation, expiry, attempt limits, and rate limiting.
@@ -42,6 +44,8 @@ Exit gate: every pairing negative scenario passes through database/API, not only
 
 ## Phase 3 — Dashboard and milestones
 
+Status: **implemented, hosted migrations applied; local-database gate pending**. The relationship counter uses viewer-timezone calendar dates; Home composes bounded, membership-authorized plan, memory, milestone, bucket-progress, and generic-notification reads. Basic milestone create/list/feature flows, real quick actions, empty/unpaired states, a recipient-owned notification inbox, and user-owned category preferences are shipped. Unit tests cover empty, populated, stable relevance, both timezone edges, and mixed shared/private/secret candidates; Playwright covers the paired desktop/mobile journey and reduced motion. The hosted schema and advisors were verified. Local reset and pgTAP execution remain pending because Docker/Podman is unavailable, while hosted pgTAP requires a Supabase CLI access token not available to this session.
+
 - Add basic milestones, relationship counter, relevance selection, dashboard projections, quick actions, and empty states.
 - Ensure projections cannot count or reveal private/secret content.
 - Add first useful in-app notification records and preferences foundation.
@@ -49,6 +53,8 @@ Exit gate: every pairing negative scenario passes through database/API, not only
 Exit gate: dashboard tests cover empty, new, populated, and mixed-privacy couples in both timezones.
 
 ## Phase 4 — Bucket lists
+
+Status: **implemented; hosted negative suite passed, final integration gates open**. Lists/items/steps CRUD, category/priority/status filters, progress, accessible reorder and retry-safe plan/memory conversion are implemented. Hosted migrations, generated types, advisors and indexed query plans are verified; 33 pgTAP assertions pass. Docker/Podman is not required (ADR-014). Clean-from-zero replay, true overlapping-session timing and real-account pairing are not claimed. See [Phase 4 verification](PHASE4_VERIFICATION.md).
 
 - Add lists, items, categories, priorities, ordered subtasks, progress, filters, and completion.
 - Implement accessible reordering and idempotent conversion foundation.
@@ -58,6 +64,8 @@ Exit gate: CRUD, reorder, concurrency, cross-couple, and progress calculations p
 
 ## Phase 5 — Plans and internal calendar
 
+Status: **in progress (provenance-first vertical slice)**. The normalized plans, checklist, reminder, bucket-provenance schema, ownership-aware RLS, indexed upcoming access path, validated direct-plan action, responsive upcoming list, completion action, and plan-to-memory handoff are implemented. Month/week calendar views, checklist/reminder editing, reminder delivery, full plan CRUD/detail surfaces, and hosted database/browser verification remain open. This slice does not close Phases 3–4 or the Phase 5 gate.
+
 - Add plans, types/statuses, checklist, reminders, location, budget, attachments, and bucket linkage.
 - Build month, week, and upcoming views with mobile-specific behavior.
 - Implement timezone/DST validation and due-reminder job architecture.
@@ -65,6 +73,8 @@ Exit gate: CRUD, reorder, concurrency, cross-couple, and progress calculations p
 Exit gate: conversion, interval, timezone, reminder idempotency, and calendar browser tests pass.
 
 ## Phase 6 — Memories and media
+
+Status: **in progress (story-first vertical slice)**. The normalized memory, tag, tag-link, and media metadata schema, private `memory-media` bucket, membership-and-memory-bound Storage policies, direct memory action, bounded gallery, favorite/rating fields, and idempotent completed-plan provenance flow are implemented. Attachment authorization/finalization UI, binary signature inspection, derivatives, signed viewers, cleanup, full CRUD/detail surfaces, and hosted storage/browser verification remain open. The UI states this boundary explicitly and does not present a fake uploader.
 
 - Add memories, tags, source relationships, private storage policies, media records, upload validation, derivatives, galleries, and viewers.
 - Complete bucket/plan-to-memory continuity.

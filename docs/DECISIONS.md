@@ -82,15 +82,62 @@ Status values: `Proposed`, `Accepted`, `Superseded`, `Rejected`. New records inc
 
 **Consequences:** Zod validation and authorization live in server/domain boundaries. Contracts must avoid framework-specific leakage into domain logic.
 
+## ADR-011 — Provenance-first plans and memories slice
+
+**Status:** Accepted
+
+**Context:** Plans and memories are the product's essential continuity mechanism, while the formal delivery plan places them after dashboard and bucket-list UI phases.
+
+**Decision:** Implement a secure vertical slice without declaring skipped phase gates complete. Establish the normalized bucket provenance tables and full plan/memory security boundaries first; expose direct plan creation, completion, direct memory creation, and idempotent completed-plan-to-memory flow. Keep checklist/reminder/media upload controls unavailable until their complete services and tests exist.
+
+**Consequences:** The core Dream-to-Memory loop is usable earlier, source links are durable, and no fake controls are shipped. Phase 3–4 work and the remaining Phase 5–6 gates stay explicit blockers rather than being silently reclassified.
+
+## ADR-012 — Couple leave and empty-space deletion
+
+**Status:** Accepted
+
+**Context:** Pairing lifecycle controls need deterministic post-leave ownership behavior without weakening tenant isolation or silently deleting shared history.
+
+**Decision:** Leaving immediately ends the departing user's active membership and therefore all RLS-backed access. Shared plans, memories, milestones, and other couple-owned records remain accessible to the continuing active member. A couple may be hard-deleted only while it has exactly one active member and no shared bucket lists, plans, memories, or milestones. Invite revocation does not delete the couple.
+
+**Consequences:** The remaining partner retains the shared record; the departing partner must be invited into another couple to regain shared access. Full account deletion/export and policy for deleting a populated sole-member couple remain Phase 8 workflows requiring stronger confirmation and operational handling.
+
+## ADR-013 — Content-minimal dashboard notifications
+
+**Status:** Accepted
+
+**Context:** Dashboard previews and notifications are useful but create an inference channel if they copy private titles, bodies, counts, or secret state outside the source record's authorization boundary.
+
+**Decision:** Compose Home server-side from an allow-list of shared, RLS-protected tables and filter non-shared projection candidates before relevance or counting. Store notifications as recipient-owned generic event envelopes with a category, safe target pointer, read state, and idempotency key; never copy source content. Opening a notification must read the target again through its current authorization policy. Couple notifications also require current active membership.
+
+**Consequences:** Former members and users with hidden content cannot infer its existence through Home or the inbox. Notification copy is intentionally less descriptive, and every future category must add authorization and negative-inference tests before fan-out is enabled.
+
 ## Open decisions
 
 - Billing/pricing and legal/retention requirements
 - Final brand identity, logo, imagery, and product domain
-- Exact leave/couple-deletion shared-data policy before lifecycle implementation
 - Initial numeric quotas, rate limits, signed URL lifetime, and backup objectives after platform measurement
 - Rich-text representation for notes
 - Background-job mechanism after current platform evaluation
 - Future AI provider, consent, retention, and evaluation policy
+
+## ADR-014 — Hosted verification; pairing deferred to final integration
+
+**Status:** Accepted, 2026-09-02, explicit user direction.
+
+**Context:** This workstation will not use Docker or Podman. The user asked to consult other project runbooks in the Obsidian vault, proceed with Phase 4, and pair real accounts at the end. Those runbooks support reviewed hosted migrations with honest verification evidence.
+
+**Decision:** Use the confirmed managed Us-Together project for authorized migrations, schema/type checks, rollback-only fictional RLS fixtures, and advisors. Store its reference only in ignored `.env.local` as `SUPABASE_PROJECT_ID`. Verify project identity before every write; a connector's project listing is not authoritative when an exact supplied reference resolves successfully. Never apply this project's migrations to another listed project.
+
+**Consequences:** Docker/Podman is not a delivery prerequisite. A clean-from-zero reset remains a release reproducibility check on a disposable hosted test branch/project (or optional local runtime), not a reason to install containers here. Real two-account pairing and concurrent-final-slot checks are deferred to the final integration session, not marked passed. Existing earlier phase reports describe historical evidence; this decision supersedes their local-runtime prerequisites.
+
+## ADR-015 — Versioned bucket edits and transactional continuity
+
+**Status:** Accepted, 2026-09-02.
+
+**Decision:** Keep lists, ideas, and steps normalized. An idea carries a monotonic version changed by item and step mutations. Step RPCs lock the parent before checking the version and validate the complete reorder permutation. Source-locking conversion RPCs return the existing plan/direct memory on retry. Completion derives actor and time from the database session. Deleting an idea removes steps but preserves plans/memories with nullable source links; a list must be empty before deletion.
+
+**Consequences:** Stale edits fail visibly instead of overwriting another partner's work. Bound lists to 100 per couple, steps to 50 per idea, and idea pages to 12 with UUID cursor ordering. This is stable identifier order, not a claim of newest-first chronology. Category filtering travels in a server-action body, never a URL. Sequential stale-version/retry tests prove rejection and idempotency; simultaneous-session timing remains a separate verification obligation.
 
 ## ADR template
 
