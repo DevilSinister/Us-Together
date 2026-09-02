@@ -4,7 +4,15 @@ import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState } from "@/lib/auth/dev-session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { bucketPreview } from "./preview";
-import { bucketFilterSchema, bucketPageSize, type BucketItem, type BucketList, type BucketPage } from "./schema";
+import {
+  DEFAULT_BUCKET_CATEGORIES,
+  bucketFilterSchema,
+  bucketPageSize,
+  type BucketItem,
+  type BucketList,
+  type BucketPage,
+} from "./schema";
+
 
 export async function bucketContext() {
   const identity = await getCurrentIdentity();
@@ -48,6 +56,7 @@ export async function loadBucketPage(input: unknown): Promise<BucketPage> {
   const items = rows.slice(0, bucketPageSize);
   return { items, next: rows.length > bucketPageSize ? items.at(-1)!.id : null };
 }
+
 export async function loadBucketItem(id: string) {
   if (!z.uuid().safeParse(id).success) return null;
   const context = await bucketContext();
@@ -61,4 +70,28 @@ export async function loadBucketItem(id: string) {
   const { data: subtasks, error: taskError } = await context.db.from("bucket_item_subtasks").select("*").eq("item_id", item.id).order("position").limit(50);
   if (taskError) throw new Error("We couldn't load the steps. Try again.");
   return { item, subtasks };
+}
+
+
+export async function loadBucketCategories(): Promise<string[]> {
+  const context = await bucketContext();
+  let existingCategories: string[] = [];
+  if (context.kind === "preview") {
+    existingCategories = context.preview.items
+      .map((item) => item.category)
+      .filter((cat): cat is string => Boolean(cat && cat.trim().length > 0));
+  } else {
+    const { data, error } = await context.db
+      .from("bucket_list_items")
+      .select("category")
+      .eq("couple_id", context.coupleId)
+      .not("category", "is", null);
+    if (!error && data) {
+      existingCategories = data
+        .map((row) => row.category)
+        .filter((cat): cat is string => Boolean(cat && cat.trim().length > 0));
+    }
+  }
+  const set = new Set([...DEFAULT_BUCKET_CATEGORIES, ...existingCategories]);
+  return Array.from(set).sort((a, b) => a.localeCompare(b));
 }

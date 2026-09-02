@@ -12,12 +12,13 @@ export default defineConfig({
     trace: "retain-on-failure",
   },
   webServer: {
-    command: "npm run dev",
+    command: process.platform === "win32" ? "cmd /c npm run dev" : "npm run dev",
     url: "http://127.0.0.1:3000/sign-in",
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
     env: { ...process.env, DEV_LOGIN_ENABLED: "true" },
   },
+
   projects: [
     { name: "desktop-chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile-chromium", use: { ...devices["Pixel 7"] } },

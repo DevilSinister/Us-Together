@@ -83,6 +83,8 @@ body {
 
 a, button, input { -webkit-tap-highlight-color: transparent; }
 
+body:has(dialog[open]) { overflow: hidden; }
+
 .font-display { font-family: var(--font-display); }
 
 .paper-surface {

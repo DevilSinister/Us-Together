@@ -2,7 +2,17 @@ import { z } from "zod";
 import type { Database } from "@/lib/supabase/database.types";
 export const bucketStatuses = ["idea", "planned", "in_progress", "completed"] as const;
 export const bucketPriorities = ["low", "medium", "high", "dream"] as const;
+export const DEFAULT_BUCKET_CATEGORIES = [
+  "Travel & Getaways",
+  "Food & Dining",
+  "Little Rituals",
+  "Outdoors & Adventures",
+  "Home & Cozy",
+  "Arts & Culture",
+  "Milestones",
+] as const;
 export const bucketPageSize = 12;
+
 const optionalText = (max: number) => z.string().trim().max(max).transform((value) => value || null);
 export const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) => {
   const date = new Date(`${value}T12:00:00Z`);

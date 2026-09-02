@@ -20,8 +20,8 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 12 | Plan details/checklist | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 5 | Checklist/detail tests |
 | 13 | Calendar views | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 5 | Timezone/responsive tests |
 | 14 | Google Calendar | [Google Calendar](GOOGLE_CALENDAR.md) | R2 | OAuth/privacy suite |
-| 15 | Bucket lists/items | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 4 implemented | Hosted 33-assertion RLS suite; desktop/mobile CRUD/filter journey |
-| 16 | Bucket subtasks | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 4 implemented | Keyboard reorder/progress; hosted stale-version rejection; overlapping-session timing open |
+| 15 | Bucket lists/items | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 4 implemented | Hosted 33-assertion RLS suite; desktop/mobile CRUD/filter journey; [Options/edit refinement](BUCKET_UI_REFINEMENT.md) |
+| 16 | Bucket subtasks | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 4 implemented | Keyboard reorder/progress; 320px/tablet editing targets; hosted stale-version rejection; overlapping-session timing open |
 | 17 | Bucket to plan | [UX Flows](UX_FLOWS.md), [API Contracts](API_CONTRACTS.md) | Phases 4–5 | Source-locking conversion, retry uniqueness and desktop/mobile handoff verified |
 | 18 | Bucket to memory | [UX Flows](UX_FLOWS.md), [Features](FEATURES.md) | Phase 4 story conversion; Phase 6 media | Completed-bucket conversion/retry verified; media upload remains open |
 | 19 | Wishlist | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 7 | Owner/partner matrix |
@@ -53,7 +53,7 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 45 | Dark mode | [Design Brief](DESIGN_BRIEF.md) | Phase 1 | Contrast/system tests |
 | 46 | Animation/reduced motion | [Design Brief](DESIGN_BRIEF.md) | All UI phases | Reduced-motion review |
 | 47 | Responsive design | [Design Brief](DESIGN_BRIEF.md), [Testing](TESTING.md) | All UI phases | Mobile/desktop E2E |
-| 48 | Accessibility | [Design Brief](DESIGN_BRIEF.md), [Testing](TESTING.md) | Every phase | WCAG 2.2 AA checks |
+| 48 | Accessibility | [Design Brief](DESIGN_BRIEF.md), [Testing](TESTING.md) | Every phase | WCAG 2.2 AA checks; bucket dialog Tab loop, Escape/focus return, labeled controls and reduced-motion browser checks |
 | 49 | Security controls | [Security](SECURITY.md) | Every phase | Threat/negative suites |
 | 50 | Environment variables | [Setup](SETUP.md), [Deployment](DEPLOYMENT.md) | Phase 1/R2 | Env validation/secret scan |
 | 51 | Error handling | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Every feature | Failure-state tests |

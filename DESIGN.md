@@ -213,6 +213,12 @@ Controls use gently curved 0.5rem corners. Navigation selections soften to 0.875
 - **Focus:** Border shifts to deep wine and adds a translucent rose ring.
 - **Error / Disabled:** Error messaging uses a separate danger color and text, not color alone; disabled fields lower opacity and show a not-allowed cursor.
 
+### Bucket Dialogs
+
+Bucket-list Options and in-place idea editing use one focused, warm card-paper dialog. Options moves between list browsing, creation and management with an explicit Back action, never stacked dialogs. Native modal behavior makes the background inert; Tab cycles inside, Escape closes, and focus returns to the opener. Long forms scroll inside a viewport-bounded surface with a persistent close control. Pending mutations disable dismissal; failed saves keep the form and show feedback inside it.
+
+Applied filters remain visible as removable blush controls above the idea rows. The empty first list has a direct creation action. Step editing retains visible Save controls and 44px checkbox/reorder targets; narrow screens put reorder actions below the input instead of compressing it.
+
 ### Navigation
 
 Desktop navigation lives in the warm card-paper sidebar and uses quiet blush to mark the active destination. Mobile navigation is fixed to the bottom safe area, uses the same paper tone with a fine top rule, and pairs icons with compact labels. All navigation targets meet the 44px minimum touch height.
