@@ -196,7 +196,7 @@ export function ItemDetail({
                   newOrdered.splice(index, 0, moved);
                   step("reorder", null, "", false, newOrdered);
                 }}
-                className="grid grid-cols-[2.75rem_minmax(0,1fr)] items-center gap-x-1 px-2 py-2 lg:flex lg:gap-2 lg:px-3 hover:bg-secondary/40 transition-colors"
+                className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-x-1 px-2 py-2 lg:flex lg:gap-2 lg:px-3 hover:bg-secondary/40 transition-colors"
               >
                 {/* Drag Handle */}
                 <div
@@ -264,12 +264,12 @@ export function ItemDetail({
                 </form>
 
                 {/* Keyboard / Compact Actions */}
-                <div className="col-start-2 flex shrink-0 items-center justify-end gap-1">
+                <div className="contents lg:flex lg:shrink-0 lg:items-center lg:gap-1">
                   <Button
                     variant="ghost"
                     size="sm"
                     type="button"
-                    className="size-11 p-0 text-muted-foreground hover:text-foreground"
+                    className="hidden size-11 p-0 text-muted-foreground hover:text-foreground lg:inline-flex"
                     disabled={pending || index === 0}
                     aria-label={`Move ${task.label} up`}
                     onClick={() =>
@@ -292,7 +292,7 @@ export function ItemDetail({
                     variant="ghost"
                     size="sm"
                     type="button"
-                    className="size-11 p-0 text-muted-foreground hover:text-foreground"
+                    className="hidden size-11 p-0 text-muted-foreground hover:text-foreground lg:inline-flex"
                     disabled={pending || index === subtasks.length - 1}
                     aria-label={`Move ${task.label} down`}
                     onClick={() =>
@@ -315,7 +315,7 @@ export function ItemDetail({
                     variant="ghost"
                     size="sm"
                     type="button"
-                    className="size-11 p-0 text-muted-foreground hover:text-danger"
+                    className="col-start-3 row-start-1 size-11 p-0 text-muted-foreground hover:text-danger lg:col-auto lg:row-auto"
                     disabled={pending}
                     aria-label={`Remove step ${task.label}`}
                     onClick={() => step("delete", task)}

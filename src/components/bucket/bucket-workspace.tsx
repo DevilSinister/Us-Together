@@ -128,7 +128,7 @@ export function BucketWorkspace({ lists, initialPage, categories = DEFAULT_BUCKE
               </div>
               <fieldset className="border-t border-border pt-5">
                 <legend className="sr-only">Filter ideas</legend>
-                <div className="grid gap-4 min-[360px]:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block space-y-2 text-sm font-semibold">Status
                     <select aria-label="Status" className={bucketFieldClass} value={draft.status} disabled={pending} onChange={(event) => setDraft({ ...draft, status: event.target.value as BucketFilter["status"] })}>
                       <option value="">Any status</option>
@@ -141,7 +141,7 @@ export function BucketWorkspace({ lists, initialPage, categories = DEFAULT_BUCKE
                       {bucketPriorities.map((value) => <option key={value} value={value}>{bucketLabel(value)}</option>)}
                     </select>
                   </label>
-                  <label className="block space-y-2 text-sm font-semibold min-[360px]:col-span-2">Category
+                  <label className="block space-y-2 text-sm font-semibold sm:col-span-2">Category
                     <select aria-label="Category" className={bucketFieldClass} value={draft.category} disabled={pending} onChange={(event) => setDraft({ ...draft, category: event.target.value })}>
                       <option value="">Any category</option>
                       {allCategories.map((category) => <option key={category} value={category}>{category}</option>)}

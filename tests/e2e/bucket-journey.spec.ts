@@ -34,9 +34,13 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(page.getByText("By the water", { exact: true })).toBeVisible();
   for (const label of ["Choose a viewpoint", "Pack coffee"]) { await page.getByLabel("Next little step").fill(label); await page.getByRole("button", { name: "Add step", exact: true }).click(); await expect(page.getByLabel("Next little step")).toHaveValue(""); }
-  await page.getByRole("button", { name: "Move Pack coffee up" }).focus();
-  await page.keyboard.press("Enter");
-  await expect(page.getByLabel("Step 1", { exact: true })).toHaveValue("Pack coffee");
+  if (testInfo.project.name === "desktop-chromium") {
+    await page.getByRole("button", { name: "Move Pack coffee up" }).focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByLabel("Step 1", { exact: true })).toHaveValue("Pack coffee");
+  } else {
+    await expect(page.getByLabel("Step 2", { exact: true })).toHaveValue("Pack coffee");
+  }
   await page.getByRole("checkbox", { name: "Complete Pack coffee" }).click();
   await expect(page.getByRole("checkbox", { name: "Complete Pack coffee" })).toBeChecked();
   await expect(page.getByText("1 of 2 complete", { exact: true })).toBeVisible();
@@ -50,6 +54,13 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
     const stepBox = await page.getByLabel("Step 2", { exact: true }).boundingBox();
     expect(stepBox!.width).toBeGreaterThan(100);
+    if (width === 320) {
+      await expect(page.getByRole("button", { name: "Move Find a quiet viewpoint up" })).toBeHidden();
+      await expect(page.getByRole("button", { name: "Move Find a quiet viewpoint down" })).toBeHidden();
+      const inputBox = await page.getByLabel("Step 2", { exact: true }).boundingBox();
+      const removeBox = await page.getByRole("button", { name: "Remove step Find a quiet viewpoint" }).boundingBox();
+      expect(Math.abs(inputBox!.y - removeBox!.y)).toBeLessThanOrEqual(8);
+    }
   }
   await page.setViewportSize(viewport);
   await page.screenshot({ path: `test-results/bucket-detail-${testInfo.project.name}.png`, fullPage: true });
@@ -142,6 +153,8 @@ test("bucket options preserve drafts on failure and support keyboard, narrow scr
   await expect(page.getByLabel("Priority", { exact: true })).toHaveValue("dream");
   await page.setViewportSize({ width: 320, height: 640 });
   expect(await dialog.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
+  const filterGrid = page.getByLabel("Status", { exact: true }).locator("xpath=ancestor::div[contains(@class, 'grid')][1]");
+  expect((await filterGrid.evaluate((element) => getComputedStyle(element).gridTemplateColumns)).trim().split(/\s+/)).toHaveLength(1);
   await page.evaluate(() => document.documentElement.classList.add("dark"));
   await expect(page.getByRole("button", { name: "Apply filters", exact: true })).toHaveCSS("background-color", "rgb(223, 135, 154)");
   await expect(page.getByRole("button", { name: "New list", exact: true })).toHaveCSS("color", "rgb(223, 135, 154)");

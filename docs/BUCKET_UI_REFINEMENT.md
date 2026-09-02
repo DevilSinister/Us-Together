@@ -8,7 +8,7 @@ Preserves the user's Options-first bucket layout, in-place editor and category s
 - A direct first-list action, readable result counts, removable active filters and quieter view controls.
 - Native modal background isolation, explicit Tab cycling, Escape and opener-focus restoration; pending writes cannot be dismissed.
 - Mobile-readable fields and custom-category drafts preserved when switching back to existing categories.
-- Visible Save controls, 44px step controls, separate mobile reorder rows and validated desktop drag identities; keyboard reorder remains available.
+- Visible Save controls and 44px step controls; phones keep checkbox, field, save and delete on one row while reorder arrows and drag handles remain desktop-only.
 - Shared editing markup and cross-platform Playwright startup while preserving local server reuse outside CI.
 
 ## Verification
