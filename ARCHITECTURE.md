@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the intended architecture for Us Together. It is a pre-implementation contract; package versions and platform-specific APIs must be verified against current official documentation when implementation begins.
+This document defines the architecture for Us Together. Foundation through Phase 6 have implementation evidence; later phases remain design contracts. Verify package versions and platform-specific APIs against current official documentation before each implementation phase.
 
 ## System context
 
@@ -79,9 +79,9 @@ Normal user operations use an authenticated Supabase client so RLS remains activ
 
 1. Server authorizes the actor and issues a constrained upload path or upload authorization.
 2. Client uploads only an allow-listed MIME/size class to a private bucket.
-3. Metadata is validated and recorded separately from the binary.
+3. The authenticated media Edge Function validates the actual binary/container and publishes ready metadata separately. It derives JPEG photo previews with a pinned WASM decoder; elevated credentials stay inside the Edge runtime.
 4. Reads use authorized short-lived signed URLs; permanent public URLs are forbidden.
-5. Galleries paginate metadata and lazy-load media.
+5. Galleries paginate metadata and lazy-load media. Uploads use authenticated TUS with short-lived row authorization; deletion removes Storage objects before metadata. See docs/PHASE6_OPERATIONS.md.
 
 ### Secret content
 
@@ -110,3 +110,15 @@ Future AI is provider-neutral behind a service interface. No AI provider receive
 Use separate local, preview/staging, and production Supabase projects or equivalent isolated environments. Vercel preview deployments must never default to production data. Database migrations move forward through reviewed, repeatable files before compatible application code is promoted.
 
 See [Database](docs/DATABASE.md), [API Contracts](docs/API_CONTRACTS.md), [Security](docs/SECURITY.md), and [Deployment](docs/DEPLOYMENT.md).
+
+## Shared entries, preview media and free locations
+
+The standalone Calendar joins bounded, RLS-authorized plan/memory/milestone projections in application code. Each source has a date/UUID cursor; plans retain viewer-timezone and multi-day classification. The existing Plans workspace remains available for plan management.
+
+Memories and moments share media previews, a full gallery, a viewer with captions, and per-file comments. Moment files live in their own private bucket and normalized milestone_media table; the authenticated media Edge function chooses the parent/table/bucket from a validated entry kind. Story comments reference exactly one parent. File comments use media_comments with exactly one memory-media or milestone-media FK; active-member RLS controls reads/inserts and only the authenticated author can delete.
+
+Preview binaries/comments live in IndexedDB, scoped to the random developer-session identifier and entry. They never enter cookies or Supabase. Preview file comments use a media ID within the session/entry scope. This is local testing, not partner synchronization. The entry-reminder API, poller and worker delivery are retired; plan reminders retain their independent table and scheduled worker.
+
+Location search proxies Photon from authenticated Server Actions. Search text and explicit geolocation are sent only to the configured provider; neither coordinates nor whole provider responses are persisted. Selected place labels use the existing bounded location text field. See SETUP and ADR-020.
+
+The Home gallery reads the security-invoker shared_gallery view, joining ready media with authorized memory/milestone metadata. Pages contain at most 48 files, using entry date plus a kind/UUID cursor; filter values are Zod validated. Files load lazily through the existing authenticated media endpoint. No storage paths, author identifiers or signed URLs enter gallery DTOs.

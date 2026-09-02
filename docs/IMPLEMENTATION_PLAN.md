@@ -64,7 +64,7 @@ Exit gate: CRUD, reorder, concurrency, cross-couple, and progress calculations p
 
 ## Phase 5 — Plans and internal calendar
 
-Status: **in progress (provenance-first vertical slice)**. The normalized plans, checklist, reminder, bucket-provenance schema, ownership-aware RLS, indexed upcoming access path, validated direct-plan action, responsive upcoming list, completion action, and plan-to-memory handoff are implemented. Month/week calendar views, checklist/reminder editing, reminder delivery, full plan CRUD/detail surfaces, and hosted database/browser verification remain open. This slice does not close Phases 3–4 or the Phase 5 gate.
+Status: **implemented; hosted security suite passed, final integration gates open**. Full plan details/CRUD, cancellation/restoration, checklist/reorder, month/week/upcoming views, timezone/DST handling, location/map/budget fields, private attachments, in-app reminder delivery and bounded retries are implemented. Hosted migrations, scheduler execution, generated types, and 40 pgTAP assertions are verified; desktop/mobile regression passes. ADR-014 final integration and the real-account attachment round trip remain explicit obligations. See [Phase 5 verification](PHASE5_VERIFICATION.md).
 
 - Add plans, types/statuses, checklist, reminders, location, budget, attachments, and bucket linkage.
 - Build month, week, and upcoming views with mobile-specific behavior.
@@ -74,7 +74,7 @@ Exit gate: conversion, interval, timezone, reminder idempotency, and calendar br
 
 ## Phase 6 — Memories and media
 
-Status: **in progress (story-first vertical slice)**. The normalized memory, tag, tag-link, and media metadata schema, private `memory-media` bucket, membership-and-memory-bound Storage policies, direct memory action, bounded gallery, favorite/rating fields, and idempotent completed-plan provenance flow are implemented. Attachment authorization/finalization UI, binary signature inspection, derivatives, signed viewers, cleanup, full CRUD/detail surfaces, and hosted storage/browser verification remain open. The UI states this boundary explicitly and does not present a fake uploader.
+Status: **implemented; functional gates passed; fixture cleanup awaits explicit approval**. Memory detail/edit/delete, normalized tags, location labels without manual coordinate fields, rating/favorite, bounded gallery filters, preserved provenance, private JPEG/PNG/MP4/WebM upload, derivatives, signed viewers, recovery and cleanup are implemented. Verification includes 42 RLS assertions, 34 real hosted binary checks, and desktop/mobile authenticated media journeys. Automatic approval review blocked deletion of the three generated fixture accounts and their two couples; the guarded cleanup migration is prepared but unapplied. ADR-014 replay/concurrent-session/final-pairing obligations remain explicit. See [Phase 6 verification](PHASE6_VERIFICATION.md).
 
 - Add memories, tags, source relationships, private storage policies, media records, upload validation, derivatives, galleries, and viewers.
 - Complete bucket/plan-to-memory continuity.
@@ -133,3 +133,7 @@ Every completion report includes:
 - Browser acceptance: in-app browser control with signed-in test accounts.
 - Raster assets: Imagegen only after the visual direction proves the need.
 - Future OpenAI work: OpenAI Docs before selecting models, APIs, retention, or SDK patterns.
+
+### Phase 6 user-requested extension
+
+Implemented: shared Calendar via Home/navigation, memory/moment multi-photo creation and detail upload, captions/comments, browser-local preview files and free Photon/OpenStreetMap search. The gallery follow-up removes memory/moment reminders, adds six-photo previews, a Home gallery and per-file partner comments. See PHASE6_GALLERY_VERIFICATION.md for current gates. Earlier fixture-account cleanup and ADR-014 final-integration obligations remain open; the extension does not waive them.

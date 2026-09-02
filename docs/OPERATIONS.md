@@ -69,3 +69,11 @@ Support authenticated export, individual deletion, account deletion, couple depa
 - Monthly: advisors, slow queries, quotas/cost, stale credentials/preview environments
 - Quarterly or before major release: restore drill, access review, threat model, incident exercise, full RLS/storage suite
 - After each major phase: update documentation and Graphify corpus; review god nodes/surprising connections for unintended coupling
+
+## Implemented plan jobs
+
+Phase 5 implements the reminder retry/failed-state contract through a private pg_cron worker. The only persisted failure detail is `delivery_failed`; no personal content enters logs. See [Plan reminders and attachments](PHASE5_OPERATIONS.md) for schedule, safe inspection, manual retry, pending-upload cleanup and lifecycle deletion ordering.
+
+## Phase 6 memory media
+
+See [Memory media operations](PHASE6_OPERATIONS.md) for Edge deployment, decoder integrity, supported formats/quotas, upload recovery, short-lived reads, Storage-first cleanup and hosted test fixtures. Phase 8 account deletion must honor these cleanup constraints.

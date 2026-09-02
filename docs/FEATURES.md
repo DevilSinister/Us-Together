@@ -99,7 +99,7 @@ Acceptance:
 
 ### Plans and internal calendar
 
-Plan fields include title, description, type, start/end instant, originating timezone, location, coordinates, external map URL, budget/currency, status, and source bucket item.
+Plan fields include title, description, type, start/end instant, originating timezone, location, external map URL, budget/currency, status, and source bucket item.
 
 Types: `date`, `trip`, `activity`, `birthday`, `anniversary`, `event`, `reminder`, `other`.
 
@@ -120,7 +120,10 @@ Acceptance:
 
 ### Memories
 
-- Title, description, date, location, coordinates, rating, favorite, tags, and provenance
+- Title, description, date, location, rating, favorite, tags, and provenance
+- Free Photon/OpenStreetMap place suggestions and user-triggered nearby lookup; no manual coordinate fields
+- Multiple photos/videos with captions and comments; local photo testing in developer preview
+- Memories and moments appear alongside plans on the shared calendar and support reminder notifications
 - Separate media records for photos/videos and derivative metadata
 - Private Storage buckets, validated uploads, paginated gallery, lazy media, lightbox/viewer
 - Bucket/plan conversion pre-fills editable values and retains relationship links
@@ -206,3 +209,11 @@ Voluntary per-user OAuth connection, calendar selection, explicit share controls
 - Confirmations and consequences for irreversible actions
 - Data export, record deletion, account deletion, and couple departure
 - No fake controls, placeholder integrations presented as working, or hardcoded identities
+
+### Shared calendar and entry details
+
+Calendar is accessible from Home, desktop navigation, and mobile navigation. Month/week views include plans, memories and moments, source filters, keyboard day navigation and linked day agendas. The Plans page links to this shared calendar and retains plan management.
+
+Memory and moment creation forms expose a multiple-file picker and individual captions before save. After the story is saved, files upload sequentially; the saved story survives file failures. Detail pages show the first six uploaded photos as small previews, an Open full gallery button for all photos/videos, uploads, caption editing and shared comments. Moment detail uses /milestones/[id]. Each entry accepts at most 30 files / 300 MiB, with the existing per-file limits. Captions and file comments appear in the shared viewer. Existing story comments remain on the memory/moment. Home links to /gallery, with memory/moment and date grouping plus source, media-type and date filters. Memories and moments do not offer reminders; plans retain them.
+
+Reminders currently arrive in the in-app Notifications inbox. Push, email and SMS are not implemented. Preview includes a ten-second reminder test and real local photo storage, scoped to its browser session.

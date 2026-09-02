@@ -163,8 +163,52 @@ Discover the current Supabase CLI commands with `--help`. Create named migration
 
 Migration `20260901024653_plans_memories.sql` establishes the normalized prerequisite bucket tables, plans/checklists/reminders, memories/tags/media, immutable couple/creator keys, same-couple provenance triggers, explicit authenticated Data API grants, operation-specific RLS policies, FK/composite/partial indexes, and the private `memory-media` bucket. Storage paths use `couple_id/memory_id/object-name`; the private policy parses both identifiers, proves that the memory matches the couple, and then checks active membership. Path shape alone never authorizes access.
 
-The migration deliberately prepares reminder and media boundaries before their delivery/upload UI. It does not claim that reminder jobs, upload finalization, derivatives, or signed media viewers are complete.
+That initial migration prepared reminder and media boundaries. Phase 5 now implements plan reminder jobs and plan attachments, as documented below; Phase 6 now implements memory-media upload/derivatives, as documented below.
 
 ## Implemented pairing lifecycle hardening
 
 Migration `20260901112427_pairing_lifecycle_hardening.sql` moves privileged pairing logic into the private schema and leaves only security-invoker wrappers in `public`. It adds account and invitation attempt counters, temporary blocking, invite-creation cooldown, revocation/leave/empty-delete functions, a single self-or-partner profile SELECT policy, and indexes for previously uncovered foreign keys. Invitation rows remain RLS-enabled with no Data API table grants because all access is RPC-only. Hosted security advisors are clear of function/RLS warnings; leaked-password protection remains a project setting to enable before launch.
+
+## Phase 5 implementation
+
+Plans have a monotonic integer version advanced by parent/child mutations. `mutate_plan(jsonb)` and `update_plan_details(jsonb)` are security-invoker APIs, accept public IDs/revisions only as lookup/check values, and lock the authorized parent. Completed actor/time are derived from auth.uid()/database time. Checklist positions use a deferred unique constraint, and parent IDs cannot be changed. Checklist/reminder inserts serialize on the parent and enforce limits.
+
+Reminders add offset_minutes (0–43200), next_attempt_at, and last_error_code. One offset is unique per plan. The private scheduled worker takes bounded SKIP LOCKED claims, authorizes fan-out through current membership and preferences, commits each reminder atomically, and deduplicates by delivery_key plus recipient. It retries with exponential backoff and reaches failed after five failed attempts. No content or raw exception text is copied into notification/job state.
+
+`plan_attachments` stores normalized per-file metadata with an immutable generated path, uploader FK/index, signature-compatible MIME class, size (1–2097152 bytes), and ready state. Exposed table RLS and private Storage policies authorize the exact attachment/plan/member relationship. The private security-definer Storage predicate is exceptional: it checks non-null auth.uid(), exact metadata/path and active membership; default execution is revoked. Normal mutations and worker functions are security invokers.
+
+Attachment deletion checks that its Storage object is gone. The plan FK restricts deletion until attachments are removed; Phase 8 account/couple deletion must perform Storage cleanup first. Plan deletion continues preserving memories through nullable source FKs. Collection limits: 50 checklist items, five reminders, 20 attachments.
+
+See [Phase 5 evidence](PHASE5_VERIFICATION.md) for migration correspondence, hosted assertions, indexes and integration boundaries.
+
+## Phase 6 implementation
+
+Memories now carry a monotonic version. The security-invoker `update_memory_details(jsonb)` locks the authorized parent, checks the supplied revision, and atomically changes story fields and normalized tags. Dates must be real calendar dates. Optional latitude/longitude must be supplied together within the existing numeric range constraints; the coordinate follow-up migration includes 42 rollback-only authorization assertions. Tags use trimmed lowercase names, at most eight links per memory and 500 catalog rows per couple. A transaction advisory lock serializes catalog capacity without requiring members to update the couple row. `list_memories_by_tag` is a bounded security-invoker lookup; the gallery applies date/UUID cursors and a twelve-row page.
+
+Memory provenance cannot be reassigned. A new source-plan link requires a completed plan in the same couple; source deletion may still clear nullable provenance. Shared memory access follows active membership, including retained shared content after a partner leaves.
+
+Media metadata has immutable allocation identity/path, caption, upload expiry, pending/processing/ready/failed/deleting state, processing timestamp/token and safe error code. Authenticated clients can read authorized metadata but cannot directly write it. The Edge handler owns writes after fresh user and parent authorization. Row triggers serialize quota checks on the memory: thirty files and 300 MiB total, including unfinished uploads.
+
+Storage policies now authorize exact allocated metadata, replacing the earlier prefix-only relationship check. Only its active uploader can insert the pending original before expiry. Private security-definer predicates use fixed search paths, revoked default execution, explicit identity/membership checks and narrow grants; the upload predicate locks the metadata during the Storage transaction. Browser overwrite/delete is unavailable. Ready files are readable by current members. Metadata deletion requires original/derivative objects to be absent; the memory FK restricts deletion while media remains.
+
+The private RLS-protected `media_request_budgets` table supports an identity-derived security-invoker RPC: sixty allocations/hour, 120 processing requests/hour and 120 application viewer authorizations/minute. Rows are scoped to auth.uid(); no actor ID is accepted.
+
+Phase 6 fixture setup/cleanup migrations contain generated fictional identities only and are paired. Hosted verification migrations execute assertions in rolled-back inner subtransactions with explicit no-leftover postconditions. See [Phase 6 evidence](PHASE6_VERIFICATION.md).
+
+## Phase 6 shared calendar / moments extension
+
+milestones adds bounded location text. milestone_media mirrors the verified memory-media state machine and immutable path/creator/size identity, with a milestone FK and creator FK. The moment-media bucket is private. Authenticated metadata is SELECT-only; exact-path Storage INSERT is allowed only for the allocating owner while pending and unexpired. Both partners can read verified media while active; former/foreign members cannot. Stored objects must be removed before metadata deletion. Parent locking serializes the 30-file/300-MiB quota.
+
+entry_comments has exactly one memory_id/milestone_id FK, body length 1–2000, authenticated author and creation time. Active members read/add; only the author deletes; no UPDATE grant. A parent lock enforces 500 comments. Parent deletion cascades comments.
+
+entry_reminders is retired. Historical rows remain, but authenticated/anonymous table access and RPC execution are revoked, the entry cron is removed, and private.deliver_entry_reminders(integer) returns zero. The separate plan_reminders table, RPCs and private.deliver_due_plan_reminders worker remain active.
+
+The existing private media_request_budgets relation also supports location lookup (60 requests/minute/account). Preview uses a 30/minute session cap and the server prevents provider bursts. The copied milestone-media creator index is retained; its duplicate was removed following the advisor finding.
+
+Legacy latitude/longitude database columns and historical migrations remain for compatibility. Current forms, DTOs and memory mutations do not expose or collect manual coordinates. No existing coordinate data was destructively dropped.
+
+### Shared gallery and per-file comments
+
+media_comments has exactly one memory_media_id/milestone_media_id FK with ON DELETE CASCADE, a server-derived author FK, body and creation time. Indexed parent/time/UUID and author columns support bounded reads and cleanup. Ready media visibility is checked by a security-invoker helper over the underlying media RLS. Active partners read/add; only the author deletes. No UPDATE privilege is granted. An advisory lock serializes the 500-comment quota per file.
+
+shared_gallery is a security-invoker UNION ALL view over ready memory_media/milestone_media and authorized parents. It exposes safe metadata, story title/date, parent ID, kind and a deterministic sort key. Authenticated SELECT only; no public access. Base ownership/date/media indexes remain in use.

@@ -65,7 +65,7 @@ Phase 4 list/item/step actions return { ok, message, id? }. filterBucketItems va
 
 Inputs accept public record IDs only as lookup keys. The server loads the row under RLS and checks couple membership. Date inputs include ISO instants and IANA timezone when local interpretation matters. Money input is validated as currency plus minor units/fixed precision.
 
-Implemented now: `createPlanAction` derives a couple with exactly two active partners from the authenticated session, validates form data with Zod, resolves local date/time through the supplied IANA timezone, rejects DST gaps and invalid intervals, converts money to integer minor units, and creates only an RLS-visible row. `completePlanAction` reloads the public plan ID under RLS before recording the authenticated actor and completion instant. With `sourceBucketId`, `createPlanAction` instead calls the RLS-protected, source-locking `create_plan_from_bucket` RPC and returns the existing linked plan on retry. Any active membership can operate on retained shared ideas, including the continuing member after leave. Full plan update/cancel/delete remains planned.
+Implemented now: `createPlanAction` derives an active couple membership from the authenticated session, validates form data with Zod, resolves local date/time through the supplied IANA timezone, rejects DST gaps and invalid intervals, converts money to integer minor units, and creates only an RLS-visible row. `mutatePlan` validates a discriminated operation and expected parent version, then calls the security-invoker `mutate_plan` RPC. The RPC locks and reloads the plan under RLS; completion actor/time are derived from the authenticated database session. With `sourceBucketId`, `createPlanAction` instead calls the RLS-protected, source-locking `create_plan_from_bucket` RPC and returns the existing linked plan on retry. Any active membership can operate on retained shared ideas, including the continuing member after leave. `updatePlanAction` validates local times, timezone, optional location/HTTPS map link, budget/currency and revision, then calls `update_plan_details`. `filterPlans` accepts view/date/status plus a validated date/UUID cursor in the request body; pages contain at most 30 upcoming rows or 250 calendar candidates. Exact viewer-day classification happens after a bounded query; a next cursor makes additional rows reachable. `mutatePlan` handles lifecycle, confirmed delete, checklist add/edit/delete/full-permutation reorder, and reminder add/remove. Failed revisions return an explicit refresh message.
 
 ## Memory and media contracts
 
@@ -78,7 +78,11 @@ Implemented now: `createPlanAction` derives a couple with exactly two active par
 
 Client-supplied storage paths are never used directly. Upload/finalize has an expiry and cannot attach an object from another couple or feature.
 
-Implemented now: `createMemoryAction` supports direct creation and completed-plan provenance. The server reloads a source plan under RLS, requires completion, derives its couple, and returns the existing memory on a safe retry. The metadata schema and private Storage policy are present; upload authorization/finalization and signed URL actions remain deliberately unavailable in the UI until their verification suite exists.
+Implemented now: `createMemoryAction` supports direct creation and completed-plan provenance. The server reloads a source plan under RLS, requires completion, derives its couple, and returns the existing memory on a safe retry. Phase 6 adds `updateMemoryAction` with expected version and normalized tags, `deleteMemory` with UUID/version/literal DELETE, and `filterMemories` with favorite/tag/date-UUID cursor. Edits call security-invoker `update_memory_details`; tagged pagination calls `list_memories_by_tag`. Tags and filters remain in request bodies. Rows are bounded to twelve plus one lookahead.
+
+`memoryMediaAction` validates a prepare/finalize/remove discriminated Zod request and invokes the authenticated `memory-media` Edge Function. Prepare accepts memory UUID, filename/MIME/size/caption and returns a newly authorized media UUID/path/expiry for transient upload use. It accepts no actor, tenant or caller path. Finalize/remove accept only memory/media UUIDs. The Edge Function authenticates with `getUser`, resolves the parent under caller RLS, then uses its built-in service role for tightly scoped metadata/Storage operations. Authenticated clients cannot write media metadata or overwrite/delete objects. See [media operations](PHASE6_OPERATIONS.md) for limits, state transitions, leases and recovery.
+
+`GET /api/memory-media/[id]?kind=memory|moment&variant=original|preview|download` reauthorizes the caller and ready row, consumes an account viewer budget, and emits a no-store/no-referrer redirect to a 60-second signed URL. Gallery/detail DTOs never contain raw paths or signed URLs. Previously issued URLs remain valid until expiry. `consume_memory_media_budget(kind)` is security-invoker and derives the budget owner from auth.uid; its backing relation is in the unexposed private schema.
 
 ## Wishlist and note actions
 
@@ -120,3 +124,27 @@ Growing collections use bounded cursor pagination based on stable ordering such 
 ## External interfaces
 
 Google Calendar DTOs do not expose OAuth tokens to the browser. Provider errors are mapped to disconnected, reauthorization-required, rate-limited, or transient states. Future AI receives a provider-neutral request containing only explicitly approved, minimized context.
+
+## Phase 5 attachments and reminders
+
+`uploadPlanAttachment(previous, FormData)` accepts only planId and File. It reauthorizes the plan, validates PDF/PNG/JPEG signature and a 2 MiB maximum, generates both attachment ID and object path server-side, writes pending metadata, uploads without upsert, then marks ready. Failure retains a removable unfinished upload. `deletePlanAttachment({id,planId})` reauthorizes both and deletes Storage before metadata.
+
+`GET /api/plan-attachments/[id]` returns an authorized attachment download with private/no-store caching and no raw storage URL; unavailable/unauthorized IDs return 404. It checks ready state and the binary signature again. Runtime exceptions return generic messages and do not expose private paths or content.
+
+Reminder controls choose offsets relative to plan start. Cancel/complete stops pending reminders; editing start reschedules pending offsets. Only the trusted private worker can record delivery, attempts, retry timestamps and failure class. Generic inbox links open `/plans/[id]` for a fresh membership check. See [reminder operations](PHASE5_OPERATIONS.md).
+
+## Phase 6 shared-entry extension
+
+- createMemoryAction and createMilestoneAction accept validated returnCreated=true to return a savedId for subsequent file uploads; ordinary submissions redirect to detail. Ownership remains derived server-side. File blobs never travel in these Server Action forms.
+- memoryMediaAction / memory-media accept kind=memory|moment (default memory) and prepare/finalize/remove/caption. Caption edits authorize the parent and bounded text before privileged metadata writes.
+- entryMedia and entryComments reauthorize the UUID/kind, return bounded safe DTOs, and never expose storage paths. commentAction validates add/remove, derives author from the session and permits removal only by that author.
+- Entry-reminder actions are removed. The database RPC is revoked from authenticated callers; the retired worker returns zero and its cron job is unscheduled. Plan reminder interfaces are unchanged.
+- loadSharedCalendar validates month/week/date and independent per-source cursors. Each request reads at most 251 candidates per source and returns 250 with explicit lookahead; all rows remain under parent RLS.
+- searchPlaces accepts status, search (3–200 characters), or nearby (bounded numeric geolocation). The selected place name is stored; coordinates and provider responses are not. The provider base is server-configured, not client-controlled. Errors are generic and request content is not logged.
+- The former /api/preview-reminders route and preview pump are removed.
+
+### Gallery and per-file comments
+
+- loadGallery accepts source kind (all/memory/moment), media type (all/image/video), optional entry UUID (requires memory or moment kind), optional ISO story date and optional date/kind-UUID cursor. Entry scoping adds an entry_id equality constraint while preserving couple RLS; malformed gallery URL parameters return 404. It derives the couple from the server session and returns at most 48 ready media DTOs plus a next cursor. Preview returns authorized entry descriptors; files remain in IndexedDB.
+- loadMediaComments accepts kind, parent UUID and media UUID. It verifies a ready file belongs to that authorized parent and returns up to 500 comments, containing id/body/time and a mine boolean.
+- mediaCommentAction accepts that target plus add/remove, body (1–2000 trimmed characters) or comment UUID. Author identity is server-derived; delete is constrained by author and file. Both partners may add comments. Updates are unavailable.

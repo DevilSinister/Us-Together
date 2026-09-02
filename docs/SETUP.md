@@ -6,7 +6,7 @@ The application is runnable without containers. JavaScript checks and the fictio
 
 ## Prerequisites
 
-- Node.js 20.9 or newer, as declared in `package.json`
+- Node.js 22 or newer, as declared in `package.json`
 - npm unless an ADR deliberately selects another package manager
 - Access to the confirmed hosted Supabase project; Docker/Podman is not required
 - Current Supabase CLI, with commands discovered using `supabase --help`
@@ -99,3 +99,36 @@ Document any additional media worker, email capture, database type generation, f
 ## Troubleshooting policy
 
 Check the exact error, current official docs/changelog, local service status, migrations, and logs with secrets redacted. After two or three failed repeats, reconsider the approach rather than looping. Keep fixes and newly discovered setup requirements in this document.
+
+## Phase 5 setup
+
+Use Node.js 22 or newer (this phase was verified with Node 24); current Supabase client support has moved beyond Node 20. Existing public Supabase configuration is sufficient: no additional secret key or third-party credential is needed.
+
+Apply all Phase 5 migrations by their verified names/SQL, respecting existing hosted/local timestamp correspondence. The migration enables pg_cron and registers `us-together-plan-reminders`. Verify its active state and successful runs in the Cron dashboard. The private plan-attachments bucket and policies are migration-managed. See [Phase 5 operations](PHASE5_OPERATIONS.md).
+
+Developer preview supports calendar/checklist editing. Memory and moment galleries, captions and file comments can be tested with real browser-local files. Reminders remain in Plans. Plan attachment binaries still require an authenticated account.
+
+## Phase 6 setup
+
+Apply the complete Phase 6 migration sequence and deploy the `memory-media` Edge function with JWT verification enabled. Include its shared `src/lib/memories/media.ts` dependency. Supabase supplies the built-in Edge environment; do not add a service-role key to Next.js. The config records JWT verification and the lockfile pins the TUS client and image decoder versions.
+
+Run the regular lint, typecheck, unit, browser and build gates. Typecheck the Deno handler separately with `deno check supabase/functions/memory-media/index.ts`; the Next.js tsconfig intentionally excludes Deno functions.
+
+The hosted binary runner is `node tests/integration/memory-media-hosted.mjs`. For the real desktop/mobile upload journey set `PHASE6_HOSTED=true` and run `npx playwright test tests/e2e/memory-media-hosted.spec.ts --workers=1`. These tests require disposable fixtures; ordinary browser runs explicitly skip them. Fixture credentials belong only in ignored `supabase/.temp/phase6-fixture.json`, never traces or committed examples. Apply the paired cleanup after media removal and remove that local credential file. See [Memory media operations](PHASE6_OPERATIONS.md) for fixture sources, recovery and the decoder asset dependency.
+
+## Free location lookup and preview photo testing
+
+No Google Places key or billing account is needed. Photon/OpenStreetMap is enabled by default; optional server environment variables are LOCATION_SEARCH_ENABLED=false to disable it and PHOTON_BASE_URL to use another HTTPS Photon instance. The default public community endpoint is suitable for reasonable personal-project traffic, may throttle, and has no uptime guarantee. For growth, configure an appropriate provider or self-hosted instance. See [Photon service policy](https://github.com/komoot/photon#demo-server) and [API documentation](https://github.com/komoot/photon/blob/master/docs/api-v1.md). The public Nominatim endpoint is not used for autocomplete.
+
+1. Run the app locally with DEV_LOGIN_ENABLED=true and select Enter paired preview.
+2. Open Memories > Add a memory, or Moments > Add milestone.
+3. Choose photos or videos (multiple selection), add individual captions and save.
+4. Open the entry to view files, edit captions and post comments. Preview bytes stay in IndexedDB in this browser/session; they are not sent to the shared account. Entries expire after 24 hours and expired files are removed on subsequent access; clearing site storage removes them immediately.
+5. Open a photo, add a comment, and edit its caption under Caption and file options. Open Home → Open gallery to see the same caption/comment; switch grouping between memory/moment and date. Each entry previews six photos; Open full gallery includes every photo and video.
+6. Open Home > Open calendar to see plans, memories and moments together.
+
+Location queries go to Photon only after typing at least three characters. Use my location requests browser permission and sends the position for nearby lookup. Coordinates are not stored or shown. Suggestions credit OpenStreetMap contributors under its [data license](https://www.openstreetmap.org/copyright). Location can always be entered manually when lookup fails.
+
+### Portable dependency installation
+
+Use Node.js 22 or newer. Keep the pinned cross-platform supabase package; its platform binaries are optional dependencies. Do not add cli-windows-x64 as a direct dependency, which breaks Linux/Vercel installation. Type checking generates Next route types before running TypeScript, including on fresh CI checkouts.

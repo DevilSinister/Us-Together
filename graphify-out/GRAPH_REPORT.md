@@ -1,263 +1,386 @@
 # Graph Report - D:\Projects\Uss  (2026-09-02)
 
 ## Corpus Check
-- 80 files · ~58,187 words
+- 224 files · ~96,359 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 623 nodes · 1229 edges · 59 communities (40 shown, 19 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 43 edges (avg confidence: 0.88)
-- Token cost: 0 input · 0 output
+- 1368 nodes · 2609 edges · 112 communities (82 shown, 30 thin omitted)
+- Extraction: 99% EXTRACTED · 1% INFERRED · 0% AMBIGUOUS · INFERRED: 27 edges (avg confidence: 0.84)
+- Token cost: 1,900 input · 2,507 output
 
 ## Community Hubs (Navigation)
-- Sessions and Shared Actions
-- Bucket Workspace and Validation
-- Development Toolchain
-- Forms and UI Controls
-- Authentication and Recovery
-- Milestones and Notifications
-- TypeScript Configuration
-- Runtime Dependencies
-- Supabase Clients and Types
-- Relational Domain Contracts
-- Component Generator Setup
-- Delivery and Product Governance
-- Versioned Bucket Database
-- Pairing Lifecycle Security
-- Plan and Memory Conversion
-- Relationship Dashboard
-- Hosted Verification Workflow
-- Shared Journal Design
-- Bucket API and Indexes
-- Future Privacy Boundaries
-- Bucket Provenance and Versions
-- Theme and PWA Shell
-- Release Verification Matrix
-- Product Privacy Principles
-- Brand App Icon
-- Dream to Memory Continuity
-- Pairing Experience
-- Next Security Headers
-- Incident Response Lifecycle
-- Vault Access Requirements
+- components.json
 - next-env.d.ts
+- next.config.ts
+- package.json
+- scripts
+- dependencies
+- lucide-react
+- bucket-workspace.tsx
+- devDependencies
+- imagescript
+- supabase
+- vitest
 - postcss.config.mjs
 - sw.js
-- Server Mutation Boundary
-- Tenancy and Ownership
+- button.tsx
+- planContext()
+- createServerSupabaseClient()
+- memories/data.ts
+- auth.ts
+- Memory media operations
+- app/layout.tsx
+- model.ts
+- media.ts
+- database.types.ts
+- 20260831224609_foundation_profiles.sql
+- 20260831234512_onboarding_couples.sql
+- public.profiles
+- 20260901024653_plans_memories.sql
+- public.plan_checklist_items
+- public.plan_reminders
+- 20260901112427_pairing_lifecycle_hardening.sql
+- 20260901182631_phase3_dashboard_milestones.sql
+- 20260902013104_phase4_bucket_lists.sql
+- public.bucket_item_subtasks
+- 20260902045035_phase5_plans_calendar.sql
+- public.plan_checklist_items
+- public.plan_attachments
+- public.plan_reminders
+- private.guard_plan_child_insert()
+- private.deliver_due_plan_reminders()
+- 0006_plans_calendar_rls.test.sql
+- 20260902103206_phase6_memories_media.sql
+- Database Specification
+- public.list_memories_by_tag()
+- Phase 6 verification — 2026-09-02
+- public.consume_memory_media_budget()
+- 20260902154654_phase6_shared_calendar_moments.sql
+- private.media_request_budgets
+- 20260902174600_phase6_gallery_photo_comments.sql
+- shared-entries-hosted.mjs
+- compilerOptions
+- src-app-app-calendar-page-tsx.md
+- src-app-app-gallery-page-tsx.md
+- src-app-app-milestones-page-tsx.md
+- Bucket UI refinement — 2026-09-02
+- README.md
 - Local Preview Production Isolation
 - Expand-Migrate-Contract Deployment
-- Design Execution Gate
+- Testing Strategy
 - Shared Journal Experience Thesis
+- Security objectives
 - Mobile Is Designed Not Compressed
+- Design Execution Gate
+- Security Specification
+- Bucket-to-Plan-to-Memory Continuity
 - Wishlist Secret Purchase Non-Disclosure
 - Explicit Calendar Conflict Policy
-- Idempotent Scheduled Work
-- PostgreSQL RLS and Storage Isolation
 - Global Failure Paths
-- public.bucket_item_subtasks
+- Server-Verifiable Vault Unlock Session
+- Phase Completion Gate
+- Design System
+- Phase 4 verification
+- Us Together App Icon
+- Plans and memories continuity
+- Phase 5 verification — 2026-09-02
+- Plan reminders and attachments
+- Architectural Decisions
+- Server-managed reminder retry state
+- Master Prompt Traceability
+- Development Setup
+- API and Server Contracts
+- Architecture
+- Operations
+- Product
+- Implementation Plan
+- Shared Calendar and Entry Media Extension
+- Current shared calendar and gallery extension
 
 ## God Nodes (most connected - your core abstractions)
-1. `createServerSupabaseClient()` - 56 edges
-2. `readDeveloperState()` - 50 edges
-3. `writeDeveloperState()` - 28 edges
-4. `getCurrentIdentity()` - 23 edges
-5. `Button()` - 23 edges
-6. `compilerOptions` - 16 edges
-7. `Implementation Plan` - 15 edges
-8. `Input()` - 13 edges
-9. `Phase 4 verification` - 13 edges
-10. `createPlanAction()` - 12 edges
+1. `Master Prompt Traceability` - 90 edges
+2. `createServerSupabaseClient()` - 56 edges
+3. `readDeveloperState()` - 51 edges
+4. `getCurrentIdentity()` - 46 edges
+5. `Button()` - 40 edges
+6. `Database Specification` - 37 edges
+7. `planContext()` - 35 edges
+8. `writeDeveloperState()` - 33 edges
+9. `API and Server Contracts` - 30 edges
+10. `Input()` - 20 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Release checklist` --semantically_similar_to--> `Phase Completion Gate`  [INFERRED] [semantically similar]
-  docs/TESTING.md → AGENTS.md
-- `Privacy is behavior` --semantically_similar_to--> `Database-first authorization`  [INFERRED] [semantically similar]
-  PRODUCT.md → docs/DECISIONS.md
-- `CI` --implements--> `Phase Completion Gate`  [INFERRED]
-  .github/workflows/ci.yml → AGENTS.md
-- `Foundation auth and home` --conceptually_related_to--> `Shared-Journal Thread`  [INFERRED]
-  .impeccable/surfaces/foundation-auth-home.md → DESIGN.md
-- `Plans and memories continuity` --implements--> `Shared-Journal Thread`  [EXTRACTED]
-  .impeccable/surfaces/src-app-app-plans-page-tsx.md → DESIGN.md
+- `deleteMemory()` --references--> `deleteMemory`  [EXTRACTED]
+  src/app/actions/memories.ts → docs/API_CONTRACTS.md
+- `inspectMedia()` --references--> `JPEG and PNG limits and derivatives`  [EXTRACTED]
+  src/lib/memories/media.ts → docs/PHASE6_OPERATIONS.md
+- `inspectMedia()` --references--> `MP4 and WebM limits`  [EXTRACTED]
+  src/lib/memories/media.ts → docs/PHASE6_OPERATIONS.md
+- `public.plan_attachments` --references--> `Private attachment boundary`  [EXTRACTED]
+  supabase/migrations/20260902045035_phase5_plans_calendar.sql → docs/PHASE5_VERIFICATION.md
+- `private.deliver_due_plan_reminders()` --implements--> `Private reminder scheduler`  [EXTRACTED]
+  supabase/migrations/20260902085232_phase5_plan_details_and_retries.sql → docs/PHASE5_OPERATIONS.md
 
 ## Import Cycles
 - None detected.
 
 ## Hyperedges (group relationships)
-- **Normalized Dream-to-Memory continuity** — docs_database_bucket_lists, docs_database_plans, docs_database_memories, docs_database_preserved_provenance [EXTRACTED 1.00]
+- **Authenticated memory media lifecycle** — docs_phase6_operations_jwt_protected_memory_media_edge_boundary, docs_phase6_operations_authenticated_resumable_tus_upload, docs_phase6_operations_fenced_finalization_lease, docs_phase6_operations_fresh_authorized_signed_reads, docs_phase6_operations_storage_first_memory_media_deletion [EXTRACTED 1.00]
+- **Verified Phase6 implementation with explicit pending cleanup** — docs_phase6_verification_hosted37_assertion_rls_evidence, docs_phase6_verification_hosted34_check_binary_integration_evidence, docs_phase6_verification_two_authenticated_desktop_mobile_media_journeys, docs_phase6_verification_final_command_closeout, docs_phase6_verification_pending_generated_fixture_cleanup_approval [EXTRACTED 1.00]
+- **Authorized private attachment lifecycle** — docs_api_contracts_uploadplanattachment, supabase_migrations_20260902045035_phase5_plans_calendar_public_plan_attachments, supabase_migrations_20260902045035_phase5_plans_calendar_plan_attachments_storage_bucket, docs_api_contracts_get_api_plan_attachments_id, supabase_migrations_20260902084503_phase5_integrity_storage_first_attachment_deletion [EXTRACTED 1.00]
+- **Preference-aware bounded reminder delivery** — supabase_migrations_20260902045035_phase5_plans_calendar_us_together_plan_reminders, supabase_migrations_20260902085232_phase5_plan_details_and_retries_private_deliver_due_plan_reminders, supabase_migrations_20260902085232_phase5_plan_details_and_retries_skip_locked_due_reminder_claims, supabase_migrations_20260902085232_phase5_plan_details_and_retries_preference_aware_content_minimal_notification_fan_out, supabase_migrations_20260902085232_phase5_plan_details_and_retries_per_reminder_atomic_fan_out_and_bounded_retry, supabase_migrations_20260902085232_phase5_plan_details_and_retries_server_managed_reminder_retry_state [EXTRACTED 1.00]
 - **Hosted Phase 4 evidence with explicit limits** — docs_phase4_verification_rollback_only_pg_tap, docs_phase4_verification_negative_suite, docs_phase4_verification_advisor_findings, docs_phase4_verification_open_integration_gates [EXTRACTED 1.00]
-- **Tenant Isolation Contract** — arch_tenancy_and_ownership, docs_database_rls_access_matrix, docs_security_database_rls_boundary [INFERRED 0.95]
 
-## Communities (59 total, 19 thin omitted)
+## Communities (112 total, 30 thin omitted)
 
-### Community 0 - "Sessions and Shared Actions"
-Cohesion: 0.06
-Nodes (73): signOutAction(), activePairedCoupleId(), createMilestoneAction(), markNotificationReadAction(), notificationIdSchema, updateNotificationPreferencesAction(), completePlanAction(), createMemoryAction() (+65 more)
-
-### Community 1 - "Bucket Workspace and Validation"
-Cohesion: 0.10
-Nodes (38): filterBucketItems(), mutateBucket(), BucketItemPage(), metadata, metadata, NewBucketItemPage(), BucketPage(), metadata (+30 more)
-
-### Community 2 - "Development Toolchain"
-Cohesion: 0.05
-Nodes (42): eslint, eslint-config-next, devDependencies, eslint, eslint-config-next, @playwright/test, supabase, @supabase/cli-windows-x64 (+34 more)
-
-### Community 3 - "Forms and UI Controls"
-Cohesion: 0.10
-Nodes (18): dynamic, ProtectedLayout(), metadata, AppNavigation(), items, AppShell(), AuthAction, AuthFormProps (+10 more)
-
-### Community 4 - "Authentication and Recovery"
-Cohesion: 0.09
-Nodes (26): configurationError(), forgotPasswordAction(), signInAction(), signUpAction(), updatePasswordAction(), developerLoginAction(), metadata, dynamic (+18 more)
-
-### Community 5 - "Milestones and Notifications"
-Cohesion: 0.09
-Nodes (22): auth, auth.users, private.delete_milestone_notifications, private.handle_new_notification_preferences, private.notify_milestone_created, private.set_updated_at, private.validate_milestone_tenant, private.validate_notification_update (+14 more)
-
-### Community 6 - "TypeScript Configuration"
-Cohesion: 0.07
-Nodes (27): dom, dom.iterable, esnext, .next/dev/types/**/*.ts, next-env.d.ts, .next/types/**/*.ts, node_modules, **/*.ts (+19 more)
-
-### Community 7 - "Runtime Dependencies"
-Cohesion: 0.07
-Nodes (27): class-variance-authority, clsx, lucide-react, next, next-themes, dependencies, class-variance-authority, clsx (+19 more)
-
-### Community 8 - "Supabase Clients and Types"
-Cohesion: 0.11
-Nodes (19): getSupabaseConfig(), requireSupabaseConfig(), SupabaseConfig, supabaseConfigSchema, CompositeTypes, Constants, Database, DatabaseWithoutInternals (+11 more)
-
-### Community 9 - "Relational Domain Contracts"
+### Community 21 - "components.json"
 Cohesion: 0.12
-Nodes (19): Plans and memories continuity, Notification contracts, Database Specification, Deletion and retention, Identity and tenancy, Notes visibility, Notifications, Plans (+11 more)
+Nodes (16): $schema, style, rsc, tsx, tailwind, css, baseColor, cssVariables (+8 more)
 
-### Community 10 - "Component Generator Setup"
-Cohesion: 0.12
-Nodes (16): aliases, components, hooks, lib, ui, utils, iconLibrary, rsc (+8 more)
-
-### Community 11 - "Delivery and Product Governance"
-Cohesion: 0.16
-Nodes (16): CI, Agent Instructions, Phase Completion Gate, Product Source of Truth, Skill Routing, Implementation Plan, Phase 0 Documentation baseline, Phase 1 Foundation (+8 more)
-
-### Community 12 - "Versioned Bucket Database"
-Cohesion: 0.12
-Nodes (9): private.bucket_item_revision, private.bucket_subtask_revision, private.limit_bucket_lists, public.bucket_list_items, public.bucket_lists, bucket_item_revision, bucket_subtask_revision, limit_bucket_lists (+1 more)
-
-### Community 13 - "Pairing Lifecycle Security"
-Cohesion: 0.14
-Nodes (5): public.couple_invitations, private.create_couple_with_invite(), private.create_pairing_invite(), private.join_couple_by_code(), public.couple_memberships
-
-### Community 14 - "Plan and Memory Conversion"
+### Community 54 - "package.json"
 Cohesion: 0.33
-Nodes (10): activeCoupleId(), createPlanAction(), PlanForm(), saveBucketPlan(), isValidTimeZone(), memorySchema, moneyToMinorUnits(), planSchema (+2 more)
+Nodes (5): name, version, private, engines, node
 
-### Community 15 - "Relationship Dashboard"
+### Community 42 - "scripts"
 Cohesion: 0.20
-Nodes (13): HomePage(), MemoryRow, metadata, MilestoneRow, NotificationRow, PlanRow, DashboardCandidate, dateOrdinal() (+5 more)
+Nodes (10): scripts, dev, build, start, lint, typecheck, test, test:watch (+2 more)
 
-### Community 16 - "Hosted Verification Workflow"
-Cohesion: 0.18
-Nodes (15): Hosted verification and deferred pairing, Phase 4 Bucket lists, Phase 4 advisor findings, Phase 4 browser evidence, Indexed bucket query, Migration identity correspondence, Phase 4 verification, Rollback-only pgTAP verification (+7 more)
+### Community 12 - "dependencies"
+Cohesion: 0.08
+Nodes (25): dependencies, @radix-ui/react-label, @radix-ui/react-label, @radix-ui/react-slot, @radix-ui/react-slot, @supabase/ssr, @supabase/ssr, @supabase/supabase-js (+17 more)
 
-### Community 17 - "Shared Journal Design"
-Cohesion: 0.15
-Nodes (13): Foundation auth and home, Relationship thread, Bucket lists continuity, One more dream lived, Bounded Paper Rule, Design System, One Narrative Path Rule, One Wine Voice Rule (+5 more)
+### Community 4 - "bucket-workspace.tsx"
+Cohesion: 0.07
+Nodes (49): react, react, metadata, BucketItemPage(), metadata, NewBucketItemPage(), metadata, BucketPage() (+41 more)
 
-### Community 18 - "Bucket API and Indexes"
-Cohesion: 0.22
-Nodes (10): Bucket conversion, Domain-safe DTO, filterBucketItems, Idempotency and concurrency, Memory contracts, Pairing contracts, Plan contracts, Server Actions (+2 more)
+### Community 16 - "devDependencies"
+Cohesion: 0.09
+Nodes (23): devDependencies, @imagemagick/magick-wasm, @imagemagick/magick-wasm, @playwright/test, @playwright/test, @tailwindcss/postcss, @tailwindcss/postcss, @types/node (+15 more)
 
-### Community 19 - "Future Privacy Boundaries"
-Cohesion: 0.22
-Nodes (9): Secret Content Non-Inference, Clear Privacy State, Release 2 Scope, Per-User OAuth Ownership Boundary, Private External Event Default, Content-Safe Observability, Security Objectives, Future E2EE Boundary (+1 more)
+### Community 1 - "button.tsx"
+Cohesion: 0.07
+Nodes (59): GalleryPage(), target, context(), entryMedia(), entryComments(), commentAction(), loadGallery(), target (+51 more)
 
-### Community 20 - "Bucket Provenance and Versions"
-Cohesion: 0.32
-Nodes (8): mutateBucket, Bucket lists, Memories, Preserved provenance, Versioned bucket edits, Versioned bucket edits and transactional continuity, Phase 6 Memories and media, Phase 4 negative suite
+### Community 2 - "planContext()"
+Cohesion: 0.06
+Nodes (64): metadata, CalendarPage(), MomentPage(), metadata, EditPlanPage(), metadata, PlanPage(), metadata (+56 more)
 
-### Community 21 - "Theme and PWA Shell"
+### Community 0 - "createServerSupabaseClient()"
+Cohesion: 0.05
+Nodes (93): metadata, PlanRow, MemoryRow, MilestoneRow, NotificationRow, HomePage(), dynamic, ProtectedLayout() (+85 more)
+
+### Community 6 - "memories/data.ts"
+Cohesion: 0.08
+Nodes (32): metadata, EditMemoryPage(), metadata, MemoryPage(), metadata, MemoriesPage(), MemoryForm(), MemoryDetailView() (+24 more)
+
+### Community 7 - "auth.ts"
+Cohesion: 0.09
+Nodes (26): metadata, metadata, dynamic, ResetPasswordPage(), metadata, SignInPage(), metadata, configurationError() (+18 more)
+
+### Community 35 - "Memory media operations"
+Cohesion: 0.17
+Nodes (12): GET(), Memory media operations, Pinned ImageMagick decoder, JPEG and PNG limits and derivatives, MP4 and WebM limits, Page-session upload recovery, Fenced finalization lease, Fresh authorized signed reads (+4 more)
+
+### Community 50 - "app/layout.tsx"
 Cohesion: 0.32
 Nodes (4): metadata, viewport, PwaRegister(), ThemeProvider()
 
-### Community 22 - "Release Verification Matrix"
-Cohesion: 0.29
-Nodes (7): RLS access matrix, Production Acceptance Gate, Phase 8 MVP completion, Accessibility and design QA, Mandatory negative cases, Release checklist, Testing Strategy
+### Community 47 - "model.ts"
+Cohesion: 0.42
+Nodes (7): ProjectionVisibility, DashboardCandidate, localDateKey(), dateOrdinal(), relationshipDayCount(), privacySafeCandidates(), selectRelevantCandidate()
 
-### Community 23 - "Product Privacy Principles"
-Cohesion: 0.29
-Nodes (7): Database-first authorization, Accessibility and Inclusion, Dream-to-Memory MVP, Later roadmap, Privacy is behavior, Release 2, Us Together
+### Community 18 - "media.ts"
+Cohesion: 0.16
+Nodes (16): box(), mp4(), imageLimit, videoLimit, mediaTypes, MediaMime, ascii(), dimensions() (+8 more)
 
-### Community 24 - "Brand App Icon"
+### Community 11 - "database.types.ts"
+Cohesion: 0.11
+Nodes (20): createBrowserSupabaseClient(), supabaseConfigSchema, SupabaseConfig, getSupabaseConfig(), requireSupabaseConfig(), Json, Database, DatabaseWithoutInternals (+12 more)
+
+### Community 46 - "20260831224609_foundation_profiles.sql"
+Cohesion: 0.22
+Nodes (6): public.profiles, auth.users, profiles_set_updated_at, private.set_updated_at, create_profile_after_auth_user, private.handle_new_auth_user
+
+### Community 29 - "20260831234512_onboarding_couples.sql"
+Cohesion: 0.22
+Nodes (13): public.couples, auth.users, public.couple_memberships, public.couple_invitations, private.is_active_couple_member(), private.users_share_active_couple(), couple_memberships_enforce_capacity, private.enforce_two_active_partners (+5 more)
+
+### Community 15 - "20260901024653_plans_memories.sql"
+Cohesion: 0.14
+Nodes (17): private.is_active_couple_member(), public.couple_memberships, public.bucket_lists, public.couples, auth.users, public.bucket_list_items, public, auth (+9 more)
+
+### Community 26 - "20260901112427_pairing_lifecycle_hardening.sql"
+Cohesion: 0.14
+Nodes (5): public.couple_invitations, private.create_couple_with_invite(), public.couple_memberships, private.create_pairing_invite(), private.join_couple_by_code()
+
+### Community 9 - "20260901182631_phase3_dashboard_milestones.sql"
+Cohesion: 0.09
+Nodes (22): public.milestones, public.couples, auth.users, public, auth, public.notification_preferences, public.notifications, private.notify_milestone_created() (+14 more)
+
+### Community 25 - "20260902013104_phase4_bucket_lists.sql"
+Cohesion: 0.12
+Nodes (9): public.bucket_list_items, public.bucket_lists, public.delete_empty_bucket_list(), limit_bucket_lists, private.limit_bucket_lists, bucket_item_revision, private.bucket_item_revision, bucket_subtask_revision (+1 more)
+
+### Community 20 - "20260902045035_phase5_plans_calendar.sql"
+Cohesion: 0.16
+Nodes (16): private.bump_plan_for_child(), private.bump_plan_version(), private.deliver_due_plan_reminders(), private.guard_plan_checklist_parent(), private.sync_plan_reminders(), private.guard_phase, plan_reminders_guard, plan_attachments_guard (+8 more)
+
+### Community 27 - "public.plan_attachments"
+Cohesion: 0.17
+Nodes (14): public.plans, public.plan_attachments, auth.users, public, auth, private.can_access_plan_object(), public.mutate_plan(), plan-attachments Storage bucket (+6 more)
+
+### Community 30 - "private.guard_plan_child_insert()"
+Cohesion: 0.19
+Nodes (14): private.guard_plan_child_insert(), public.plan_checklist_items, public.plan_reminders, public.plan_attachments, checklist_insert_limit, private.guard_plan_child_insert, reminder_insert_limit, attachment_insert_limit (+6 more)
+
+### Community 36 - "private.deliver_due_plan_reminders()"
+Cohesion: 0.18
+Nodes (10): public.plan_reminders, public.update_plan_details(), public.plans, pg_timezone_names, private.deliver_due_plan_reminders(), private.guard_phase, Per-reminder atomic fan-out and bounded retry, SKIP LOCKED due reminder claims (+2 more)
+
+### Community 49 - "0006_plans_calendar_rls.test.sql"
+Cohesion: 0.32
+Nodes (6): pg_temp.reject_fixture_notification(), phase5_fixture_failure, pg_temp.reject_fixture_notification, pg_temp.reject_fixture_notification(), Hosted 40-assertion security suite, phase5_fixture_failure
+
+### Community 10 - "20260902103206_phase6_memories_media.sql"
+Cohesion: 0.12
+Nodes (25): public.memories, private.bump_memory_version(), memories_version, private.bump_memory_version, public.update_memory_details(), public.memory_media, private.validate_memory_media_path(), private.guard_memory_media_delete() (+17 more)
+
+### Community 5 - "Database Specification"
+Cohesion: 0.04
+Nodes (45): memory_tags_guard, private.guard_memory_tags, memory_links_guard, private.guard_memory_provenance(), memories_provenance, private.guard_memory_provenance, private.guard_memory_tags(), public.memory_tags (+37 more)
+
+### Community 23 - "public.list_memories_by_tag()"
+Cohesion: 0.16
+Nodes (14): public.list_memories_by_tag(), public.memories, public.memory_tag_links, public.memory_tags, public.update_memory_details(), public.memories, Implemented memory stories and gallery, Hosted42-assertion RLS evidence (+6 more)
+
+### Community 13 - "Phase 6 verification — 2026-09-02"
+Cohesion: 0.08
+Nodes (19): private.phase6_test_fixture, env, fixture, clients, created, Phase 6 verification — 2026-09-02, Implemented private memory media, Hosted34-check binary integration evidence (+11 more)
+
+### Community 40 - "public.consume_memory_media_budget()"
+Cohesion: 0.22
+Nodes (8): private.media_request_budgets, auth.users, public.consume_memory_media_budget(), Account media request budgets, consume_memory_media_budget, Identity-derived account media budgets, Phase6 37-assertion security suite, Rollback-only verification postconditions
+
+### Community 14 - "20260902154654_phase6_shared_calendar_moments.sql"
+Cohesion: 0.13
+Nodes (19): public.milestones, auth.users, private.validate_milestone_media_path, storage.objects, private.guard_milestone_media_delete, public.memories, public, auth (+11 more)
+
+### Community 31 - "20260902174600_phase6_gallery_photo_comments.sql"
+Cohesion: 0.17
+Nodes (12): public.media_comments, public.memory_media, public.milestone_media, auth.users, public, auth, public.can_access_media_comment(), media_comments_limit (+4 more)
+
+### Community 52 - "shared-entries-hosted.mjs"
+Cohesion: 0.29
+Nodes (4): env, fixture, clients, media
+
+### Community 8 - "compilerOptions"
+Cohesion: 0.07
+Nodes (28): compilerOptions, target, lib, dom, dom.iterable, esnext, allowJs, skipLibCheck (+20 more)
+
+### Community 55 - "Bucket UI refinement — 2026-09-02"
 Cohesion: 0.50
-Nodes (4): Cream Heart Outline, Rose Horizontal Accent, Us Together App Icon, Wine Rounded-Square Tile
+Nodes (3): Bucket UI refinement — 2026-09-02, Changes, Verification
 
-### Community 25 - "Dream to Memory Continuity"
-Cohesion: 0.67
-Nodes (3): Dream-to-Memory Data Flow, Bucket-to-Plan-to-Memory Continuity, Bucket-to-Plan-to-Memory UX Flow
+### Community 53 - "Testing Strategy"
+Cohesion: 0.33
+Nodes (6): Production Acceptance Gate, Testing Strategy, Mandatory negative cases, Release checklist, Accessibility and design QA, RLS access matrix
 
-### Community 26 - "Pairing Experience"
-Cohesion: 0.67
-Nodes (3): Secure Couple Pairing, Pairing Security Controls, Pairing and Onboarding Flow
+### Community 51 - "Security objectives"
+Cohesion: 0.29
+Nodes (7): Clear Privacy State, Release 2 Scope, Private External Event Default, Per-User OAuth Ownership Boundary, Protected Access Not Zero Knowledge, Future E2EE Boundary, Security objectives
+
+### Community 28 - "Security Specification"
+Cohesion: 0.13
+Nodes (15): Secure Couple Pairing, Pairing and Onboarding Flow, Security Specification, Threat model, Trust boundaries, Authentication and sessions, Authorization and RLS, Pairing security (+7 more)
+
+### Community 48 - "Phase Completion Gate"
+Cohesion: 0.29
+Nodes (8): CI, Agent Instructions, Product Source of Truth, Phase Completion Gate, Skill Routing, Historical phase closure query, Historical next-step query, Us Together
+
+### Community 34 - "Design System"
+Cohesion: 0.17
+Nodes (12): Foundation auth and home, Relationship thread, Bucket lists continuity, One more dream lived, Design System, Shared-Journal Thread, One Wine Voice Rule, Warm Dark Rule (+4 more)
+
+### Community 39 - "Phase 4 verification"
+Cohesion: 0.20
+Nodes (11): Us Together project overview, Current stack, Paired developer fixture, Phase 4 verification, Rollback-only pgTAP verification, Migration identity correspondence, Phase 4 negative suite, Indexed bucket query (+3 more)
+
+### Community 56 - "Us Together App Icon"
+Cohesion: 0.50
+Nodes (4): Us Together App Icon, Cream Heart Outline, Wine Rounded-Square Tile, Rose Horizontal Accent
+
+### Community 41 - "Plans and memories continuity"
+Cohesion: 0.20
+Nodes (10): Plans and memories continuity, Mode, Audience/job, Direction, Calendar, Plan detail, Reminders and files, Memorable moment (+2 more)
+
+### Community 45 - "Phase 5 verification — 2026-09-02"
+Cohesion: 0.22
+Nodes (9): Phase 5 verification — 2026-09-02, Implemented plans and calendar, Timezone and DST verification, Versioned plan integrity, Verified reminder scheduler, Advisor evidence, Private attachment boundary, Application and visual gates (+1 more)
+
+### Community 44 - "Plan reminders and attachments"
+Cohesion: 0.22
+Nodes (9): Plan reminders and attachments, Private reminder scheduler, Reminder lifecycle and suppression, Bounded reminder retries, Safe operator retry, Recoverable attachment upload, Collection limits and cleanup, Authenticated attachment download (+1 more)
+
+### Community 19 - "Architectural Decisions"
+Cohesion: 0.10
+Nodes (20): Final integration obligations, Architectural Decisions, ADR-001 — Multi-tenant couple ownership, ADR-002 — Dream-to-Memory MVP, ADR-003 — Managed Vercel and Supabase, ADR-004 — Email/password MVP authentication, ADR-005 — Database-first authorization, ADR-006 — Purchaser state separated from wishlist item (+12 more)
+
+### Community 3 - "Master Prompt Traceability"
+Cohesion: 0.02
+Nodes (82): Master Prompt Traceability, Product vision, Incremental development rule, Technology stack, Multi-tenant architecture, Users/profiles, Couples/members, Invite link and six-digit code (+74 more)
+
+### Community 24 - "Development Setup"
+Cohesion: 0.12
+Nodes (16): Development Setup, Current status, Prerequisites, Bootstrap, Environment variables, Hosted database workflow, Optional local Supabase alternative, Email authentication (+8 more)
+
+### Community 17 - "API and Server Contracts"
+Cohesion: 0.09
+Nodes (22): API and Server Contracts, ActionResult, Server-derived identity and Zod, Identity and couple actions, Implemented pairing RPCs, mutateBucket, Bucket pagination and conversions, createPlanAction (+14 more)
+
+### Community 22 - "Architecture"
+Cohesion: 0.12
+Nodes (16): Architecture, Next.js on Vercel, Supabase platform, Couple tenancy, Server-only domain services, Validated mutation boundary, Authenticated data access, Transactional pairing (+8 more)
+
+### Community 37 - "Operations"
+Cohesion: 0.17
+Nodes (12): Operations, Observability, Scheduled work, Backups and recovery, Capacity and limits, Database maintenance, Dependency and security maintenance, Incident response (+4 more)
+
+### Community 38 - "Product"
+Cohesion: 0.17
+Nodes (12): Product, Individual accounts and two active partners, Dream-to-Memory MVP, Release 2, Later roadmap, Privacy is behavior, Connected relationship journey, Warm personal design (+4 more)
+
+### Community 32 - "Implementation Plan"
+Cohesion: 0.14
+Nodes (14): Implementation Plan, Delivery method, Phase 0 — Documentation baseline, Phase 1 — Foundation, Phase 2 — Couple system and onboarding, Phase 3 — Dashboard and milestones, Phase 4 — Bucket lists, Phase 5 — Plans and internal calendar (+6 more)
+
+### Community 33 - "Shared Calendar and Entry Media Extension"
+Cohesion: 0.14
+Nodes (14): Shared Calendar and Entry Media Extension, Calendar Plans Memories Moments, Multiple Entry Photos and Captions, Real Local Preview Media, Personal In-App Entry Reminders, Free Photon OpenStreetMap Lookup, Shared Entry Verification, Phase6 Closeout Obligations (+6 more)
+
+### Community 43 - "Current shared calendar and gallery extension"
+Cohesion: 0.47
+Nodes (9): Current shared calendar and gallery extension, ADR-021 — Galleries and comments belong to individual files, Six photo previews and full gallery, shared_gallery invoker view and Home gallery, media_comments, Local preview media and file comments, Retired memory and moment reminders, Retained plan reminders (+1 more)
 
 ## Knowledge Gaps
-- **184 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+179 more)
+- **298 isolated node(s):** `$schema`, `style`, `rsc`, `tsx`, `css` (+293 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **30 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `createServerSupabaseClient()` connect `Sessions and Shared Actions` to `Bucket Workspace and Validation`, `Authentication and Recovery`, `Plan and Memory Conversion`, `Relationship Dashboard`?**
-  _High betweenness centrality (0.031) - this node is a cross-community bridge._
-- **Why does `readDeveloperState()` connect `Sessions and Shared Actions` to `Bucket Workspace and Validation`, `Plan and Memory Conversion`, `Relationship Dashboard`?**
-  _High betweenness centrality (0.018) - this node is a cross-community bridge._
-- **Why does `Button()` connect `Forms and UI Controls` to `Sessions and Shared Actions`, `Bucket Workspace and Validation`, `Authentication and Recovery`, `Plan and Memory Conversion`, `Relationship Dashboard`?**
-  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+- **Why does `API and Server Contracts` connect `API and Server Contracts` to `Memory media operations`, `Master Prompt Traceability`, `private.deliver_due_plan_reminders()`, `public.consume_memory_media_budget()`, `media.ts`, `Architecture`, `public.list_memories_by_tag()`?**
+  _High betweenness centrality (0.233) - this node is a cross-community bridge._
+- **Why does `Master Prompt Traceability` connect `Master Prompt Traceability` to `Implementation Plan`, `Database Specification`, `Operations`, `Product`, `API and Server Contracts`, `Architectural Decisions`, `Architecture`, `Development Setup`, `Security Specification`?**
+  _High betweenness centrality (0.213) - this node is a cross-community bridge._
+- **Why does `createServerSupabaseClient()` connect `createServerSupabaseClient()` to `database.types.ts`, `planContext()`, `Memory media operations`, `auth.ts`?**
+  _High betweenness centrality (0.113) - this node is a cross-community bridge._
 - **What connects `$schema`, `style`, `rsc` to the rest of the system?**
-  _184 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `Sessions and Shared Actions` be split into smaller, more focused modules?**
-  _Cohesion score 0.06491228070175438 - nodes in this community are weakly interconnected._
-- **Should `Bucket Workspace and Validation` be split into smaller, more focused modules?**
-  _Cohesion score 0.1048265460030166 - nodes in this community are weakly interconnected._
-- **Should `Development Toolchain` be split into smaller, more focused modules?**
-  _Cohesion score 0.046511627906976744 - nodes in this community are weakly interconnected._
-## Extraction accounting and health
-
-Host semantic-agent token usage is unavailable. Zero token counters are schema placeholders, not a claim of zero LLM cost. Incremental raw AST extraction reported 193 out-of-batch endpoints before merging with the existing graph and one same-endpoint collapse under the existing undirected representation. The final merged graph integrity report is recorded below; raw structural audits remain distinct from post-build checks.
-
-```text
-[graphify] MultiDiGraph edge-collapse diagnostic
-input: <in-memory>
-input_stage: provided JSON (normal graph.json is post-build)
-effective_directed: <direct-call>
-nodes: 623
-unverified_code_nodes: 0
-raw_edges: 1229
-valid_candidate_edges: 1229
-missing_endpoint_edges: 0
-dangling_endpoint_edges: 0
-self_loop_edges: 0
-exact_duplicate_edges: 0
-directed_unique_endpoint_pairs: 1229
-directed_same_endpoint_collapsed_edges: 0
-undirected_unique_endpoint_pairs: 1229
-undirected_same_endpoint_collapsed_edges: 0
-same_endpoint_group_count: 0
-relation_variant_groups: 0
-source_file_variant_groups: 0
-source_location_variant_groups: 0
-context_variant_groups: 0
-post_build_graph_type: Graph
-post_build_edges: 1229
-producer_suppression_sites: 10
-producer_suppression_examples:
-  - L1099 seen_ids arity=unknown
-  - L1253 seen_ids arity=unknown
-  - L1255 seen_doc_refs arity=unknown
-  - L1600 seen_ids arity=unknown
-  - L2069 seen_keys arity=unknown
-  - L3104 seen_ids arity=unknown
-  - L3212 seen_ids arity=unknown
-  - L3291 seen_ids arity=unknown
-note: normal graph.json is post-build; raw producer loss must be measured earlier.
-```
+  _298 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should `components.json` be split into smaller, more focused modules?**
+  _Cohesion score 0.11764705882352941 - nodes in this community are weakly interconnected._
+- **Should `dependencies` be split into smaller, more focused modules?**
+  _Cohesion score 0.08 - nodes in this community are weakly interconnected._
+- **Should `bucket-workspace.tsx` be split into smaller, more focused modules?**
+  _Cohesion score 0.073224043715847 - nodes in this community are weakly interconnected._

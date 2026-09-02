@@ -1,0 +1,287 @@
+{
+  "nodes": [
+    {
+      "id": "product_current_gallery_extension",
+      "label": "Current shared calendar and gallery extension",
+      "file_type": "rationale",
+      "source_file": "PRODUCT.md",
+      "source_location": "PRODUCT.md:89",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Shared Calendar and memory/moment media include per-file and story comments, six-photo entry previews, combined Home gallery and real browser-local preview files. Reminders apply only to plans; free Photon/OpenStreetMap and editable place labels remain."
+    },
+    {
+      "id": "docs_decisions_adr_021_galleries_and_comments_belong_to_individual_files",
+      "label": "ADR-021 — Galleries and comments belong to individual files",
+      "file_type": "rationale",
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:202",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Accepted decision supersedes the entry-reminder portion of ADR-020. Retain plan reminders; use one viewer and shared media identity for entry/Home galleries, captions and per-file comments. Original story date controls grouping; Refresh comments is explicit and no realtime is claimed."
+    },
+    {
+      "id": "docs_phase6_gallery_verification_six_photo_previews_and_full_gallery",
+      "label": "Six photo previews and full gallery",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_GALLERY_VERIFICATION.md",
+      "source_location": "docs/PHASE6_GALLERY_VERIFICATION.md:7",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Memories and Moments listings and details show six uploaded images. Show more routes to Gallery scoped by validated kind and entry UUID, preserving couple authorization. Global Gallery retains every file with pagination. Preview images open a shared touch-swipe and keyboard viewer with captions and file comments."
+    },
+    {
+      "id": "docs_decisions_shared_gallery",
+      "label": "shared_gallery invoker view and Home gallery",
+      "file_type": "rationale",
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:208",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "The security-invoker shared_gallery view supports48-file keyset pages. Home opens /gallery grouped by memory/moment or original story date, with source,photo/video and date filters; cursor ordering uses date/kind/UUID."
+    },
+    {
+      "id": "docs_decisions_media_comments",
+      "label": "media_comments",
+      "file_type": "rationale",
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:208",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Normalized per-file comments use ownership-aware RLS and a500-comment per-file bound. Both active partners can comment; only the author deletes. Story comments stay separate. File removal cascades comments after Storage cleanup; comments load when opening the file and explicit Refresh retrieves updates."
+    },
+    {
+      "id": "docs_phase6_gallery_verification_local_preview_media_and_comments",
+      "label": "Local preview media and file comments",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_GALLERY_VERIFICATION.md",
+      "source_location": "docs/PHASE6_GALLERY_VERIFICATION.md:10",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Real files and per-file comments persist in session/entry/file-scoped IndexedDB. Preview remains browser-local and does not simulate another partner; existing story comments are retained separately."
+    },
+    {
+      "id": "docs_phase6_gallery_verification_retired_entry_reminders",
+      "label": "Retired memory and moment reminders",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_GALLERY_VERIFICATION.md",
+      "source_location": "docs/PHASE6_GALLERY_VERIFICATION.md:11",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Entry reminder UI, actions and preview delivery are removed. Historical rows remain, but client table/RPC access is revoked, entry cron is removed and its worker is inert."
+    },
+    {
+      "id": "docs_phase6_gallery_verification_retained_plan_reminders",
+      "label": "Retained plan reminders",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_GALLERY_VERIFICATION.md",
+      "source_location": "docs/PHASE6_GALLERY_VERIFICATION.md:11",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Plan reminders retain their separate table, permissions and independent active cron. Retiring memory/moment reminders does not retire plan scheduling."
+    },
+    {
+      "id": "docs_phase6_gallery_verification_gallery_followup_evidence",
+      "label": "Gallery follow-up verification evidence",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_GALLERY_VERIFICATION.md",
+      "source_location": "docs/PHASE6_GALLERY_VERIFICATION.md:16",
+      "source_url": null,
+      "captured_at": null,
+      "author": null,
+      "contributor": null,
+      "rationale": "Hosted gallery/comment integration passed41 checks and unit tests passed48. Rollback-only suites cover ready-only gallery, both parents, author/foreign/former/anonymous isolation, comment bounds/cascade and reminder retirement with retained plan grants/job. Final browser/build evidence was pending in the read source. Existing cleanup approval and ADR-014 obligations remain."
+    }
+  ],
+  "edges": [
+    {
+      "source": "product_current_gallery_extension",
+      "target": "docs_phase6_gallery_verification_six_photo_previews_and_full_gallery",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "PRODUCT.md",
+      "source_location": "PRODUCT.md:89"
+    },
+    {
+      "source": "product_current_gallery_extension",
+      "target": "docs_decisions_shared_gallery",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "PRODUCT.md",
+      "source_location": "PRODUCT.md:89"
+    },
+    {
+      "source": "product_current_gallery_extension",
+      "target": "docs_decisions_media_comments",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "PRODUCT.md",
+      "source_location": "PRODUCT.md:89"
+    },
+    {
+      "source": "product_current_gallery_extension",
+      "target": "docs_phase6_gallery_verification_local_preview_media_and_comments",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "PRODUCT.md",
+      "source_location": "PRODUCT.md:89"
+    },
+    {
+      "source": "product_current_gallery_extension",
+      "target": "docs_phase6_gallery_verification_retired_entry_reminders",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "PRODUCT.md",
+      "source_location": "PRODUCT.md:89"
+    },
+    {
+      "source": "product_current_gallery_extension",
+      "target": "docs_phase6_gallery_verification_retained_plan_reminders",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "PRODUCT.md",
+      "source_location": "PRODUCT.md:89"
+    },
+    {
+      "source": "docs_decisions_adr_021_galleries_and_comments_belong_to_individual_files",
+      "target": "docs_phase6_gallery_verification_six_photo_previews_and_full_gallery",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:208"
+    },
+    {
+      "source": "docs_decisions_adr_021_galleries_and_comments_belong_to_individual_files",
+      "target": "docs_decisions_shared_gallery",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:208"
+    },
+    {
+      "source": "docs_decisions_adr_021_galleries_and_comments_belong_to_individual_files",
+      "target": "docs_decisions_media_comments",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:208"
+    },
+    {
+      "source": "docs_decisions_adr_021_galleries_and_comments_belong_to_individual_files",
+      "target": "docs_phase6_gallery_verification_local_preview_media_and_comments",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:208"
+    },
+    {
+      "source": "docs_decisions_adr_021_galleries_and_comments_belong_to_individual_files",
+      "target": "docs_phase6_gallery_verification_retired_entry_reminders",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:208"
+    },
+    {
+      "source": "docs_decisions_adr_021_galleries_and_comments_belong_to_individual_files",
+      "target": "docs_phase6_gallery_verification_retained_plan_reminders",
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:208"
+    },
+    {
+      "source": "docs_phase6_gallery_verification_six_photo_previews_and_full_gallery",
+      "target": "docs_decisions_media_comments",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_GALLERY_VERIFICATION.md",
+      "source_location": "docs/PHASE6_GALLERY_VERIFICATION.md:9"
+    },
+    {
+      "source": "docs_decisions_shared_gallery",
+      "target": "docs_decisions_media_comments",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/DECISIONS.md",
+      "source_location": "docs/DECISIONS.md:208"
+    },
+    {
+      "source": "docs_phase6_gallery_verification_gallery_followup_evidence",
+      "target": "docs_decisions_media_comments",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_GALLERY_VERIFICATION.md",
+      "source_location": "docs/PHASE6_GALLERY_VERIFICATION.md:17"
+    },
+    {
+      "source": "docs_phase6_gallery_verification_gallery_followup_evidence",
+      "target": "docs_phase6_gallery_verification_retired_entry_reminders",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_GALLERY_VERIFICATION.md",
+      "source_location": "docs/PHASE6_GALLERY_VERIFICATION.md:17"
+    },
+    {
+      "source": "docs_phase6_gallery_verification_gallery_followup_evidence",
+      "target": "docs_phase6_gallery_verification_retained_plan_reminders",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_GALLERY_VERIFICATION.md",
+      "source_location": "docs/PHASE6_GALLERY_VERIFICATION.md:17"
+    }
+  ],
+  "hyperedges": [],
+  "input_tokens": 1900,
+  "output_tokens": 2507
+}

@@ -13,8 +13,7 @@ async function activeCoupleId(userId: string) {
   const supabase = await createServerSupabaseClient();
   const { data } = await supabase.from("couple_memberships").select("couple_id").eq("user_id", userId).is("left_at", null).maybeSingle();
   if (!data) return null;
-  const { count } = await supabase.from("couple_memberships").select("id", { count: "exact", head: true }).eq("couple_id", data.couple_id).is("left_at", null);
-  return (count ?? 0) === 2 ? data.couple_id : null;
+  return data.couple_id;
 }
 
 export async function createPlanAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
@@ -25,8 +24,8 @@ export async function createPlanAction(_previous: ActionState, formData: FormDat
   let startsAt: string;
   let endsAt: string | null;
   try {
-    startsAt = zonedLocalToUtc(parsed.data.startsAt, parsed.data.timezone);
-    endsAt = parsed.data.endsAt ? zonedLocalToUtc(parsed.data.endsAt, parsed.data.timezone) : null;
+    startsAt = zonedLocalToUtc(parsed.data.startsAt, parsed.data.timezone, parsed.data.occurrence);
+    endsAt = parsed.data.endsAt ? zonedLocalToUtc(parsed.data.endsAt, parsed.data.timezone, parsed.data.occurrence) : null;
   } catch (error) {
     return { status: "error", message: error instanceof Error ? error.message : "Choose a valid local time.", fields: { startsAt: ["Review the date, time, and timezone."] } };
   }
@@ -37,20 +36,20 @@ export async function createPlanAction(_previous: ActionState, formData: FormDat
     try { id = await saveBucketPlan(parsed.data.sourceBucketId, parsed.data, startsAt, endsAt); }
     catch (error) { return { status: "error", message: error instanceof Error ? error.message : "We couldn't save the plan." }; }
     revalidatePath("/bucket"); revalidatePath(`/bucket/${parsed.data.sourceBucketId}`); revalidatePath("/plans"); revalidatePath("/home");
-    redirect(`/plans#${id}`);
+    redirect(`/plans/${id}`);
   }
 
   const identity = await getCurrentIdentity();
   if (!identity) return { status: "error", message: "Your session expired. Sign in again." };
   if (identity.kind === "developer") {
     const state = await readDeveloperState();
-    if (state.coupleStatus !== "paired") return { status: "error", message: "Connect your partner before adding shared plans." };
+    if (state.coupleStatus === "solo") return { status: "error", message: "Create your shared space before adding plans." };
     const id = crypto.randomUUID();
     await writeDeveloperState({
       ...state,
-      plans: [{ id, title: parsed.data.title, description: parsed.data.description ?? "", type: parsed.data.type, status: "planned" as const, startsAt, endsAt, timezone: parsed.data.timezone, location: parsed.data.location ?? "" }, ...state.plans].slice(0, 20),
+      plans: [{ id, title: parsed.data.title, description: parsed.data.description ?? "", type: parsed.data.type, status: "planned" as const, startsAt, endsAt, timezone: parsed.data.timezone, location: parsed.data.location ?? "", version: 1, latitude: parsed.data.latitude, longitude: parsed.data.longitude, mapUrl: parsed.data.mapUrl, budgetMinor: moneyToMinorUnits(parsed.data.budget), currency: parsed.data.currency || null }, ...state.plans].slice(0, 20),
     });
-    redirect(`/plans#${id}`);
+    redirect(`/plans/${id}`);
   }
 
   const coupleId = await activeCoupleId(identity.userId);
@@ -65,32 +64,17 @@ export async function createPlanAction(_previous: ActionState, formData: FormDat
     ends_at: endsAt,
     originating_timezone: parsed.data.timezone,
     location: parsed.data.location,
+    latitude: parsed.data.latitude, longitude: parsed.data.longitude, external_map_url: parsed.data.mapUrl,
     budget_minor: moneyToMinorUnits(parsed.data.budget),
     currency: parsed.data.currency || null,
   }).select("id").single();
   if (error || !data) return { status: "error", message: "We couldn't save this plan. Try again." };
   revalidatePath("/plans");
   revalidatePath("/home");
-  redirect(`/plans#${data.id}`);
+  redirect(`/plans/${data.id}`);
 }
 
-export async function completePlanAction(formData: FormData) {
-  const planId = String(formData.get("planId") ?? "");
-  if (!/^[0-9a-f-]{36}$/i.test(planId)) return;
-  const identity = await getCurrentIdentity();
-  if (!identity) redirect("/sign-in");
-  if (identity.kind === "developer") {
-    const state = await readDeveloperState();
-    await writeDeveloperState({ ...state, plans: state.plans.map((plan) => plan.id === planId ? { ...plan, status: "completed" as const } : plan) });
-  } else {
-    const supabase = await createServerSupabaseClient();
-    const { data: plan } = await supabase.from("plans").select("id").eq("id", planId).maybeSingle();
-    if (!plan) return;
-    await supabase.from("plans").update({ status: "completed", completed_by: identity.userId, completed_at: new Date().toISOString() }).eq("id", plan.id);
-  }
-  revalidatePath("/plans");
-  revalidatePath("/home");
-}
+function finishMemory(id:string, inline:string):ActionState { revalidatePath("/calendar"); if(inline==="true")return {status:"success",savedId:id}; redirect("/memories/"+id); }
 
 export async function createMemoryAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = memorySchema.safeParse(Object.fromEntries(formData));
@@ -101,24 +85,24 @@ export async function createMemoryAction(_previous: ActionState, formData: FormD
     try { id = await saveBucketMemory(parsed.data.sourceBucketId, parsed.data); }
     catch (error) { return { status: "error", message: error instanceof Error ? error.message : "We couldn't save the memory." }; }
     revalidatePath("/bucket"); revalidatePath("/memories"); revalidatePath("/home");
-    redirect(`/memories#${id}`);
+    return finishMemory(id, parsed.data.returnCreated);
   }
   const identity = await getCurrentIdentity();
   if (!identity) return { status: "error", message: "Your session expired. Sign in again." };
 
   if (identity.kind === "developer") {
     const state = await readDeveloperState();
-    if (state.coupleStatus !== "paired") return { status: "error", message: "Connect your partner before adding shared memories." };
+    if (state.coupleStatus === "solo") return { status: "error", message: "Connect your partner before adding shared memories." };
     const sourcePlan = parsed.data.sourcePlanId ? state.plans.find((plan) => plan.id === parsed.data.sourcePlanId) : null;
     if (parsed.data.sourcePlanId && sourcePlan?.status !== "completed") return { status: "error", message: "Complete the plan before saving it as a memory." };
     const existing = sourcePlan ? state.memories.find((memory) => memory.sourcePlanId === sourcePlan.id) : null;
-    if (existing) redirect(`/memories#${existing.id}`);
+    if (existing) return finishMemory(existing.id, parsed.data.returnCreated);
     const id = crypto.randomUUID();
     await writeDeveloperState({
       ...state,
       memories: [{ id, title: parsed.data.title, description: parsed.data.description ?? "", memoryDate: parsed.data.memoryDate, location: parsed.data.location ?? "", rating: parsed.data.rating === "" ? null : parsed.data.rating, favorite: parsed.data.favorite, sourcePlanId: parsed.data.sourcePlanId, sourceBucketId: sourcePlan?.sourceBucketId }, ...state.memories].slice(0, 30),
     });
-    redirect(`/memories#${id}`);
+    return finishMemory(id, parsed.data.returnCreated);
   }
 
   const supabase = await createServerSupabaseClient();
@@ -132,7 +116,7 @@ export async function createMemoryAction(_previous: ActionState, formData: FormD
     coupleId = plan.couple_id;
     sourceBucketId = plan.source_bucket_item_id;
     const { data: existing } = await supabase.from("memories").select("id").eq("source_plan_id", plan.id).maybeSingle();
-    if (existing) redirect(`/memories#${existing.id}`);
+    if (existing) return finishMemory(existing.id, parsed.data.returnCreated);
   }
 
   const { data, error } = await supabase.from("memories").insert({
@@ -146,9 +130,13 @@ export async function createMemoryAction(_previous: ActionState, formData: FormD
     rating: parsed.data.rating === "" ? null : parsed.data.rating,
     is_favorite: parsed.data.favorite,
   }).select("id").single();
+  if (error?.code === "23505" && parsed.data.sourcePlanId) {
+    const { data: existing } = await supabase.from("memories").select("id").eq("source_plan_id", parsed.data.sourcePlanId).maybeSingle();
+    if (existing) return finishMemory(existing.id, parsed.data.returnCreated);
+  }
   if (error || !data) return { status: "error", message: "We couldn't save this memory. Try again." };
   revalidatePath("/memories");
   revalidatePath("/plans");
   revalidatePath("/home");
-  redirect(`/memories#${data.id}`);
+  return finishMemory(data.id, parsed.data.returnCreated);
 }

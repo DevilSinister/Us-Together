@@ -16,7 +16,7 @@ export async function saveBucketPlan(sourceId: string, values: z.infer<typeof pl
     if (existing) return existing.id;
     if (source.status === "completed") throw new Error("This idea is already completed.");
     const id = crypto.randomUUID();
-    await writeDeveloperState({ ...state, plans: [{ id, sourceBucketId: sourceId, title: values.title, description: values.description ?? "", type: values.type, status: "planned" as const, startsAt, endsAt, timezone: values.timezone, location: values.location ?? "" }, ...state.plans].slice(0, 20) });
+    await writeDeveloperState({ ...state, plans: [{ id, sourceBucketId: sourceId, title: values.title, description: values.description ?? "", type: values.type, status: "planned" as const, startsAt, endsAt, timezone: values.timezone, location: values.location ?? "", budgetMinor: moneyToMinorUnits(values.budget), currency: values.currency || null, version: 1 }, ...state.plans].slice(0, 20) });
     source.status = "planned"; source.version += 1;
     await saveBucketPreview(context.userId, context.preview);
     return id;

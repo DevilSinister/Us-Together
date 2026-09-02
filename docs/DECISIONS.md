@@ -154,3 +154,57 @@ Status values: `Proposed`, `Accepted`, `Superseded`, `Rejected`. New records inc
 
 **Supersedes/links:** Related ADRs and specifications.
 ```
+
+## ADR-016 — Internal calendar and transactional plan reminders
+
+**Status:** Accepted implementation decision, 2026-09-02.
+
+**Decision:** Extend the existing Plans surface with upcoming, month and week views and a selected-day agenda on mobile. Query a bounded UTC window, classify exact days in the viewer timezone, preserve multi-day intervals and paginate with start instant/UUID. Do not add Google Calendar in MVP. Reject DST gaps; repeated times require an explicit earlier/later choice. Local-time edits include a resolved preview before save.
+
+Use a monotonic parent revision and security-invoker mutation RPCs with row locks. Active members can manage retained shared plans. Cancel/complete stops pending reminders; restoring a plan does not automatically reactivate cancelled notifications.
+
+Deliver in-app reminders with Supabase pg_cron every minute and a revoked private security-invoker worker running as postgres. This requires no service-role application key or external scheduler credential. Each reminder's fan-out is atomic, content-minimal, preference-aware, and uniquely keyed by delivery/recipient. Isolate failures, retry with exponential backoff, and stop at five failed attempts. Monitor backlog and safe failure counts; a manual operator retry preserves the delivery key.
+
+**Consequences:** Per-minute delivery is best effort, not a hard real-time guarantee. Real concurrent-session timing and real-account journeys remain ADR-014 final integration gates. Calendar/timezone units, hosted RLS/worker assertions and desktop/mobile fixture journeys provide phase evidence.
+
+## ADR-017 — Private plan documents and explicit cleanup
+
+**Status:** Accepted implementation decision, 2026-09-02.
+
+**Decision:** Plan attachments use a separate private Storage bucket and normalized metadata, with PDF/PNG/JPEG limited to 2 MiB. Server Actions authorize and inspect signatures before upload. Downloads proxy through a freshly authorized route with forced attachment/no-store responses, rather than distributing signed object URLs to the page. The developer preview exposes no fake uploader.
+
+Create pending metadata before the binary; failed or interrupted uploads remain removable. Delete binaries before metadata, and require attachment removal before plan deletion. Add database guards so direct Data API deletion cannot orphan stored files.
+
+**Consequences:** Account/couple deletion must clean Storage first in Phase 8. File-signature validation does not imply malware scanning. The real-account binary round trip remains explicitly unclaimed until final integration; current tests verify signatures, limits and hosted path authorization.
+
+## ADR-018 — Private memory media with authenticated resumable upload
+
+**Status:** Accepted implementation decision, 2026-09-02.
+
+**Decision:** Keep the memory story and normalized tags in PostgreSQL. Allocate immutable media metadata through a JWT-protected Edge function that also authenticates the user and authorizes the parent through RLS. Send bytes directly to private Storage using authenticated TUS; never expose an elevated key. Revoke direct client metadata writes and Storage overwrite/delete.
+
+Finalization uses a five-minute fenced lease, checks actual bytes/container dimensions/duration, decodes images and creates oriented metadata-stripped JPEG previews. Pin the ImageMagick WASM decoder; when the deployment bundle omits its binary asset, fetch the exact public package asset and verify its SHA-256 before use. No private media is sent to the CDN. Videos retain native playback without a transcoding or automatic-caption promise.
+
+Serve application reads through fresh authorization and sixty-second signed redirects. Remove Storage objects before metadata and require file removal before deleting a memory. Interrupted uploads/processes/removals remain visible and retryable. Per-user request budgets and transactional per-memory quotas bound work.
+
+**Consequences:** Decoder availability affects image finalization; failure leaves unpublished recoverable state. Pause/resume lasts while the page stays open; private TUS URLs are not persisted. Originals can retain metadata. Signed URLs already issued remain usable until expiry. Manual member/operator cleanup covers abandoned uploads; automatic garbage collection and account-wide Storage cleanup require later lifecycle work. This is access-controlled shared storage, not end-to-end encryption. See Phase 6 operations and ADR-014 for final integration gates.
+
+## ADR-020: Shared calendar, visible entry media and free location lookup
+
+**Status:** Accepted, user-directed Phase 6 extension.
+
+**Decision:** Add a standalone Calendar accessed from Home/navigation, projecting plans, memories and moments with independent bounded cursors. Moments retain the existing milestone relational model and gain detail routes, private media, shared comments and personal reminders. Memory/moment creation includes multi-file selection and captions; save the authorized story before sending binary files so upload failures preserve it. Use real IndexedDB files for developer preview, isolated by session and entry. Preview due notifications are computed without background cookie mutations.
+
+Remove manual coordinates from memory/plan UI and current memory DTOs; preserve legacy database columns/migrations. The user declined paid Google Places, so use free Photon/OpenStreetMap suggestions and explicit nearby lookup, with attribution, throttling, generic failures, configurable service endpoint and manual fallback. Store selected bounded place labels, not coordinates. Google Calendar OAuth remains a separate R2 feature.
+
+**Consequences:** The community geocoder has no availability guarantee and may throttle substantial traffic; its endpoint can be changed without changing the app. Preview media is local and expires after 24 hours, with deletion on later access, and does not simulate partner synchronization. Notifications are in-app, not push/email/SMS. Photos have individual captions; comments attach to their parent entry.
+
+## ADR-021 — Galleries and comments belong to individual files
+
+**Status:** Accepted; supersedes the entry-reminder part of ADR-020.
+
+**Context:** The owner requested removal of reminders from memories/moments, compact six-photo previews, a full gallery and a Home gallery with comments on each photo.
+
+**Decision:** Keep plan reminders. Retire entry reminders throughout UI/API/cron while retaining historical rows. Show the first six uploaded images on Memories and Moments listings and details. Show more navigates to /gallery scoped by validated kind and entry UUID, with every photo and video available. Listing media loads near the viewport. Photo viewers support horizontal touch swipes, arrow keys and Previous/Next buttons; videos retain native controls. Reuse one viewer for entry and Home galleries. Show captions and per-file partner comments within the viewer; preserve older story-level comments separately. Add normalized media_comments with ownership-aware RLS and a 500-comment per-file bound. Use a security-invoker shared_gallery view and 48-file keyset pages, grouping by source or story date. Preview uses the same interaction with session/entry/file-scoped IndexedDB records.
+
+**Consequences:** Gallery navigation and comment edits share one media identity. Photo deletion cascades its comments after Storage cleanup. Comments load on opening a file, and Refresh comments retrieves partner updates; no realtime subscription is claimed. The original story date determines date grouping, not EXIF or upload time.

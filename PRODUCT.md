@@ -70,7 +70,7 @@ The visual commitment is premium, cozy, romantic, and modern, using rose/pink la
 
 ## Evidence on Hand
 
-The product-owner prompt remains the primary discovery input. Shipped evidence now includes responsive auth/onboarding/pairing, a privacy-safe relationship dashboard, basic milestones and content-minimal notifications/preferences, the direct Plan-to-Memory slice, a managed Supabase schema, and automated desktop/mobile browser coverage. There is still no user research, production customer data, final logo/photography library, customer proof, pricing, or performance benchmark; future work must not fabricate them.
+The product-owner prompt remains the primary discovery input. Shipped evidence now includes responsive auth/onboarding/pairing, a privacy-safe relationship dashboard, basic milestones and content-minimal notifications/preferences, full plan/calendar/checklist flows, in-app reminders and private plan attachments, full memory editing and private photo/video upload/view/delete flows, a managed Supabase schema, and automated desktop/mobile browser coverage. There is still no user research, production customer data, final logo/photography library, customer proof, pricing, or performance benchmark; future work must not fabricate them.
 
 ## Product Principles
 
@@ -83,3 +83,7 @@ The product-owner prompt remains the primary discovery input. Shipped evidence n
 ## Accessibility & Inclusion
 
 Target WCAG 2.2 AA for application surfaces. Support keyboard and screen-reader use, visible focus, sufficient contrast, reduced motion, accessible validation, appropriate touch targets, and non-color status cues. Do not assume gender, marriage status, shared surname, physical ability, culture, or relationship duration.
+
+## Phase 6 shared calendar and media extension
+
+Home and navigation expose a shared Calendar with plans, memories and moments. Memories and moments accept multiple photos/videos during creation and on their detail pages, individual captions, comments on each photo/video and shared story comments. Memories and Moments listings and entry detail pages show six small photo previews. Previews open a swipeable viewer; Show more opens that entry's photos and videos in the shared Gallery route. Home opens a combined gallery grouped by memory/moment or date, with type and date filters. Developer preview supports real browser-local files and comments. Reminders apply to plans; memories and moments have no reminder controls or delivery. Manual coordinate fields are removed. Location suggestions and user-triggered nearby lookup use free Photon/OpenStreetMap with no paid API key; a place name remains editable when lookup is unavailable.

@@ -7,7 +7,7 @@
 3. A wishlist owner cannot detect purchaser-only state.
 4. Surprise content cannot be discovered before reveal.
 5. Vault media cannot be obtained without membership and a current authorized unlock session.
-6. Credentials, tokens, private content, and storage paths do not leak through clients, logs, analytics, notifications, search, or realtime.
+6. Credentials and private content do not leak to unauthorized clients or through logs, analytics, notifications, search, or shared realtime. Authorized memory uploaders receive a transient allocated path for TUS; authorized viewers receive a short-lived signed read URL. Neither is persisted by the application or included in gallery DTOs.
 
 ## Threat model
 
@@ -61,7 +61,7 @@ Pre-reveal surprise eligibility should be evaluated in the database/server with 
 - All memory and vault buckets are private. Public URLs and permanent signed URLs are forbidden.
 - Authorization verifies current user, couple, feature, metadata row, and server-constructed path.
 - Allow-list MIME and extension together; inspect actual file signatures where practical.
-- Default candidates: JPEG, PNG, WebP, supported HEIC, MP4, WebM, MP3, and M4A/MP4 audio according to feature.
+- Phase 6 memory media accepts JPEG/PNG and MP4/WebM within documented limits. Other formats remain future candidates, not an enabled upload promise.
 - Reject HTML, SVG, scripts, executables, polyglots where detectable, and unsupported archives.
 - Enforce configurable size, dimension, duration, and quota limits before/finalization.
 - Serve downloads with safe content types/disposition and avoid reflecting user filenames into headers unsafely.
@@ -105,3 +105,9 @@ Use platform secret stores and a committed `.env.example` containing names only.
 ## Incident response
 
 Classify and contain; revoke credentials/sessions; disable affected integration/feature; preserve safe audit evidence; assess affected tenants/records; patch forward; verify negative tests; notify according to future legal/policy requirements; document the incident without sensitive content. See [Operations](OPERATIONS.md).
+
+## Shared-entry extension
+
+Moment uploads use the same authenticated parent checks, binary validation, bounded processing, signed-read lifetime and cleanup ordering as memory uploads, with separate private table/bucket ownership. Caption mutations cannot change media identity. Comments are shared only through active parent membership; deletion is author-only. Reminders are personal even within a couple and the worker rechecks membership and notification preferences before emitting generic content.
+
+Preview files/comments are local IndexedDB records keyed by developer session and parent; they are not shared or uploaded. Preview entry-reminder polling has been removed. Per-file comments are scoped by session, parent and media ID; no preview comments are shared across users. Location lookup is an intentional external request using only user-entered search text or explicitly permitted geolocation; no story, caption, comment, ownership identifier or account credential is forwarded. Returned coordinates are not persisted. Production request logging must not record provider query strings.

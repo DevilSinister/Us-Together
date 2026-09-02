@@ -1,0 +1,263 @@
+{
+  "nodes": [
+    {
+      "id": "entry_extension_overview",
+      "label": "Shared Calendar and Entry Media Extension",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:3",
+      "source_url": null,
+      "rationale": "User-directed Phase6 extension; manual coordinates removed; free Photon chosen after user declined paid Places API."
+    },
+    {
+      "id": "entry_extension_calendar",
+      "label": "Calendar Plans Memories Moments",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:7",
+      "source_url": null,
+      "rationale": "Home/navigation month/week calendar with source filters, keyboard agenda and independent bounded cursors."
+    },
+    {
+      "id": "entry_extension_media",
+      "label": "Multiple Entry Photos and Captions",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:8",
+      "source_url": null,
+      "rationale": "Visible creation selection followed by sequential private upload, per-file captions and caption editing; native viewer and recoverable failed uploads."
+    },
+    {
+      "id": "entry_extension_preview",
+      "label": "Real Local Preview Media",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:9",
+      "source_url": null,
+      "rationale": "IndexedDB files/comments are session/entry scoped and never uploaded; expire after24h with removal on later access."
+    },
+    {
+      "id": "entry_extension_reminders",
+      "label": "Personal In-App Entry Reminders",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:10",
+      "source_url": null,
+      "rationale": "Historical ADR-020 entry reminders, superseded by ADR-021: memory/moment controls, actions and preview polling removed; worker inert, cron removed, client grants revoked. Plan reminders remain active."
+    },
+    {
+      "id": "entry_extension_locations",
+      "label": "Free Photon OpenStreetMap Lookup",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:11",
+      "source_url": null,
+      "rationale": "No paid key; live search and permission-based nearby lookup, attribution, rate bounds and manual fallback; coordinates not stored."
+    },
+    {
+      "id": "entry_extension_gates",
+      "label": "Shared Entry Verification",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:13",
+      "source_url": null,
+      "rationale": "49 unit tests,15 full browser tests,2 signed-in TUS journeys,36 hosted RLS assertions and26 hosted moment checks; final lint/types/build pass."
+    },
+    {
+      "id": "entry_extension_closeout",
+      "label": "Phase6 Closeout Obligations",
+      "file_type": "rationale",
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:48",
+      "source_url": null,
+      "rationale": "Generated Auth fixture cleanup remains blocked by explicit approval; ADR014 reset/concurrency/pairing integration remains open."
+    },
+    {
+      "id": "entry_extension_milestone_media",
+      "label": "milestone_media",
+      "file_type": "rationale",
+      "source_file": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql",
+      "source_location": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql:3",
+      "source_url": null,
+      "rationale": "Normalized moment media; immutable identity/path; active-member SELECT; privileged allocation/publication; parent lock enforces30files300MiB quota."
+    },
+    {
+      "id": "entry_extension_moment_bucket",
+      "label": "Private moment-media Bucket",
+      "file_type": "rationale",
+      "source_file": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql",
+      "source_location": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql:53",
+      "source_url": null,
+      "rationale": "Exact allocated pending/unexpired owner path permits INSERT; verified binaries visible only to active couple; no browser overwrite/delete."
+    },
+    {
+      "id": "entry_extension_entry_comments",
+      "label": "entry_comments",
+      "file_type": "rationale",
+      "source_file": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql",
+      "source_location": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql:66",
+      "source_url": null,
+      "rationale": "Exactly one memory/milestone parent; body1–2000; current author INSERT and author-only DELETE with parent authorization; no UPDATE; parent-locked500limit."
+    },
+    {
+      "id": "entry_extension_entry_reminders",
+      "label": "entry_reminders",
+      "file_type": "rationale",
+      "source_file": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql",
+      "source_location": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql:94",
+      "source_url": null,
+      "rationale": "Historical memory/moment reminder relation retained for compatibility; current client grants revoked and no delivery. Separate plan_reminders unaffected."
+    },
+    {
+      "id": "entry_extension_reminder_rpc",
+      "label": "set_entry_reminder",
+      "file_type": "rationale",
+      "source_file": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql",
+      "source_location": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql:115",
+      "source_url": null,
+      "rationale": "Historical security-invoker replacement/cancellation RPC. ADR-021 revokes authenticated execution because memories and moments no longer offer reminders."
+    },
+    {
+      "id": "entry_extension_worker",
+      "label": "deliver_entry_reminders",
+      "file_type": "rationale",
+      "source_file": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql",
+      "source_location": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql:129",
+      "source_url": null,
+      "rationale": "Historical bounded delivery worker; ADR-021 replaces its body with return zero and removes its cron job. Separate plan worker remains active."
+    }
+  ],
+  "edges": [
+    {
+      "source": "entry_extension_overview",
+      "target": "entry_extension_calendar",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:3"
+    },
+    {
+      "source": "entry_extension_overview",
+      "target": "entry_extension_media",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:3"
+    },
+    {
+      "source": "entry_extension_overview",
+      "target": "entry_extension_preview",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:3"
+    },
+    {
+      "source": "entry_extension_overview",
+      "target": "entry_extension_reminders",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:3"
+    },
+    {
+      "source": "entry_extension_overview",
+      "target": "entry_extension_locations",
+      "relation": "implements",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:3"
+    },
+    {
+      "source": "entry_extension_overview",
+      "target": "entry_extension_gates",
+      "relation": "verified_by",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:3"
+    },
+    {
+      "source": "entry_extension_overview",
+      "target": "entry_extension_closeout",
+      "relation": "tracks",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:3"
+    },
+    {
+      "source": "entry_extension_media",
+      "target": "entry_extension_milestone_media",
+      "relation": "stores_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:8"
+    },
+    {
+      "source": "entry_extension_milestone_media",
+      "target": "entry_extension_moment_bucket",
+      "relation": "authorizes",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql",
+      "source_location": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql:3"
+    },
+    {
+      "source": "entry_extension_media",
+      "target": "entry_extension_entry_comments",
+      "relation": "supports",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:8"
+    },
+    {
+      "source": "entry_extension_reminders",
+      "target": "entry_extension_entry_reminders",
+      "relation": "stores_in",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "docs/PHASE6_EXTENSION_VERIFICATION.md",
+      "source_location": "docs/PHASE6_EXTENSION_VERIFICATION.md:10"
+    },
+    {
+      "source": "entry_extension_entry_reminders",
+      "target": "entry_extension_reminder_rpc",
+      "relation": "mutated_by",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql",
+      "source_location": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql:94"
+    },
+    {
+      "source": "entry_extension_entry_reminders",
+      "target": "entry_extension_worker",
+      "relation": "delivered_by",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1,
+      "weight": 1,
+      "source_file": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql",
+      "source_location": "supabase/migrations/20260902154654_phase6_shared_calendar_moments.sql:94"
+    }
+  ],
+  "hyperedges": []
+}

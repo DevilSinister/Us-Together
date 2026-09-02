@@ -1,3 +1,5 @@
+import type { ChecklistItem, Reminder } from "@/lib/plans/types";
+import { deflateSync, inflateSync } from "node:zlib";
 import { cookies } from "next/headers";
 
 const DEV_SESSION_COOKIE = "us_together_dev_session";
@@ -17,7 +19,16 @@ export type DevState = {
     avatarStyle: string;
   };
   inviteCode?: string;
+  planChecklist?: ChecklistItem[];
+  planReminders?: Reminder[];
+  entryReminders?: Array<{id:string;kind:"memory"|"moment";entryId:string;dueAt:string;state:string;readAt?:string|null}>;
   plans: Array<{
+    latitude?: number | null;
+    longitude?: number | null;
+    mapUrl?: string | null;
+    version?: number;
+    budgetMinor?: number | null;
+    currency?: string | null;
     sourceBucketId?: string;
     id: string;
     title: string;
@@ -30,6 +41,10 @@ export type DevState = {
     location: string;
   }>;
   memories: Array<{
+    latitude?: number | null;
+    longitude?: number | null;
+    version?: number;
+    tags?: string[];
     sourceBucketId?: string;
     id: string;
     title: string;
@@ -46,6 +61,7 @@ export type DevState = {
     description: string;
     type: string;
     milestoneDate: string;
+    location?: string;
     featured: boolean;
   }>;
   notifications: Array<{
@@ -140,7 +156,7 @@ export async function readDeveloperState(): Promise<DevState> {
   const raw = (await cookies()).get(DEV_STATE_COOKIE)?.value;
   if (!raw) return fallback;
   try {
-    return { ...fallback, ...JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) } as DevState;
+    return { ...fallback, ...JSON.parse((raw.startsWith("z.") ? inflateSync(Buffer.from(raw.slice(2), "base64url"), { maxOutputLength: 262144 }) : Buffer.from(raw, "base64url")).toString("utf8")) } as DevState;
   } catch {
     return fallback;
   }
@@ -158,5 +174,7 @@ export async function writeDeveloperState(next: DevState) {
 }
 
 function encodeState(state: DevState) {
-  return Buffer.from(JSON.stringify(state), "utf8").toString("base64url");
+  const encoded = "z." + deflateSync(Buffer.from(JSON.stringify(state), "utf8")).toString("base64url");
+  if (encoded.length > 3600) throw new Error("This temporary preview is full. Remove a plan or use your connected account.");
+  return encoded;
 }

@@ -4,6 +4,7 @@
 - **Audience/job:** A partner securely signs in, then understands the next shared moment and the Dream-to-Memory loop at a glance.
 - **Direction:** A modern private letter meets a shared calendar. Warm paper surfaces, deep wine controls, quiet blush fields, and a single vertical thread connect upcoming plan, bucket idea, and recent memory.
 - **Approved composition:** Delegated selection of generated Variant C. The timeline hierarchy carries forward; wax seals, torn-paper edges, device chrome, and generated photos do not.
+- **Gallery entry point:** Home quick actions include Open gallery, leading to shared photos/videos grouped by memory/moment or date. The gallery preserves the journal identity; its compact filters, preview hierarchy, and shared file viewer are documented in `src-app-app-gallery-page-tsx.md`.
 - **Constraints:** Email/password only; never claim E2EE; mobile-first; clear privacy state; no fake actions or demo data presented as user data.
 
 ## Direction contract

@@ -1,0 +1,19 @@
+---
+version: 1
+slug: "src-app-app-gallery-page-tsx"
+primary_target: "src/app/(app)/gallery/page.tsx"
+related_targets: ["src/app/(app)/home/page.tsx","src/components/entries/gallery-workspace.tsx","src/components/entries/media-collection.tsx","src/components/entries/media-viewer.tsx","src/components/entries/comment-thread.tsx"]
+---
+
+# Photos and the conversations they keep
+
+- **Mode:** Operate
+- **Audience/job:** Browse shared photos/videos by their memory, moment, or saved date; open a file to read its caption and exchange a detail with a partner.
+- **Direction:** Inherit the Shared-Journal Thread. Paper, wine, serif headings, fine rules, and blush grouping support the photos. This extends the established world rather than introducing a separate photo-app identity.
+- **Entry and hierarchy:** Home's Open gallery action opens “Your shared gallery.” Memories and Moments listings each show up to six small square image previews in three columns, loaded as the entry approaches the viewport. Details use the same six-photo preview, growing to six columns on wider screens, followed by upload controls. Thumbnails open the shared viewer. Show more navigates to `/gallery?kind=memory|moment&entry=UUID`, containing every photo/video from that entry; video-only entries direct users there.
+- **Combined gallery:** A compact blush filter region uses two labeled columns on mobile and four on larger screens: Group by, From, Show, and On date. Grouping switches between memory/moment and date; filters select entry kind, photo/video type, and an optional date. Photo groups use serif titles, source-entry links where applicable, square crops, and short captions. The grid grows from three columns to four and six. The hosted gallery pages through 48 files at a time with Load more photos and videos. Entry-scoped galleries keep their kind fixed and offer Back to memory/moment and View all gallery. Loading, empty, failed, retry, and clear-date states remain explicit.
+- **Viewer:** One native paper dialog keeps Close and the file count in a sticky header. On desktop the photo/video sits beside a narrower column containing source title/date, caption, file options, and comments; on mobile these stack under the image. Originals fit the viewing area, videos retain native controls, and Previous/Next/Download stay visible below the media. Horizontal touch swipes on the photo navigate files while vertical scrolling and pinch zoom remain available. Arrow keys and Previous/Next provide parallel navigation while preserving input and video controls; Escape closes.
+- **Conversations:** File-specific Comments appear inside the viewer; entry-level What you remember remains below the entry media. Both identify You or Your partner, expose Refresh comments, and let the author delete their own comments. Posting disables the textarea and submit control while pending, then clears a successful draft. Errors remain visible.
+- **File changes:** Caption and file options stay behind disclosure inside the viewer. Save caption updates the selected file; Remove file explains that its comments are removed too. Successful removal closes the viewer and refreshes the grid. Ready-file controls remain separate from unfinished-upload recovery.
+- **Preview and boundaries:** Browser-local real files, captions, and both comment scopes follow the disclosed preview boundary. Memory/moment reminders are absent; plan reminders retain their own controls. Existing private media authorization and upload rules continue unchanged.
+- **Evidence:** Listing previews use `.impeccable/qa/gallery-list-{memory,moment}-{desktop,mobile}-chromium.png`; gallery, viewer, and detail captures use `gallery-{home,viewer,preview-memory,preview-moment}-{desktop,mobile}-chromium.png`. The clarified listing-to-gallery flow and touch navigation passed the finish review without material fixes; detailed verification remains in the phase records.

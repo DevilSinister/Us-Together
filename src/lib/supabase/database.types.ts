@@ -274,6 +274,138 @@ export type Database = {
         }
         Relationships: []
       }
+      entry_comments: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string
+          id: string
+          memory_id: string | null
+          milestone_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          memory_id?: string | null
+          milestone_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          memory_id?: string | null
+          milestone_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entry_comments_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entry_comments_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      entry_reminders: {
+        Row: {
+          attempts: number
+          due_at: string
+          id: string
+          memory_id: string | null
+          milestone_id: string | null
+          next_attempt_at: string
+          state: string
+          user_id: string
+        }
+        Insert: {
+          attempts?: number
+          due_at: string
+          id?: string
+          memory_id?: string | null
+          milestone_id?: string | null
+          next_attempt_at?: string
+          state?: string
+          user_id?: string
+        }
+        Update: {
+          attempts?: number
+          due_at?: string
+          id?: string
+          memory_id?: string | null
+          milestone_id?: string | null
+          next_attempt_at?: string
+          state?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "entry_reminders_memory_id_fkey"
+            columns: ["memory_id"]
+            isOneToOne: false
+            referencedRelation: "memories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "entry_reminders_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      media_comments: {
+        Row: {
+          body: string
+          created_at: string
+          created_by: string
+          id: string
+          memory_media_id: string | null
+          milestone_media_id: string | null
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          memory_media_id?: string | null
+          milestone_media_id?: string | null
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          memory_media_id?: string | null
+          milestone_media_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "media_comments_memory_media_id_fkey"
+            columns: ["memory_media_id"]
+            isOneToOne: false
+            referencedRelation: "memory_media"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "media_comments_milestone_media_id_fkey"
+            columns: ["milestone_media_id"]
+            isOneToOne: false
+            referencedRelation: "milestone_media"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       memories: {
         Row: {
           couple_id: string
@@ -291,6 +423,7 @@ export type Database = {
           source_plan_id: string | null
           title: string
           updated_at: string
+          version: number
         }
         Insert: {
           couple_id: string
@@ -308,6 +441,7 @@ export type Database = {
           source_plan_id?: string | null
           title: string
           updated_at?: string
+          version?: number
         }
         Update: {
           couple_id?: string
@@ -325,6 +459,7 @@ export type Database = {
           source_plan_id?: string | null
           title?: string
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -352,45 +487,63 @@ export type Database = {
       }
       memory_media: {
         Row: {
+          caption: string
           created_at: string
           created_by: string
           derivative_path: string | null
           duration_seconds: number | null
+          error_code: string | null
           height: number | null
           id: string
           media_type: string
           memory_id: string
           mime_type: string
+          processing_at: string | null
+          processing_token: string | null
           size_bytes: number
+          state: string
           storage_path: string
+          upload_expires_at: string
           width: number | null
         }
         Insert: {
+          caption?: string
           created_at?: string
           created_by?: string
           derivative_path?: string | null
           duration_seconds?: number | null
+          error_code?: string | null
           height?: number | null
           id?: string
           media_type: string
           memory_id: string
           mime_type: string
+          processing_at?: string | null
+          processing_token?: string | null
           size_bytes: number
+          state?: string
           storage_path: string
+          upload_expires_at?: string
           width?: number | null
         }
         Update: {
+          caption?: string
           created_at?: string
           created_by?: string
           derivative_path?: string | null
           duration_seconds?: number | null
+          error_code?: string | null
           height?: number | null
           id?: string
           media_type?: string
           memory_id?: string
           mime_type?: string
+          processing_at?: string | null
+          processing_token?: string | null
           size_bytes?: number
+          state?: string
           storage_path?: string
+          upload_expires_at?: string
           width?: number | null
         }
         Relationships: [
@@ -465,6 +618,77 @@ export type Database = {
           },
         ]
       }
+      milestone_media: {
+        Row: {
+          caption: string
+          created_at: string
+          created_by: string
+          derivative_path: string | null
+          duration_seconds: number | null
+          error_code: string | null
+          height: number | null
+          id: string
+          media_type: string
+          milestone_id: string
+          mime_type: string
+          processing_at: string | null
+          processing_token: string | null
+          size_bytes: number
+          state: string
+          storage_path: string
+          upload_expires_at: string
+          width: number | null
+        }
+        Insert: {
+          caption?: string
+          created_at?: string
+          created_by?: string
+          derivative_path?: string | null
+          duration_seconds?: number | null
+          error_code?: string | null
+          height?: number | null
+          id?: string
+          media_type: string
+          milestone_id: string
+          mime_type: string
+          processing_at?: string | null
+          processing_token?: string | null
+          size_bytes: number
+          state?: string
+          storage_path: string
+          upload_expires_at?: string
+          width?: number | null
+        }
+        Update: {
+          caption?: string
+          created_at?: string
+          created_by?: string
+          derivative_path?: string | null
+          duration_seconds?: number | null
+          error_code?: string | null
+          height?: number | null
+          id?: string
+          media_type?: string
+          milestone_id?: string
+          mime_type?: string
+          processing_at?: string | null
+          processing_token?: string | null
+          size_bytes?: number
+          state?: string
+          storage_path?: string
+          upload_expires_at?: string
+          width?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "milestone_media_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "milestones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       milestones: {
         Row: {
           couple_id: string
@@ -473,6 +697,7 @@ export type Database = {
           description: string | null
           id: string
           is_featured: boolean
+          location: string | null
           milestone_date: string
           title: string
           type: string
@@ -485,6 +710,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_featured?: boolean
+          location?: string | null
           milestone_date: string
           title: string
           type: string
@@ -497,6 +723,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_featured?: boolean
+          location?: string | null
           milestone_date?: string
           title?: string
           type?: string
@@ -592,6 +819,50 @@ export type Database = {
           },
         ]
       }
+      plan_attachments: {
+        Row: {
+          created_at: string
+          filename: string
+          id: string
+          mime_type: string
+          object_path: string
+          plan_id: string
+          ready: boolean
+          size_bytes: number
+          uploaded_by: string
+        }
+        Insert: {
+          created_at?: string
+          filename: string
+          id?: string
+          mime_type: string
+          object_path: string
+          plan_id: string
+          ready?: boolean
+          size_bytes: number
+          uploaded_by?: string
+        }
+        Update: {
+          created_at?: string
+          filename?: string
+          id?: string
+          mime_type?: string
+          object_path?: string
+          plan_id?: string
+          ready?: boolean
+          size_bytes?: number
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_attachments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_checklist_items: {
         Row: {
           created_at: string
@@ -640,6 +911,9 @@ export type Database = {
           delivery_key: string
           due_at: string
           id: string
+          last_error_code: string | null
+          next_attempt_at: string | null
+          offset_minutes: number
           plan_id: string
           state: string
           updated_at: string
@@ -653,6 +927,9 @@ export type Database = {
           delivery_key?: string
           due_at: string
           id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string | null
+          offset_minutes?: number
           plan_id: string
           state?: string
           updated_at?: string
@@ -666,6 +943,9 @@ export type Database = {
           delivery_key?: string
           due_at?: string
           id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string | null
+          offset_minutes?: number
           plan_id?: string
           state?: string
           updated_at?: string
@@ -703,6 +983,7 @@ export type Database = {
           title: string
           type: string
           updated_at: string
+          version: number
         }
         Insert: {
           budget_minor?: number | null
@@ -726,6 +1007,7 @@ export type Database = {
           title: string
           type: string
           updated_at?: string
+          version?: number
         }
         Update: {
           budget_minor?: number | null
@@ -749,6 +1031,7 @@ export type Database = {
           title?: string
           type?: string
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
@@ -805,9 +1088,35 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      shared_gallery: {
+        Row: {
+          caption: string | null
+          couple_id: string | null
+          duration_seconds: number | null
+          entry_date: string | null
+          entry_id: string | null
+          entry_title: string | null
+          id: string | null
+          kind: string | null
+          media_type: string | null
+          mime_type: string | null
+          size_bytes: number | null
+          sort_key: string | null
+          state: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      can_access_entry: {
+        Args: { memory: string; moment: string }
+        Returns: boolean
+      }
+      can_access_media_comment: {
+        Args: { memory: string; moment: string }
+        Returns: boolean
+      }
+      consume_memory_media_budget: { Args: { kind: string }; Returns: boolean }
       create_couple_with_invite: {
         Args: { started_on?: string }
         Returns: {
@@ -857,6 +1166,17 @@ export type Database = {
       delete_empty_couple: { Args: never; Returns: boolean }
       join_couple_by_code: { Args: { pairing_code: string }; Returns: string }
       leave_current_couple: { Args: never; Returns: boolean }
+      list_memories_by_tag: {
+        Args: {
+          before_date?: string
+          before_id?: string
+          favorites?: boolean
+          tag_name: string
+        }
+        Returns: {
+          id: string
+        }[]
+      }
       mutate_bucket_subtask: {
         Args: {
           completed?: boolean
@@ -869,7 +1189,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      mutate_plan: { Args: { input: Json }; Returns: Json }
       revoke_pairing_invite: { Args: never; Returns: boolean }
+      set_entry_reminder: {
+        Args: { due: string; memory: string; moment: string }
+        Returns: string
+      }
+      update_memory_details: { Args: { input: Json }; Returns: Json }
+      update_plan_details: { Args: { input: Json }; Returns: Json }
     }
     Enums: {
       [_ in never]: never
@@ -888,12 +1215,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -917,11 +1244,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -942,11 +1269,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -967,11 +1294,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -984,11 +1311,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }

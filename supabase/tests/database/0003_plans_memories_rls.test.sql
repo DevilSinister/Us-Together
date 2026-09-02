@@ -22,6 +22,7 @@ insert into public.couple_memberships (couple_id, user_id) values
 insert into public.plans (id, couple_id, created_by, type, title, starts_at, originating_timezone) values
   ('12000000-0000-0000-0000-000000000001', '11000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', 'date', 'Shared dinner', now() + interval '1 day', 'UTC'),
   ('23000000-0000-0000-0000-000000000001', '22000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', 'trip', 'Other trip', now() + interval '2 days', 'UTC');
+update public.plans set status='completed',completed_by=created_by,completed_at=now() where id in ('12000000-0000-0000-0000-000000000001','23000000-0000-0000-0000-000000000001');
 insert into public.memories (id, couple_id, created_by, source_plan_id, title, memory_date) values
   ('13000000-0000-0000-0000-000000000001', '11000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000001', '12000000-0000-0000-0000-000000000001', 'Dinner together', current_date),
   ('24000000-0000-0000-0000-000000000001', '22000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001', '23000000-0000-0000-0000-000000000001', 'Other memory', current_date);
@@ -35,7 +36,7 @@ select is((select title from public.plans where id = '12000000-0000-0000-0000-00
 select throws_ok($$insert into public.plans (couple_id, created_by, type, title, starts_at, originating_timezone) values ('22000000-0000-0000-0000-000000000001', '10000000-0000-0000-0000-000000000002', 'date', 'Intrusion', now(), 'UTC')$$, '42501', null, 'member cannot insert into another couple');
 select throws_ok($$update public.plans set couple_id = '22000000-0000-0000-0000-000000000001' where id = '12000000-0000-0000-0000-000000000001'$$, '42501', null, 'plan tenant key cannot be reassigned');
 select throws_ok($$update public.memories set created_by = '10000000-0000-0000-0000-000000000002' where id = '13000000-0000-0000-0000-000000000001'$$, '42501', null, 'memory creator cannot be reassigned');
-select ok(private.can_access_memory_object('11000000-0000-0000-0000-000000000001/13000000-0000-0000-0000-000000000001/photo.jpg'), 'member may access matching memory path');
+select isnt(private.can_access_memory_object('11000000-0000-0000-0000-000000000001/13000000-0000-0000-0000-000000000001/photo.jpg'), true, 'unallocated matching memory path is denied');
 select isnt(private.can_access_memory_object('22000000-0000-0000-0000-000000000001/24000000-0000-0000-0000-000000000001/photo.jpg'), true, 'member cannot access another couple path');
 select isnt(private.can_access_memory_object('not-a-uuid/path/photo.jpg'), true, 'malformed path is rejected safely');
 select isnt(private.is_active_couple_member('22000000-0000-0000-0000-000000000001', '20000000-0000-0000-0000-000000000001'), true, 'membership helper cannot probe another user');

@@ -16,14 +16,14 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 8 | Onboarding | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Phase 2 | Paired/solo fixture and desktop/mobile browser tests; real-account journey open |
 | 9 | Navigation | [Design Brief](DESIGN_BRIEF.md) | Phase 1 | Responsive browser tests |
 | 10 | Home dashboard | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 3, implemented | Empty/populated/mixed-privacy and two-timezone unit cases; paired desktop/mobile browser journey |
-| 11 | Plans/date planner | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 5, vertical slice in progress | Create/completion validation; remaining CRUD/calendar gates open |
-| 12 | Plan details/checklist | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 5 | Checklist/detail tests |
-| 13 | Calendar views | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 5 | Timezone/responsive tests |
+| 11 | Plans/date planner | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 5 implemented | Full CRUD/calendar/checklist/reminder browser flow; hosted 40-assertion suite; [integration boundaries](PHASE5_VERIFICATION.md) |
+| 12 | Plan details/checklist | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 5 implemented | Versioned checklist CRUD/reorder, details, map/budget persistence; keyboard/reduced-motion browser coverage |
+| 13 | Calendar views | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 5 implemented | Month/week/upcoming, multi-day timezone and DST tests; desktop/mobile calendar journey |
 | 14 | Google Calendar | [Google Calendar](GOOGLE_CALENDAR.md) | R2 | OAuth/privacy suite |
 | 15 | Bucket lists/items | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 4 implemented | Hosted 33-assertion RLS suite; desktop/mobile CRUD/filter journey; [Options/edit refinement](BUCKET_UI_REFINEMENT.md) |
 | 16 | Bucket subtasks | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 4 implemented | Keyboard reorder/progress; 320px/tablet editing targets; hosted stale-version rejection; overlapping-session timing open |
 | 17 | Bucket to plan | [UX Flows](UX_FLOWS.md), [API Contracts](API_CONTRACTS.md) | Phases 4–5 | Source-locking conversion, retry uniqueness and desktop/mobile handoff verified |
-| 18 | Bucket to memory | [UX Flows](UX_FLOWS.md), [Features](FEATURES.md) | Phase 4 story conversion; Phase 6 media | Completed-bucket conversion/retry verified; media upload remains open |
+| 18 | Bucket to memory | [UX Flows](UX_FLOWS.md), [Features](FEATURES.md) | Phase 4 story conversion; Phase 6 media | Completed-bucket conversion/retry verified; Phase 6 authenticated media upload/view/removal verified |
 | 19 | Wishlist | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 7 | Owner/partner matrix |
 | 20 | Secret purchases | [Security](SECURITY.md), [Database](DATABASE.md) | Phase 7 | Non-inference suite |
 | 21 | Product links/manual entry | [Features](FEATURES.md) | Phase 7 | URL/input validation |
@@ -34,15 +34,15 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 26 | Surprise notes | [Features](FEATURES.md), [Security](SECURITY.md) | R2 | Pre-reveal non-disclosure |
 | 27 | Scheduled notes/timezones | [Features](FEATURES.md), [Operations](OPERATIONS.md) | R2 | Timing/idempotency |
 | 28 | Open-when letters | [Features](FEATURES.md), [UX Flows](UX_FLOWS.md) | R2 | Eligibility/read tests |
-| 29 | Memories | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 6, vertical slice in progress | Direct/create-from-plan provenance, unit/RLS specification; full CRUD open |
-| 30 | Memory media | [Database](DATABASE.md), [Security](SECURITY.md) | Phase 6, boundary implemented | Private bucket/policy specification present; upload/signed-viewer suite open |
+| 29 | Memories | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 6 implemented | Detail/edit/delete, free place selection without manual coordinates, normalized tags, rating/favorite, cursor gallery; 42 hosted RLS assertions and browser journeys |
+| 30 | Memory media | [Database](DATABASE.md), [Security](SECURITY.md) | Phase 6 implemented | Authenticated TUS, signature/container checks, derivatives, signed viewer, recovery/cleanup; 34 hosted binary checks and desktop/mobile signed-in tests |
 | 31 | Our Story timeline | [Features](FEATURES.md) | R2 | Visibility/projection tests |
 | 32 | Milestones | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3 basic create/list/feature implemented; richer R2 | Negative RLS specification, generated types, create/list browser journey; edit/delete UI remains later |
 | 33 | Vault purpose | [Vault](VAULT.md) | R2 | Threat-model gate |
 | 34 | PIN/passkey/auto-lock | [Vault](VAULT.md) | R2 | Unlock/timeout tests |
 | 35 | Private vault storage | [Vault](VAULT.md), [Security](SECURITY.md) | R2 | URL/storage negatives |
 | 36 | Vault encryption boundary | [Vault](VAULT.md), [Decisions](DECISIONS.md) | R2/Later | Claim/security review |
-| 37 | File upload security | [Security](SECURITY.md), [API Contracts](API_CONTRACTS.md) | Phase 6/R2 | MIME/size/path suite |
+| 37 | File upload security | [Security](SECURITY.md), [API Contracts](API_CONTRACTS.md) | Phase 5 plan attachments; Phase 6 memory media/R2 | Plan signature/size and path authorization verified; memory binary round trip verified with 34 hosted checks; plan binary round trip remains integration |
 | 38 | In-app notifications | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3 foundation implemented | Generic-envelope trigger, recipient/membership RLS, preference suppression pgTAP specification, browser read/preferences journey |
 | 39 | Push notifications | [Features](FEATURES.md) | R2 | Opt-in/secret exclusion |
 | 40 | Couple activity feed | [Features](FEATURES.md), [Security](SECURITY.md) | R2 candidate | Inference tests before enablement |
@@ -69,7 +69,7 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 61 | Server actions/API | [API Contracts](API_CONTRACTS.md) | Each domain phase | Contract/integration tests |
 | 62 | Reusable components | [Design Brief](DESIGN_BRIEF.md) | UI phases | Visual/component review |
 | 63 | Performance | [Testing](TESTING.md), [Operations](OPERATIONS.md) | Every phase | Plans/bundles/Web Vitals |
-| 64 | Media thumbnails/lazy viewers | [Features](FEATURES.md), [Security](SECURITY.md) | Phase 6/R2 | Media/performance tests |
+| 64 | Media thumbnails/lazy viewers | [Features](FEATURES.md), [Security](SECURITY.md) | Phase 6 implemented; R2 vault separate | Decoded image previews, lazy images, deferred native video loading, desktop/mobile viewer tests |
 | 65 | Selective Realtime | [Architecture](../ARCHITECTURE.md), [Features](FEATURES.md) | R2 | Channel/privacy tests |
 | 66 | Onboarding personalization | [UX Flows](UX_FLOWS.md) | Phase 2 | Skip/first-run tests |
 | 67 | Home personalization | [Features](FEATURES.md) | Phase 3, implemented | Stable relevance selector and no private/secret inference tests |
@@ -91,3 +91,17 @@ This matrix maps every numbered section of the source master prompt to its canon
 ## Coverage gate
 
 A source requirement is covered only when its canonical specification contains behavior and its delivery row names a verification method. Implementation changes must update this matrix if a requirement moves release, changes ownership/visibility, or gains/loses a test gate.
+
+| Extension | User request | Implementation | Verification |
+| --- | --- | --- | --- |
+| Shared Calendar | Memories/moments alongside plans; Home access | /calendar, three-source bounded loader, month/week/filter/day agenda, Home/nav links | Desktop/mobile shared-entry journeys |
+| Visible multiple photos | New memory/moment picker and preview uploads | PhotoPicker, EntryUploader, MediaCollection; IndexedDB preview; separate private moment bucket | Preview photo/caption/comment persistence; 26 hosted moment integration checks |
+| Comments/captions | Shared comments and photo descriptions | Caption Edge mutation; entry_comments RLS; author-only removal | 36 new rollback-only RLS checks and actual partner/foreign-account checks |
+| Plan-only reminders | Remove reminders from memories/moments | Entry UI/actions/polling removed, cron unscheduled, worker inert, client grants revoked; Plans unchanged | Gallery RLS retirement assertions and existing plan browser journey |
+| Free locations | No paid Places API | Photon/OpenStreetMap, explicit nearby lookup, no stored coordinates | Live search and geolocation browser checks on desktop/mobile |
+
+| Gallery follow-up | Requested behavior | Implementation | Verification |
+| --- | --- | --- | --- |
+| Six-photo previews | Six images per entry on Memories/Moments listings and details | Lazy EntryPreview and MediaCollection; Show more routes to scoped Gallery; touch swipe and keyboard viewer | Desktop/mobile seven-photo listing, swipe, scoped gallery and file-comment journey |
+| Home gallery | Browse all files by memory or date | /gallery, Home link, shared_gallery invoker view, 48-file cursor, filters | Desktop/mobile grouping, media/date filters; foreign/former/anon RLS |
+| File conversations | Caption and partner comments on each photo/video | Shared MediaViewer and media_comments; IndexedDB equivalent in preview | Per-file isolation, cross-gallery persistence, partner author rules, cascade and quota checks |

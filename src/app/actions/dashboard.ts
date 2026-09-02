@@ -31,9 +31,11 @@ export async function createMilestoneAction(_previous: ActionState, formData: Fo
     const id = crypto.randomUUID();
     await writeDeveloperState({
       ...state,
-      milestones: [{ id, title: parsed.data.title, description: parsed.data.description ?? "", type: parsed.data.type, milestoneDate: parsed.data.milestoneDate, featured: parsed.data.featured }, ...state.milestones].slice(0, 50),
+      milestones: [{ id, title: parsed.data.title, description: parsed.data.description ?? "", type: parsed.data.type, milestoneDate: parsed.data.milestoneDate, featured: parsed.data.featured, location: parsed.data.location ?? "" }, ...state.milestones].slice(0, 50),
     });
-    redirect(`/milestones#${id}`);
+    revalidatePath("/calendar");
+    if(parsed.data.returnCreated==="true")return {status:"success",savedId:id};
+    redirect(`/milestones/${id}`);
   }
 
   const coupleId = await activePairedCoupleId(identity.userId);
@@ -45,12 +47,15 @@ export async function createMilestoneAction(_previous: ActionState, formData: Fo
     description: parsed.data.description,
     type: parsed.data.type,
     milestone_date: parsed.data.milestoneDate,
+    location: parsed.data.location,
     is_featured: parsed.data.featured,
   }).select("id").single();
   if (error || !data) return { status: "error", message: "We couldn't save this milestone. Try again." };
   revalidatePath("/milestones");
   revalidatePath("/home");
-  redirect(`/milestones#${data.id}`);
+  revalidatePath("/calendar");
+  if(parsed.data.returnCreated==="true")return {status:"success",savedId:data.id};
+  redirect(`/milestones/${data.id}`);
 }
 
 export async function markNotificationReadAction(formData: FormData) {
