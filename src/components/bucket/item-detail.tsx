@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { ArrowDown, ArrowUp, Check, Edit3, GripVertical, Plus, Trash2 } from "lucide-react";
 
 import { mutateBucket } from "@/app/actions/bucket";
@@ -37,6 +37,9 @@ export function ItemDetail({
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editPending, setEditPending] = useState(false);
+  const [touchDrag, setTouchDrag] = useState<{ sourceId: string; targetId: string } | null>(null);
+  const touchHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchPointerId = useRef<number | null>(null);
 
   const progress = subtaskProgress(subtasks);
 
@@ -75,6 +78,25 @@ export function ItemDetail({
       },
       kind === "reorder" ? "Step order saved." : "Steps updated."
     );
+  }
+
+  function clearTouchHold() {
+    if (touchHoldTimer.current) {
+      clearTimeout(touchHoldTimer.current);
+      touchHoldTimer.current = null;
+    }
+    touchPointerId.current = null;
+  }
+
+  function reorderTouchStep(sourceId: string, targetId: string) {
+    if (sourceId === targetId) return;
+    const orderedIds = subtasks.map((subtask) => subtask.id);
+    const sourceIndex = orderedIds.indexOf(sourceId);
+    const targetIndex = orderedIds.indexOf(targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+    const [moved] = orderedIds.splice(sourceIndex, 1);
+    orderedIds.splice(targetIndex, 0, moved);
+    step("reorder", null, "", false, orderedIds);
   }
 
   const editIdea = (
@@ -172,7 +194,7 @@ export function ItemDetail({
         />
 
         <p className="mt-3 text-xs leading-5 text-muted-foreground">
-          Use the arrows to reorder steps, or drag a handle on desktop. Each idea can hold 50 steps.
+          Hold and drag a step to reorder on phone. On desktop, use the arrows or drag handle. Each idea can hold 50 steps.
         </p>
 
         {/* Compact Draggable List View */}
@@ -183,6 +205,41 @@ export function ItemDetail({
             subtasks.map((task, index) => (
               <div
                 key={task.id}
+                data-step-id={task.id}
+                onPointerDown={(event) => {
+                  const target = event.target as HTMLElement;
+                  if (pending || event.pointerType !== "touch" || target.closest('button, input[type="checkbox"]')) return;
+                  touchPointerId.current = event.pointerId;
+                  try {
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                  } catch {
+                    // Synthetic events do not own a browser pointer; real touch events do.
+                  }
+                  touchHoldTimer.current = setTimeout(() => {
+                    setTouchDrag({ sourceId: task.id, targetId: task.id });
+                    touchHoldTimer.current = null;
+                  }, 350);
+                }}
+                onPointerMove={(event) => {
+                  if (!touchDrag || event.pointerId !== touchPointerId.current) return;
+                  event.preventDefault();
+                  const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>("[data-step-id]");
+                  const targetId = target?.dataset.stepId;
+                  if (targetId && targetId !== touchDrag.targetId) {
+                    setTouchDrag({ ...touchDrag, targetId });
+                  }
+                }}
+                onPointerUp={(event) => {
+                  if (event.pointerId !== touchPointerId.current) return;
+                  const completedDrag = touchDrag;
+                  clearTouchHold();
+                  setTouchDrag(null);
+                  if (completedDrag) reorderTouchStep(completedDrag.sourceId, completedDrag.targetId);
+                }}
+                onPointerCancel={() => {
+                  clearTouchHold();
+                  setTouchDrag(null);
+                }}
                 onDragOver={(e) => {
                   e.preventDefault();
                   e.dataTransfer.dropEffect = "move";
@@ -196,7 +253,9 @@ export function ItemDetail({
                   newOrdered.splice(index, 0, moved);
                   step("reorder", null, "", false, newOrdered);
                 }}
-                className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-x-1 px-2 py-2 lg:flex lg:gap-2 lg:px-3 hover:bg-secondary/40 transition-colors"
+                className={`grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-x-1 px-2 py-2 transition-colors lg:flex lg:gap-2 lg:px-3 hover:bg-secondary/40 ${
+                  touchDrag?.sourceId === task.id ? "bg-secondary/70 ring-2 ring-inset ring-primary/40" : touchDrag?.targetId === task.id ? "bg-secondary/50" : ""
+                }`}
               >
                 {/* Drag Handle */}
                 <div

@@ -39,6 +39,15 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
     await page.keyboard.press("Enter");
     await expect(page.getByLabel("Step 1", { exact: true })).toHaveValue("Pack coffee");
   } else {
+    const sourceInput = page.getByLabel("Step 2", { exact: true });
+    const sourceRow = sourceInput.locator("xpath=ancestor::div[@data-step-id][1]");
+    const targetBox = await page.getByLabel("Step 1", { exact: true }).boundingBox();
+    const sourceBox = await sourceInput.boundingBox();
+    await sourceInput.dispatchEvent("pointerdown", { pointerType: "touch", pointerId: 7, clientX: sourceBox!.x + 8, clientY: sourceBox!.y + 8 });
+    await page.waitForTimeout(400);
+    await expect(sourceRow).toHaveClass(/ring-2/);
+    await sourceRow.dispatchEvent("pointermove", { pointerType: "touch", pointerId: 7, clientX: targetBox!.x + 8, clientY: targetBox!.y + 8 });
+    await sourceRow.dispatchEvent("pointerup", { pointerType: "touch", pointerId: 7, clientX: targetBox!.x + 8, clientY: targetBox!.y + 8 });
     await expect(page.getByLabel("Step 2", { exact: true })).toHaveValue("Pack coffee");
   }
   await page.getByRole("checkbox", { name: "Complete Pack coffee" }).click();
