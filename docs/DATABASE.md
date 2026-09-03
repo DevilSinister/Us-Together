@@ -212,3 +212,6 @@ Legacy latitude/longitude database columns and historical migrations remain for 
 media_comments has exactly one memory_media_id/milestone_media_id FK with ON DELETE CASCADE, a server-derived author FK, body and creation time. Indexed parent/time/UUID and author columns support bounded reads and cleanup. Ready media visibility is checked by a security-invoker helper over the underlying media RLS. Active partners read/add; only the author deletes. No UPDATE privilege is granted. An advisory lock serializes the 500-comment quota per file.
 
 shared_gallery is a security-invoker UNION ALL view over ready memory_media/milestone_media and authorized parents. It exposes safe metadata, story title/date, parent ID, kind and a deterministic sort key. Authenticated SELECT only; no public access. Base ownership/date/media indexes remain in use.
+
+## Bucket list limit trigger repair
+
