@@ -20,7 +20,7 @@ One row per auth user: `user_id` unique FK, display name, avatar path/URL metada
 
 ### `couples`
 
-Name, creator, relationship start date, lifecycle state, timestamps. Couple members may read/update allowed fields. Deletion is a controlled service operation.
+Name, creator, relationship start date, lifecycle state, timestamps. Couple members may read/update allowed fields. Deletion is a controlled service operation. RLS remains enabled for application roles but is not forced on the table owner, so PostgreSQL can validate foreign keys from couple-owned child records without bypassing user-facing policies.
 
 ### `couple_members`
 
