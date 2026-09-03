@@ -6,6 +6,27 @@ import { bucketMutationSchema, type BucketPage } from "@/lib/bucket/schema";
 import { moneyToMinorUnits } from "@/lib/dream/schema";
 import { readDeveloperState, writeDeveloperState } from "@/lib/auth/dev-session";
 
+type BucketDatabaseError = { code?: string; message?: string } | null;
+
+function bucketSaveError(error: BucketDatabaseError): never {
+  if (!error) throw new Error("We couldn't save the change. Reload and try again.");
+
+  if (error.code === "40001") {
+    throw new Error("This idea changed. Reload it before saving.");
+  }
+  if (error.code === "42501" || error.code === "PGRST301" || error.code === "PGRST303") {
+    throw new Error("Your sign-in is no longer valid. Reload this page, then sign in again.");
+  }
+  if (error.message?.includes("at most 100 lists")) {
+    throw new Error("This shared space already has 100 lists. Rename or remove an empty list before adding another.");
+  }
+  if (error.code === "23503") {
+    throw new Error("Your shared space changed before this could be saved. Reload this page and try again.");
+  }
+
+  throw new Error("We couldn't save the change. Reload and try again.");
+}
+
 export async function filterBucketItems(input: unknown): Promise<{ page?: BucketPage; error?: string }> {
   try { return { page: await loadBucketPage(input) }; }
   catch { return { error: "We couldn't load your ideas. Check your connection and try again." }; }
@@ -73,9 +94,13 @@ export async function mutateBucket(input: unknown): Promise<{ ok: boolean; messa
       }
     } else {
       const { db, coupleId } = context;
-      const check = (error: { code?: string } | null) => { if (error) throw new Error(error.code === "40001" ? "This idea changed. Reload it before saving." : "We couldn't save the change. Reload and try again."); };
+      const check = (error: BucketDatabaseError) => { if (error) bucketSaveError(error); };
       if (command.operation === "createList") {
-        const { data, error } = await db.from("bucket_lists").insert({ title: command.title, couple_id: coupleId }).select("id").single(); check(error); id = data!.id;
+        const { data, error } = await db.from("bucket_lists").insert({
+          title: command.title,
+          couple_id: coupleId,
+          created_by: context.userId,
+        }).select("id").single(); check(error); id = data!.id;
       } else if (command.operation === "renameList") {
         const { data, error } = await db.from("bucket_lists").update({ title: command.title }).eq("id", command.id).eq("couple_id", coupleId).select("id").maybeSingle(); check(error); if (!data) throw new Error("List unavailable.");
       } else if (command.operation === "deleteList") {
@@ -83,7 +108,7 @@ export async function mutateBucket(input: unknown): Promise<{ ok: boolean; messa
       } else if (command.operation === "subtask") {
         const { error } = await db.rpc("mutate_bucket_subtask", { target_item: command.id, expected_version: command.version, operation: command.kind, target_subtask: command.subtaskId ?? undefined, task_label: command.label, completed: command.completed, ordered_ids: command.orderedIds }); check(error);
       } else if (command.operation === "createItem") {
-        const { data, error } = await db.from("bucket_list_items").insert({ ...changes!, couple_id: coupleId }).select("id").single(); check(error); id = data!.id;
+        const { data, error } = await db.from("bucket_list_items").insert({ ...changes!, couple_id: coupleId, created_by: context.userId }).select("id").single(); check(error); id = data!.id;
       } else {
         if (command.operation === "completeItem") {
           const { data, error } = await db.from("bucket_list_items").select("status").eq("id", command.id).eq("couple_id", coupleId).maybeSingle(); check(error);
