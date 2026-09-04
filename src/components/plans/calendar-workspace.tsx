@@ -1,4 +1,7 @@
 "use client";
+import { usePartnerRefresh } from "@/components/providers/partner-sync";
+import { refreshWindow } from "@/lib/partner-sync";
+
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { ChevronLeft,ChevronRight,CalendarDays } from "lucide-react";
@@ -11,6 +14,14 @@ type View="upcoming"|"month"|"week";
 type Status="planned"|"completed"|"cancelled"|"all";
 export function CalendarWorkspace({initial}:{initial:Page}){
  const [page,setPage]=useState(initial),[view,setView]=useState<View>("upcoming"),[status,setStatus]=useState<Status>("planned"),[anchor,setAnchor]=useState(initial.anchor),[selected,setSelected]=useState(initial.anchor),[error,setError]=useState(""),[pending,start]=useTransition();
+ usePartnerRefresh(async () => {
+   const result = await refreshWindow<Page["plans"][number], NonNullable<Page["next"]>>(async cursor => {
+     const response = await filterPlans({view,status,date:anchor,cursor:cursor ?? undefined});
+     if (!response.page) throw Error("Refresh unavailable");
+     return {items:response.page.plans,next:response.page.next};
+   },page.plans.length);
+   setPage(current => current === page ? {...current,plans:result.items,next:result.next,hasMore:!!result.next} : current);
+ },pending);
  function load(v:View,s:Status,d:string,more=false){setError("");start(async()=>{try{const result=await filterPlans({view:v,status:s,date:d,...(more&&page.next?{cursor:page.next}:{})});if(!result.page){setError(result.error!);return;}setPage({...result.page,plans:more?[...page.plans,...result.page.plans]:result.page.plans});setView(v);setStatus(s);setAnchor(d);setSelected(d);}catch{setError("Connection interrupted. Try again.");}});}
  function move(direction:number){const d=new Date(anchor+"T12:00:00Z");if(view==="month"){d.setUTCDate(1);d.setUTCMonth(d.getUTCMonth()+direction);load(view,status,d.toISOString().slice(0,10));}else load(view,status,addDays(anchor,direction*7));}
  const days=view==="upcoming"?[]:calendarDays(view,anchor);

@@ -1,23 +1,17 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { BucketWorkspace } from "@/components/bucket/bucket-workspace";
-import { loadBucketCategories, loadBucketLists, loadBucketPage } from "@/lib/bucket/data";
-import type { BucketList, BucketPage as PageData } from "@/lib/bucket/schema";
+import { loadBucketLists } from "@/lib/bucket/data";
+import type { BucketList } from "@/lib/bucket/schema";
 
 export const metadata = { title: "Bucket lists" };
 
 export default async function BucketPage() {
   let lists: BucketList[] = [];
-  let page: PageData = { items: [], next: null };
-  let categories: string[] = [];
   let failure = "";
 
   try {
-    [lists, page, categories] = await Promise.all([
-      loadBucketLists(),
-      loadBucketPage({ listId: "", status: "", priority: "", category: "" }),
-      loadBucketCategories(),
-    ]);
+    lists = await loadBucketLists();
   } catch (error) {
     failure = error instanceof Error ? error.message : "We couldn't load your lists.";
   }
@@ -41,7 +35,7 @@ export default async function BucketPage() {
 
   return (
     <div>
-      <BucketWorkspace lists={lists} initialPage={page} categories={categories} />
+      <BucketWorkspace lists={lists} initialPage={{ items: [], next: null }} />
     </div>
   );
 }

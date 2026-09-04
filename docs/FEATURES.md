@@ -57,7 +57,7 @@ The partner invitation may be completed later. Optional personalization is skipp
 
 ### Application shell and PWA
 
-- Desktop sidebar and mobile bottom navigation
+- Desktop sidebar and five mobile bottom destinations: Home, Calendar, Lists, Memories, and More. More opens Plans, Moments, Profile, and Partner with keyboard focus containment and return. Bottom content spacing includes device safe areas.
 - Light, dark, and system appearance
 - Installable manifest and safe offline shell/fallback; no claim of offline data editing unless implemented
 - Settings for account, couple, notifications, privacy, and appearance
@@ -78,6 +78,8 @@ Acceptance:
 ### Bucket lists
 
 Entities: multiple-capable lists, items, and ordered subtasks.
+
+The Bucket Lists landing page shows lists and a direct Add list action. Opening a list shows only its ideas, an Add idea action preselected to that list, and an All lists back link. Options filters and manages the opened list; resetting filters never switches to another list. Idea details return to their owning list.
 
 Item behavior:
 

@@ -14,13 +14,13 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 6 | Couples/members | [Database](DATABASE.md), [Features](FEATURES.md) | Phase 2, lifecycle implemented | Capacity/leave/delete pgTAP; concurrency gate open |
 | 7 | Invite link and six-digit code | [Features](FEATURES.md), [Security](SECURITY.md) | Phase 2, hardened | Attempt-limit/revoke/used-code pgTAP; local execution pending runtime |
 | 8 | Onboarding | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Phase 2 | Paired/solo fixture and desktop/mobile browser tests; real-account journey open |
-| 9 | Navigation | [Design Brief](DESIGN_BRIEF.md) | Phase 1 | Responsive browser tests |
+| 9 | Navigation | [Design Brief](DESIGN_BRIEF.md) | Phase 1 plus mobile follow-up | Five destinations, More keyboard/destination checks and 320px–767px browser coverage; [verification](MOBILE_LISTS_VERIFICATION.md) |
 | 10 | Home dashboard | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 3, implemented | Empty/populated/mixed-privacy and two-timezone unit cases; paired desktop/mobile browser journey |
 | 11 | Plans/date planner | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 5 implemented | Full CRUD/calendar/checklist/reminder browser flow; hosted 40-assertion suite; [integration boundaries](PHASE5_VERIFICATION.md) |
 | 12 | Plan details/checklist | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 5 implemented | Versioned checklist CRUD/reorder, details, map/budget persistence; keyboard/reduced-motion browser coverage |
 | 13 | Calendar views | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 5 implemented | Month/week/upcoming, multi-day timezone and DST tests; desktop/mobile calendar journey |
 | 14 | Google Calendar | [Google Calendar](GOOGLE_CALENDAR.md) | R2 | OAuth/privacy suite |
-| 15 | Bucket lists/items | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 4 implemented | Hosted 33-assertion RLS suite; desktop/mobile CRUD/filter journey; [Options/edit refinement](BUCKET_UI_REFINEMENT.md) |
+| 15 | Bucket lists/items | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 4 implemented | Hosted 33-assertion RLS suite; desktop/mobile CRUD/filter journey; [Options/edit refinement](BUCKET_UI_REFINEMENT.md); [list-first flow](MOBILE_LISTS_VERIFICATION.md) with scoped creation and back navigation |
 | 16 | Bucket subtasks | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 4 implemented | Keyboard reorder/progress; 320px/tablet editing targets; hosted stale-version rejection; overlapping-session timing open |
 | 17 | Bucket to plan | [UX Flows](UX_FLOWS.md), [API Contracts](API_CONTRACTS.md) | Phases 4–5 | Source-locking conversion, retry uniqueness and desktop/mobile handoff verified |
 | 18 | Bucket to memory | [UX Flows](UX_FLOWS.md), [Features](FEATURES.md) | Phase 4 story conversion; Phase 6 media | Completed-bucket conversion/retry verified; Phase 6 authenticated media upload/view/removal verified |

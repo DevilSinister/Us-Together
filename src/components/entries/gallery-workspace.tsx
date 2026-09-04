@@ -1,4 +1,6 @@
 "use client";
+import { usePartnerRefresh } from "@/components/providers/partner-sync";
+
 import {useCallback,useEffect,useRef,useState} from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -12,19 +14,21 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 export function GalleryWorkspace({initial,scope}:{initial:GalleryPage;scope?:{kind:"memory"|"moment";entry:string}}){
  const [items,setItems]=useState(initial.items),[next,setNext]=useState(initial.next),[error,setError]=useState(initial.error??""),[pending,setPending]=useState(false),[kind,setKind]=useState<string>(scope?.kind??"all"),[media,setMedia]=useState("all"),[date,setDate]=useState(""),[group,setGroup]=useState<"memory"|"date">("memory"),[selected,setSelected]=useState<string|null>(null);
+ const scopeEntry=scope?.entry;
  const urls=useRef<string[]>([]),generation=useRef(0),count=useRef(initial.items.length);
  useEffect(()=>{count.current=items.length;},[items.length]);
- const reload=useCallback(async()=>{const run=++generation.current;setPending(true);try{
+ const reload=useCallback(async(background=false)=>{const run=++generation.current;if(!background)setPending(true);try{
  const loaded:GalleryItem[]=[];let cursor:GalleryPage["next"]=null;
  if(initial.previewEntries){for(const entry of initial.previewEntries){const files=await previewMedia(entry.access);loaded.push(...files.map(file=>({...file,access:entry.access,entryTitle:entry.title,entryDate:entry.date,sortKey:entry.access.kind+":"+file.id})));}loaded.sort((a,b)=>b.entryDate.localeCompare(a.entryDate)||a.sortKey.localeCompare(b.sortKey));}
- else {do{const p=await loadGallery({kind,entry:scope?.entry,media,date,cursor});if(p.error)throw Error(p.error);loaded.push(...p.items);cursor=p.next;}while(cursor&&loaded.length<count.current);}
+ else {do{const p=await loadGallery({kind,entry:scopeEntry,media,date,cursor});if(p.error)throw Error(p.error);loaded.push(...p.items);cursor=p.next;}while(cursor&&loaded.length<count.current);}
  if(run!==generation.current){for(const m of loaded)for(const u of [m.url,m.previewUrl])if(u)URL.revokeObjectURL(u);return;}
  for(const u of urls.current)URL.revokeObjectURL(u);urls.current=loaded.flatMap(m=>[m.url,m.previewUrl].filter((u):u is string=>!!u));setItems(loaded);setNext(cursor);setError("");
- }catch(e){if(run===generation.current)setError(e instanceof Error?e.message:"Could not load gallery.");}finally{if(run===generation.current)setPending(false);}},[initial.previewEntries,kind,media,date,scope]);
+ }catch(e){if(run===generation.current)setError(e instanceof Error?e.message:"Could not load gallery.");}finally{if(run===generation.current)setPending(false);}},[initial.previewEntries,kind,media,date,scopeEntry]);
  useEffect(()=>{const lifecycle=generation,t=setTimeout(()=>void reload(),0);return()=>{clearTimeout(t);lifecycle.current++;};},[reload]);
  useEffect(()=>()=>{for(const u of urls.current)URL.revokeObjectURL(u);},[]);
+ usePartnerRefresh(() => reload(true),pending);
  const visible=items.filter(m=>(kind==="all"||m.access.kind===kind)&&(media==="all"||m.media_type===media)&&(!date||m.entryDate===date)),groups=groupGallery(visible,group),index=visible.findIndex(m=>m.sortKey===selected);
- async function more(){if(!next)return;setPending(true);try{const p=await loadGallery({kind,entry:scope?.entry,media,date,cursor:next});if(p.error)throw Error(p.error);setItems(old=>[...old,...p.items.filter(m=>!old.some(o=>o.sortKey===m.sortKey))]);setNext(p.next);setError("");}catch(e){setError(e instanceof Error?e.message:"Could not load more.");}finally{setPending(false);}}
+ async function more(){if(!next)return;setPending(true);try{const p=await loadGallery({kind,entry:scopeEntry,media,date,cursor:next});if(p.error)throw Error(p.error);setItems(old=>[...old,...p.items.filter(m=>!old.some(o=>o.sortKey===m.sortKey))]);setNext(p.next);setError("");}catch(e){setError(e instanceof Error?e.message:"Could not load more.");}finally{setPending(false);}}
  return <div><div className="mt-7 grid grid-cols-2 items-end gap-3 rounded-xl bg-secondary p-4 sm:grid-cols-4 sm:p-5">
  <div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-group">Group by</Label><select id="gallery-group" value={group} onChange={e=>setGroup(e.target.value as "memory"|"date")} className="min-h-11 w-full min-w-0 rounded-lg border bg-field px-3 text-sm"><option value="memory">Memory / moment</option><option value="date">Date</option></select></div>
  <div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-kind">From</Label><select id="gallery-kind" disabled={pending||!!scope} value={kind} onChange={e=>{count.current=0;setKind(e.target.value);}} className="min-h-11 w-full min-w-0 rounded-lg border bg-field px-3 text-sm"><option value="all">All entries</option><option value="memory">Memories</option><option value="moment">Moments</option></select></div>

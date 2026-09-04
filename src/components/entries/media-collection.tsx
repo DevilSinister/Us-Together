@@ -1,4 +1,6 @@
 "use client";
+import { usePartnerRefresh } from "@/components/providers/partner-sync";
+
 import {useCallback,useEffect,useRef,useState} from "react";
 import Image from "next/image";
 import Link from "next/link";
@@ -22,6 +24,7 @@ export function MediaCollection({access,initial=[],onCount,separated=false,entry
  for(const u of urls.current)URL.revokeObjectURL(u);urls.current=files.flatMap(m=>[m.url,m.previewUrl].filter((x):x is string=>!!x));setMedia(files);countCallback.current?.(files.length);setError("");
  }catch(e){setError(e instanceof Error?e.message:"Could not load files.");}finally{setLoading(false);}},[kind,id,previewSession]);
  useEffect(()=>{const timer=setTimeout(()=>void reload(),0);return()=>{clearTimeout(timer);for(const u of urls.current)URL.revokeObjectURL(u);};},[reload]);
+ usePartnerRefresh(reload,pending || loading || !!previewSession);
  const ready:GalleryItem[]=media.filter(m=>m.state==="ready").map(m=>({...m,access,entryTitle,entryDate,sortKey:kind+":"+m.id}));
  const shown=ready.filter(m=>m.media_type==="image").slice(0,6),index=ready.findIndex(m=>m.id===selected);
  async function unfinished(fileId:string,operation:"remove"|"finalize"){setPending(true);try{if(previewSession)await changePreviewMedia(access,fileId);else{const r=await memoryMediaAction({operation,kind,memoryId:id,id:fileId});if(r.error)throw Error(r.error);}await reload();}catch(e){setError(e instanceof Error?e.message:"Could not update file.");}finally{setPending(false);}}

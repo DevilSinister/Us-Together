@@ -1,4 +1,6 @@
 "use client";
+import { usePartnerRefresh } from "@/components/providers/partner-sync";
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -20,15 +22,17 @@ export function bucketLabel(value: string) {
 const initialFilter: BucketFilter = { listId: "", status: "", priority: "", category: "", before: null };
 type OptionsView = "options" | "create" | "manage";
 
-export function BucketWorkspace({ lists, initialPage, categories = DEFAULT_BUCKET_CATEGORIES }: {
+export function BucketWorkspace({ lists, initialPage, listId = "", categories = DEFAULT_BUCKET_CATEGORIES }: {
   lists: BucketList[];
   initialPage: BucketPage;
+  listId?: string;
   categories?: readonly string[];
 }) {
   const router = useRouter();
+  const listFilter = { ...initialFilter, listId };
   const [page, setPage] = useState(initialPage);
-  const [filter, setFilter] = useState(initialFilter);
-  const [draft, setDraft] = useState(initialFilter);
+  const [filter, setFilter] = useState(listFilter);
+  const [draft, setDraft] = useState(listFilter);
   const [message, setMessage] = useState("");
   const [dialogMessage, setDialogMessage] = useState("");
   const [pending, start] = useTransition();
@@ -37,7 +41,13 @@ export function BucketWorkspace({ lists, initialPage, categories = DEFAULT_BUCKE
   const activeList = lists.find((list) => list.id === filter.listId);
   const selectedList = lists.find((list) => list.id === draft.listId);
   const allCategories = Array.from(new Set([...categories, ...DEFAULT_BUCKET_CATEGORIES, filter.category])).filter(Boolean);
-  const hasFilters = Boolean(filter.listId || filter.status || filter.priority || filter.category);
+  const hasFilters = Boolean(filter.status || filter.priority || filter.category);
+
+  usePartnerRefresh(async () => {
+    if (!listId) return;
+    const result = await filterBucketItems(filter);
+    if (result.page) setPage(current => current === page ? result.page! : current);
+  }, pending || open);
 
   function showOptions(nextView: OptionsView = "options") {
     setDraft(filter);
@@ -76,14 +86,8 @@ export function BucketWorkspace({ lists, initialPage, categories = DEFAULT_BUCKE
         const result = await mutateBucket(Object.fromEntries(form));
         setDialogMessage(result.message);
         if (!result.ok) return;
-        if (form.get("operation") === "createList" && result.id) {
-          setDraft({ ...initialFilter, listId: result.id });
-        }
-        if (form.get("operation") === "deleteList") {
-          setDraft(initialFilter);
-          search(initialFilter);
-        }
-        setView("options");
+        setOpen(false);
+        if (form.get("operation") === "deleteList") router.push("/bucket");
         router.refresh();
       } catch {
         setDialogMessage("Connection interrupted. Check your lists before retrying the change.");
@@ -93,39 +97,33 @@ export function BucketWorkspace({ lists, initialPage, categories = DEFAULT_BUCKE
 
   return (
     <div>
+      {listId ? <Link href="/bucket" className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-primary hover:underline"><ArrowLeft className="size-4" />All lists</Link> : null}
       <header className="flex flex-col gap-5 border-b border-border pb-7 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+        <div className="min-w-0">
           <p className="text-sm font-semibold text-primary">Someday starts here</p>
-          <h1 className="mt-2 font-display text-4xl tracking-[-0.03em] sm:text-5xl">Our bucket lists.</h1>
-          <p className="mt-3 max-w-prose text-sm leading-6 text-muted-foreground">Keep the idea. Take a little step. Make it a day to remember.</p>
+          <h1 className="mt-2 font-display break-words text-4xl tracking-[-0.03em] sm:text-5xl">{activeList?.title ?? "Our bucket lists."}</h1>
+          <p className="mt-3 max-w-prose text-sm leading-6 text-muted-foreground">{listId ? "Keep the idea. Take a little step. Make it a day to remember." : "A place for every kind of someday. Open a list to explore your ideas."}</p>
         </div>
         <div className="flex shrink-0 items-center gap-3">
-          {lists.length ? <Button asChild className="flex-1 sm:flex-none"><Link href="/bucket/new"><Plus className="size-4" />Add an idea</Link></Button> : null}
-          <Button variant="outline" onClick={() => showOptions()}><SlidersHorizontal className="size-4" />Options</Button>
+          {listId ? <>
+            <Button asChild className="flex-1 sm:flex-none"><Link href={`/bucket/new?list=${listId}`}><Plus className="size-4" />Add idea</Link></Button>
+            <Button variant="outline" onClick={() => showOptions()}><SlidersHorizontal className="size-4" />Options</Button>
+          </> : <Button onClick={() => showOptions("create")}><Plus className="size-4" />Add list</Button>}
+
         </div>
       </header>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent title={view === "options" ? "Lists and options" : view === "create" ? "Create new list" : "Manage this list"} className="max-w-xl" dismissible={!pending}>
-          {view !== "options" ? <Button type="button" variant="ghost" className="-ml-3 mb-2" disabled={pending} onClick={() => changeView("options")}><ArrowLeft className="size-4" />Back to options</Button> : null}
+        <DialogContent title={view === "options" ? "List options" : view === "create" ? "Create new list" : "Manage this list"} className="max-w-xl" dismissible={!pending}>
+          {view !== "options" && listId ? <Button type="button" variant="ghost" className="-ml-3 mb-2" disabled={pending} onClick={() => changeView("options")}><ArrowLeft className="size-4" />Back to options</Button> : null}
           <DialogHeader>
-            <DialogTitle>{view === "options" ? "Lists & options" : view === "create" ? "Create new list" : "Manage this list"}</DialogTitle>
-            <DialogDescription>{view === "options" ? "Choose a list, then narrow it down to the ideas on your mind." : view === "create" ? "A theme, a season, or a place you've been dreaming of." : `Make a little room for what's next in “${selectedList?.title ?? "your list"}”.`}</DialogDescription>
+            <DialogTitle>{view === "options" ? "List options" : view === "create" ? "Create new list" : "Manage this list"}</DialogTitle>
+            <DialogDescription>{view === "options" ? "Narrow this list down to the ideas on your mind." : view === "create" ? "A theme, a season, or a place you've been dreaming of." : `Make a little room for what's next in “${selectedList?.title ?? "your list"}”.`}</DialogDescription>
           </DialogHeader>
 
           {view === "options" ? (
             <form className="mt-5 space-y-5" onSubmit={(event) => { event.preventDefault(); search({ ...draft, before: null }, true); }}>
-              <div>
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-x-2">
-                  <label htmlFor="bucket-list-filter" className="text-sm font-semibold">Browse a list</label>
-                  <Button type="button" variant="ghost" className="-mr-3 text-primary" disabled={pending} onClick={() => changeView("create")}><Plus className="size-4" />New list</Button>
-                </div>
-                <select id="bucket-list-filter" className={bucketFieldClass} value={draft.listId} disabled={pending} onChange={(event) => setDraft({ ...draft, listId: event.target.value })}>
-                  <option value="">All lists</option>
-                  {lists.map((list) => <option key={list.id} value={list.id}>{list.title}</option>)}
-                </select>
-                {selectedList ? <Button type="button" variant="ghost" className="-ml-3 mt-1 text-muted-foreground" disabled={pending} onClick={() => changeView("manage")}><Settings2 className="size-4" />Manage this list</Button> : null}
-              </div>
+              <Button type="button" variant="ghost" className="-ml-3 text-muted-foreground" disabled={pending} onClick={() => changeView("manage")}><Settings2 className="size-4" />Manage this list</Button>
               <fieldset className="border-t border-border pt-5">
                 <legend className="sr-only">Filter ideas</legend>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -151,7 +149,7 @@ export function BucketWorkspace({ lists, initialPage, categories = DEFAULT_BUCKE
               </fieldset>
               <p role="status" className="text-sm leading-6 text-primary">{dialogMessage}</p>
               <DialogFooter className="justify-between">
-                <Button type="button" variant="ghost" disabled={pending || !Boolean(draft.listId || draft.status || draft.priority || draft.category)} onClick={() => setDraft(initialFilter)}>Reset all</Button>
+                <Button type="button" variant="ghost" disabled={pending || !Boolean(draft.status || draft.priority || draft.category)} onClick={() => setDraft(listFilter)}>Reset all</Button>
                 <Button disabled={pending}>{pending ? "Applying…" : "Apply filters"}</Button>
               </DialogFooter>
             </form>
@@ -179,11 +177,23 @@ export function BucketWorkspace({ lists, initialPage, categories = DEFAULT_BUCKE
         </DialogContent>
       </Dialog>
 
-      <section aria-label="Bucket ideas" className="mt-5 min-w-0">
+      {!listId ? <section aria-label="Bucket lists" className="mt-6">
+        {lists.length ? <ul className="divide-y divide-border">
+          {lists.map((list) => <li key={list.id}>
+            <Link href={`/bucket/lists/${list.id}`} className="group flex min-h-24 items-center justify-between gap-4 rounded-lg px-3 py-5 hover:bg-secondary/50 focus-visible:outline-2 focus-visible:outline-ring">
+              <div className="min-w-0"><h2 className="break-words font-display text-2xl sm:text-3xl">{list.title}</h2><p className="mt-2 text-sm text-muted-foreground">Open ideas</p></div>
+              <ArrowRight aria-hidden="true" className="size-5 shrink-0 text-primary" />
+            </Link>
+          </li>)}
+        </ul> : <div className="rounded-2xl border border-dashed border-border bg-card/50 px-6 py-12 text-center">
+          <h2 className="font-display text-2xl sm:text-3xl">What would you love to do together?</h2>
+          <p className="mx-auto mt-3 max-w-prose text-sm leading-6 text-muted-foreground">Add your first list for a weekend ritual, a faraway place, or a small adventure close to home.</p>
+        </div>}
+      </section> : <section aria-label="Bucket ideas" className="mt-5 min-w-0">
         {lists.length ? (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             <p className="min-w-0 break-words text-sm font-semibold">{activeList?.title ?? "All lists"}<span className="ml-2 font-normal text-muted-foreground">· {page.items.length}{page.next ? "+" : ""} {page.items.length === 1 ? "idea" : "ideas"}{filter.before ? " on this page" : ""}</span></p>
-            {hasFilters ? <Button variant="ghost" disabled={pending} onClick={() => search(initialFilter)}>Reset view</Button> : null}
+            {hasFilters ? <Button variant="ghost" disabled={pending} onClick={() => search(listFilter)}>Reset view</Button> : null}
             {filter.status || filter.priority || filter.category ? (
               <div className="flex w-full flex-wrap gap-2" aria-label="Active filters">
                 {(["status", "priority", "category"] as const).filter((key) => filter[key]).map((key) => (
@@ -217,14 +227,14 @@ export function BucketWorkspace({ lists, initialPage, categories = DEFAULT_BUCKE
           <div className="rounded-2xl border border-dashed border-border bg-card/50 px-6 py-12 text-center">
             <h2 className="font-display text-2xl sm:text-3xl">{lists.length ? "Room for your next idea." : "What would you love to do together?"}</h2>
             <p className="mx-auto mt-3 max-w-prose text-sm leading-6 text-muted-foreground">{lists.length ? "No ideas match this view. Try another filter, or add something you've been talking about." : "Make a list first. It can hold a weekend ritual, a faraway place, or a small adventure close to home."}</p>
-            {lists.length ? <Button asChild className="mt-6"><Link href="/bucket/new">Add an idea</Link></Button> : <Button className="mt-6" onClick={() => showOptions("create")}><Plus className="size-4" />Create your first list</Button>}
+            {lists.length ? <Button asChild className="mt-6"><Link href={`/bucket/new?list=${listId}`}>Add idea</Link></Button> : <Button className="mt-6" onClick={() => showOptions("create")}><Plus className="size-4" />Create your first list</Button>}
           </div>
         )}
         {filter.before || page.next ? <div className="mt-6 flex gap-3">
           {filter.before ? <Button variant="ghost" onClick={() => search({ ...filter, before: null })} disabled={pending}>Back to first page</Button> : null}
           {page.next ? <Button variant="outline" disabled={pending} onClick={() => search({ ...filter, before: page.next })}>Next ideas</Button> : null}
         </div> : null}
-      </section>
+      </section>}
     </div>
   );
 }

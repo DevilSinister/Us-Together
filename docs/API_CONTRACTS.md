@@ -148,3 +148,10 @@ Reminder controls choose offsets relative to plan start. Cancel/complete stops p
 - loadGallery accepts source kind (all/memory/moment), media type (all/image/video), optional entry UUID (requires memory or moment kind), optional ISO story date and optional date/kind-UUID cursor. Entry scoping adds an entry_id equality constraint while preserving couple RLS; malformed gallery URL parameters return 404. It derives the couple from the server session and returns at most 48 ready media DTOs plus a next cursor. Preview returns authorized entry descriptors; files remain in IndexedDB.
 - loadMediaComments accepts kind, parent UUID and media UUID. It verifies a ready file belongs to that authorized parent and returns up to 500 comments, containing id/body/time and a mine boolean.
 - mediaCommentAction accepts that target plus add/remove, body (1–2000 trimmed characters) or comment UUID. Author identity is server-derived; delete is constrained by author and file. Both partners may add comments. Updates are unavailable.
+
+### Bucket list browsing routes
+
+- `/bucket` loads the authorized list directory, with no mixed idea feed.
+- `/bucket/lists/[listId]` awaits route params, validates the UUID with Zod and requires the ID in the existing session-authorized list result before loading a bounded page of ideas. Missing, malformed and inaccessible lists return 404.
+- `/bucket/new?list=<UUID>` validates the optional UUID and checks the same authorized list result before preselecting it. The existing server mutation independently validates membership and list ownership. List and idea text never enter route parameters.
+- Filter resets preserve the opened list. Existing bucket mutations invalidate `/bucket/lists/[listId]` as a page pattern; mutation inputs, schemas and database policies are unchanged.

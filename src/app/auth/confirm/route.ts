@@ -1,4 +1,5 @@
 import { type EmailOtpType } from "@supabase/supabase-js";
+import { endDeveloperSession } from "@/lib/auth/dev-session";
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
@@ -26,5 +27,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(errorUrl);
   }
 
+  await endDeveloperSession();
   return NextResponse.redirect(new URL(next, url.origin));
 }

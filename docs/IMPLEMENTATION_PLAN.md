@@ -82,6 +82,10 @@ Status: **implemented; functional gates passed; fixture cleanup awaits explicit 
 
 Exit gate: signed URL, MIME/size, cross-couple storage, interrupted upload, and lazy-loading tests pass.
 
+### Current UI follow-up — 2026-09-04
+
+The user confirms live list creation, partner verification and partner syncing work. This is user-reported production evidence; clean migration replay, concurrent-session tests and attachment-specific integration checks remain separate obligations. The next requested work is mobile navigation and a list-first bucket flow, before Phase 7. See [UI follow-up](MOBILE_LISTS_VERIFICATION.md).
+
 ## Phase 7 — Wishlists and notes
 
 - Add user-owned wishlist items with partner visibility and purchaser-only purchase-secret records.

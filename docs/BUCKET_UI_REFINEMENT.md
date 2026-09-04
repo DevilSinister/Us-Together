@@ -1,5 +1,7 @@
 # Bucket UI refinement — 2026-09-02
 
+Historical refinement; its Options-first list browsing is superseded by the 2026-09-04 [list-first follow-up](MOBILE_LISTS_VERIFICATION.md). In-place editing and the interaction safeguards below remain.
+
 Preserves the user's Options-first bucket layout, in-place editor and category selection. This is a scoped interface refinement, not a new phase or visual redesign.
 
 ## Changes

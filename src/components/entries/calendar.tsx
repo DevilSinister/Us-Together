@@ -1,4 +1,7 @@
 "use client";
+import { usePartnerRefresh } from "@/components/providers/partner-sync";
+import { refreshWindow } from "@/lib/partner-sync";
+
 import {useState,useTransition,useRef} from "react";
 import Link from "next/link";
 import {ChevronLeft,ChevronRight,CalendarDays,Images,Flag} from "lucide-react";
@@ -10,6 +13,13 @@ const labels={plan:"Plan",memory:"Memory",moment:"Moment"},icons={plan:CalendarD
 const dayLabel=(d:string)=>new Intl.DateTimeFormat("en",{dateStyle:"full",timeZone:"UTC"}).format(new Date(d+"T12:00:00Z"));
 export function SharedCalendar({initial}:{initial:SharedCalendarPage}){
  const [page,setPage]=useState(initial),[selected,setSelected]=useState(initial.date),[kind,setKind]=useState("all"),[error,setError]=useState(""),[pending,start]=useTransition(),grid=useRef<HTMLDivElement>(null);
+ usePartnerRefresh(async () => {
+   const result = await refreshWindow<SharedCalendarPage["entries"][number], SharedCalendarPage["next"]>(async cursors => {
+     const response = await loadSharedCalendar({date:page.date,view:page.view,cursors:cursors ?? undefined});
+     return {items:response.entries,next:Object.values(response.next).some(Boolean)?response.next:null};
+   },page.entries.length);
+   setPage(current => current === page ? {...current,entries:result.items,next:result.next ?? {plan:null,memory:null,moment:null}} : current);
+ },pending);
  const days=calendarDays(page.view,page.date),entries=page.entries.filter(e=>kind==="all"||kind===e.kind),onDay=entriesOnDay(entries,selected),today=localDate(new Date(),page.timezone);
  function load(date:string,view=page.view,more=false){start(async()=>{try{const next=await loadSharedCalendar({date,view,cursors:more?page.next:undefined});setPage(more?{...next,entries:[...page.entries,...next.entries]}:next);if(!more)setSelected(date);setError("");}catch{setError("Could not load these dates. Your current calendar is still here. Try again.");}});}
  function move(delta:number){if(page.view==="week")return load(addDays(page.date,delta*7));const d=new Date(page.date.slice(0,7)+"-01T12:00:00Z");d.setUTCMonth(d.getUTCMonth()+delta);load(d.toISOString().slice(0,10));}

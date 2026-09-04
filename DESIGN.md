@@ -164,7 +164,7 @@ The palette is a warm paper-and-wine system: deep wine carries action and emphas
 
 ## Layout
 
-The core spatial model is one narrative path with supporting context, not a collection of equal cards. Public landing and authentication surfaces sit within a bounded paper sheet; wide screens use an asymmetric two-column split, while narrow screens collapse to a single reading column without changing content order. The signed-in shell uses a persistent 16rem sidebar from the medium breakpoint upward and six bottom destinations on smaller screens: Home, Calendar, Bucket list, Memories, Moments, and Profile. Calendar links to plan management; Partner settings remain available from Home. Desktop also has Plans and Partner destinations.
+The core spatial model is one narrative path with supporting context, not a collection of equal cards. Public landing and authentication surfaces sit within a bounded paper sheet; wide screens use an asymmetric two-column split, while narrow screens collapse to a single reading column without changing content order. The signed-in shell uses a persistent 16rem sidebar from the medium breakpoint upward and five bottom destinations on smaller screens: Home, Calendar, Lists, Memories, and More. More opens a focused destination dialog for Plans, Moments, Profile, and Partner. Calendar links to plan management; Partner settings remain available from Home. Desktop also has Plans and Partner destinations.
 
 Content containers use generous outer gutters that grow from 1.25rem on phones to 2rem on larger screens. The product body is capped at 72rem, auth and landing sheets extend to 90–92rem, and form content stays near 29rem. Spacing follows the recurring 0.5rem, 0.75rem, 1rem, 1.25rem, 1.5rem, and 2rem rhythm, with larger page-level gaps composed from it.
 
@@ -215,13 +215,13 @@ Controls use gently curved 0.5rem corners. Navigation selections soften to 0.875
 
 ### Bucket Dialogs
 
-Bucket-list Options and in-place idea editing use one focused, warm card-paper dialog. Options moves between list browsing, creation and management with an explicit Back action, never stacked dialogs. Native modal behavior makes the background inert; Tab cycles inside, Escape closes, and focus returns to the opener. Long forms scroll inside a viewport-bounded surface with a persistent close control. Pending mutations disable dismissal; failed saves keep the form and show feedback inside it.
+Bucket-list Options and in-place idea editing use one focused, warm card-paper dialog. The list landing page shows spacious linked list rows and a direct Add list dialog. Each list has its own ideas page and Add idea action. Options moves between filtering and management of that list with an explicit Back action, never stacked dialogs. Native modal behavior makes the background inert; Tab cycles inside, Escape closes, and focus returns to the opener. Long forms scroll inside a viewport-bounded surface with a persistent close control. Pending mutations disable dismissal; failed saves keep the form and show feedback inside it.
 
-Applied filters remain visible as removable blush controls above the idea rows. The empty first list has a direct creation action. Step editing retains visible Save controls and 44px checkbox/reorder targets; narrow screens put reorder actions below the input instead of compressing it.
+Applied filters remain visible as removable blush controls above the idea rows. The list landing page has a direct creation action, including its empty state. Step editing retains visible Save controls and 44px checkbox/reorder targets; narrow screens put reorder actions below the input instead of compressing it.
 
 ### Navigation
 
-Desktop navigation lives in the warm card-paper sidebar and uses quiet blush to mark the active destination. Mobile navigation is fixed to the bottom safe area, uses the same paper tone with a fine top rule, and pairs icons with compact labels. All navigation targets meet the 44px minimum touch height.
+Desktop navigation lives in the warm card-paper sidebar and uses quiet blush to mark the active destination. Mobile navigation is fixed to the bottom safe area, uses the same paper tone with a fine top rule, and pairs icons with compact labels. All navigation targets meet the 44px minimum touch height. Five evenly spaced mobile targets prevent cramped labels; Lists is the short mobile label for Bucket lists. More uses the shared modal focus and Escape behavior. Bottom content padding reserves navigation height plus the device safe area.
 
 ### Relationship Thread
 

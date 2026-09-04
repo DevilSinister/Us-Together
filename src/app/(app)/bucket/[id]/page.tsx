@@ -18,8 +18,8 @@ export default async function BucketItemPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link href="/bucket" className="inline-flex min-h-11 items-center font-semibold text-primary hover:underline">
-        Back to bucket lists
+      <Link href={`/bucket/lists/${item.list_id}`} className="inline-flex min-h-11 items-center font-semibold text-primary hover:underline">
+        Back to list
       </Link>
       <header className="mt-5">
         <p className="text-sm text-primary">

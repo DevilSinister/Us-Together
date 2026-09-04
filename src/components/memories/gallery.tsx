@@ -1,4 +1,7 @@
 "use client";
+import { usePartnerRefresh } from "@/components/providers/partner-sync";
+import { refreshWindow } from "@/lib/partner-sync";
+
 import {EntryPreview} from "@/components/entries/entry-preview";
 import { useState, useTransition } from "react";
 import Link from "next/link";
@@ -11,6 +14,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 export function MemoryGallery({initial,previewSession}:{initial:MemoryPage;previewSession?:string}) {
  const [page,setPage]=useState(initial),[favorite,setFavorite]=useState(false),[tag,setTag]=useState(""),[applied,setApplied]=useState({favorite:false,tag:""}),[error,setError]=useState(""),[pending,start]=useTransition();
+ usePartnerRefresh(async () => {
+   const result = await refreshWindow<MemoryPage["memories"][number], NonNullable<MemoryPage["next"]>>(async cursor => {
+     const response = await filterMemories({...applied,cursor});
+     if (!response.page) throw Error("Refresh unavailable");
+     return {items:response.page.memories,next:response.page.next};
+   },page.memories.length);
+   setPage(current => current === page ? {memories:result.items,next:result.next} : current);
+ },pending);
  const load=(more=false)=>start(async()=>{
   const filters=more?applied:{favorite,tag};
   try{

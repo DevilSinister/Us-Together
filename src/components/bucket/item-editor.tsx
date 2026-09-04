@@ -18,6 +18,7 @@ import { bucketFieldClass, bucketLabel } from "./bucket-workspace";
 export function ItemEditor({
   lists,
   item,
+  defaultListId,
   categories = DEFAULT_BUCKET_CATEGORIES,
   onSaved,
   onCancel,
@@ -25,6 +26,7 @@ export function ItemEditor({
 }: {
   lists: BucketList[];
   item?: BucketItem;
+  defaultListId?: string;
   categories?: readonly string[] | string[];
   onSaved?: () => void;
   onCancel?: () => void;
@@ -98,7 +100,7 @@ export function ItemEditor({
             aria-label="List"
             name="listId"
             className={bucketFieldClass}
-            defaultValue={item?.list_id ?? lists[0]?.id}
+            defaultValue={item?.list_id ?? defaultListId ?? lists[0]?.id}
             required
           >
             {lists.map((list) => (

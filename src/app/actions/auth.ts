@@ -29,6 +29,7 @@ export async function signInAction(_previous: ActionState, formData: FormData): 
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return { status: "error", message: "We couldn't sign you in. Check your email and password." };
 
+  await endDeveloperSession();
   redirect("/home");
 }
 

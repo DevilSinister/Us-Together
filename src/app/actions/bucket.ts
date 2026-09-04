@@ -120,6 +120,7 @@ export async function mutateBucket(input: unknown): Promise<{ ok: boolean; messa
       }
     }
     if (context.kind === "preview") await saveBucketPreview(context.userId, context.preview);
+    revalidatePath("/bucket/lists/[listId]", "page");
     revalidatePath("/bucket"); if (id) revalidatePath(`/bucket/${id}`); revalidatePath("/home");
     return { ok: true, message: command.operation === "completeItem" ? "One more dream lived. Keep the memory when you're ready." : "Saved.", id };
   } catch (error) {

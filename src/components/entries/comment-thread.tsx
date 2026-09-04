@@ -1,4 +1,6 @@
 "use client";
+import { usePartnerRefresh } from "@/components/providers/partner-sync";
+
 import {useCallback,useEffect,useId,useState} from "react";
 import {entryComments,commentAction} from "@/app/actions/entries";
 import {loadMediaComments,mediaCommentAction} from "@/app/actions/gallery";
@@ -11,6 +13,7 @@ export function CommentThread({access,mediaId}:{access:EntryAccess;mediaId?:stri
  const field=useId(),{kind,id,previewSession}=access;
  const reload=useCallback(async()=>{try{const a={kind,id,previewSession};if(previewSession)setComments(await previewComments(a,mediaId));else{const r=await (mediaId?loadMediaComments({...a,mediaId}):entryComments(a));if(r.error)throw Error(r.error);setComments(r.comments??[]);}setError("");}catch(e){setError(e instanceof Error?e.message:"Could not load comments.");}finally{setLoading(false);}},[kind,id,previewSession,mediaId]);
  useEffect(()=>{const t=setTimeout(()=>void reload(),0);return()=>clearTimeout(t);},[reload]);
+ usePartnerRefresh(reload,pending || loading || !!previewSession);
  async function mutate(operation:"add"|"remove",commentId?:string){setPending(true);try{
  if(previewSession){if(operation==="add")await addPreviewComment(access,body,mediaId);else await deletePreviewComment(access,commentId!,mediaId);}
  else {const r=await (mediaId?mediaCommentAction({...access,mediaId,operation,commentId,body:operation==="add"?body:undefined}):commentAction({...access,operation,commentId,body:operation==="add"?body:undefined}));if(r.error)throw Error(r.error);}

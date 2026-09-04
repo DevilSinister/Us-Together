@@ -208,3 +208,13 @@ Remove manual coordinates from memory/plan UI and current memory DTOs; preserve 
 **Decision:** Keep plan reminders. Retire entry reminders throughout UI/API/cron while retaining historical rows. Show the first six uploaded images on Memories and Moments listings and details. Show more navigates to /gallery scoped by validated kind and entry UUID, with every photo and video available. Listing media loads near the viewport. Photo viewers support horizontal touch swipes, arrow keys and Previous/Next buttons; videos retain native controls. Reuse one viewer for entry and Home galleries. Show captions and per-file partner comments within the viewer; preserve older story-level comments separately. Add normalized media_comments with ownership-aware RLS and a 500-comment per-file bound. Use a security-invoker shared_gallery view and 48-file keyset pages, grouping by source or story date. Preview uses the same interaction with session/entry/file-scoped IndexedDB records.
 
 **Consequences:** Gallery navigation and comment edits share one media identity. Photo deletion cascades its comments after Storage cleanup. Comments load on opening a file, and Refresh comments retrieves partner updates; no realtime subscription is claimed. The original story date determines date grouping, not EXIF or upload time.
+
+## ADR-022 — Lists before ideas and five mobile destinations
+
+**Status:** Accepted, user-directed UI follow-up, 2026-09-04.
+
+**Decision:** `/bucket` browses lists and offers Add list. `/bucket/lists/[listId]` opens one authorized list and its paginated ideas. Add idea links to `/bucket/new?list=<UUID>` and preselects an existing authorized list; details return to the owning list. Options retains filters and rename/empty-delete for the current list. Resetting filters preserves the list. Only opaque IDs enter these URLs, never titles or idea content. Reuse existing authenticated loaders and mutation validation; no database or ownership changes.
+
+Phone navigation has Home, Calendar, Lists, Memories and More. More opens an accessible modal containing Plans, Moments, Profile and Partner. Preserve the desktop sidebar and reserve bottom safe-area space for content.
+
+**Consequences:** The list landing page no longer queries all ideas. A list route validates its UUID and checks it against the session-authorized list result before loading ideas; missing and inaccessible lists return the same 404. Bucket mutations invalidate the list route pattern as well as existing destinations. Existing partner-refresh behavior remains in place.
