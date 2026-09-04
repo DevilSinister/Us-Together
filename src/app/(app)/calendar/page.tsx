@@ -1,8 +1,42 @@
 import Link from "next/link";
-import {Button} from "@/components/ui/button";
-import {SharedCalendar} from "@/components/entries/calendar";
-import {loadSharedCalendar} from "@/app/actions/calendar";
-import {planContext} from "@/lib/plans/data";
-import {localDate} from "@/lib/plans/calendar";
-export const metadata={title:"Calendar"};
-export default async function CalendarPage(){const c=await planContext(),initial=await loadSharedCalendar({date:localDate(new Date(),c.timezone)});return <div className="reveal-on-load"><header className="border-b pb-8"><p className="text-sm font-semibold text-primary">A date for every part of your story</p><h1 className="mt-2 font-display text-5xl sm:text-6xl">Your shared calendar.</h1><p className="mt-4 max-w-prose text-lg leading-8 text-muted-foreground">Plans ahead, memories kept, and moments worth marking, together in one place.</p><div className="mt-6 flex flex-wrap gap-3"><Button asChild><Link href="/plans/new">New plan</Link></Button><Button asChild variant="outline"><Link href="/memories/new">Add memory</Link></Button><Button asChild variant="outline"><Link href="/milestones/new">Add moment</Link></Button><Button asChild variant="ghost"><Link href="/plans">Manage plans</Link></Button></div></header>{initial.paired?<SharedCalendar initial={initial}/>:<p className="mt-8"><Link href="/pairing" className="font-semibold text-primary underline">Connect your shared space</Link> to start your calendar.</p>}</div>;}
+import { Button } from "@/components/ui/button";
+import { InlineLink } from "@/components/ui/inline-link";
+import { PageHeader } from "@/components/app/page-header";
+import { PairingNotice } from "@/components/app/states";
+import { SharedCalendar } from "@/components/entries/calendar";
+import { loadSharedCalendar } from "@/app/actions/calendar";
+import { planContext } from "@/lib/plans/data";
+import { localDate } from "@/lib/plans/calendar";
+
+export const metadata = { title: "Calendar" };
+
+export default async function CalendarPage() {
+  const context = await planContext();
+  const initial = await loadSharedCalendar({ date: localDate(new Date(), context.timezone) });
+
+  return (
+    <div className="reveal-on-load">
+      <PageHeader
+        eyebrow="A date for every part of your story"
+        title="Your shared calendar."
+        lede="Plans ahead, memories kept, and moments worth marking, together in one place."
+        actions={<Button asChild><Link href="/plans/new">New plan</Link></Button>}
+      />
+      {initial.paired ? (
+        <>
+          <div className="mt-4 flex flex-wrap items-center gap-x-6">
+            <InlineLink href="/memories/new">Add a memory</InlineLink>
+            <InlineLink href="/milestones/new">Add a moment</InlineLink>
+            <InlineLink href="/plans">Manage plans</InlineLink>
+          </div>
+          <SharedCalendar initial={initial} />
+        </>
+      ) : (
+        <PairingNotice
+          title="Your calendar opens with your shared space."
+          body="Plans, memories, and moments are read inside one couple boundary, so the calendar waits for both accounts."
+        />
+      )}
+    </div>
+  );
+}

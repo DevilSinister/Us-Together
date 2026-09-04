@@ -134,7 +134,7 @@ export function ItemDetail({
       {/* Top Action Buttons */}
       <div className="mt-6 flex flex-wrap items-center gap-3">
         {item.status === "completed" ? (
-          <section className="w-full rounded-2xl bg-secondary p-6">
+          <section className="w-full rounded-panel bg-secondary p-6">
             <h2 className="font-display text-3xl">One more dream lived.</h2>
             <p className="mt-2 leading-7 text-muted-foreground">
               Completion is saved. Your story can follow when you are ready.

@@ -30,16 +30,16 @@ test("paired fixture exposes a named partner and completes the plan-to-memory lo
   await expect(page.getByText("From the plan “Rooftop dinner”")).toBeVisible();
 
   await page.goto("/milestones/new");
-  await page.getByLabel("Milestone name").fill("Our first brave leap");
+  await page.getByLabel("Moment name").fill("Our first brave leap");
   await page.getByLabel("Date").fill("2026-08-14");
-  await page.getByLabel("Feature this milestone on Home").check();
-  await page.getByRole("button", { name: "Save milestone" }).click();
+  await page.getByLabel("Feature this moment on Home").check();
+  await page.getByRole("button", { name: "Save the moment" }).click();
   await expect(page.getByRole("heading", { name: "Our first brave leap" })).toBeVisible();
 
   await page.goto("/notifications");
   await page.getByRole("button", { name: "Mark read" }).click();
   await expect(page.getByText("0 unread")).toBeVisible();
-  await page.getByLabel("Milestones").uncheck();
+  await page.getByLabel("Moments").uncheck();
   await page.getByRole("button", { name: "Save preferences" }).click();
   await expect(page.getByText("Notification preferences saved.")).toBeVisible();
 });

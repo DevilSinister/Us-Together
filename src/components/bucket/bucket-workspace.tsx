@@ -9,10 +9,12 @@ import { filterBucketItems, mutateBucket } from "@/app/actions/bucket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { InlineLink } from "@/components/ui/inline-link";
+import { PageHeader } from "@/components/app/page-header";
 import { DEFAULT_BUCKET_CATEGORIES, bucketPriorities, bucketStatuses, type BucketFilter, type BucketList, type BucketPage } from "@/lib/bucket/schema";
 
 export const bucketFieldClass =
-  "min-h-12 w-full min-w-0 rounded-lg border border-border bg-field px-3 py-2 text-base font-normal sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
+  "min-h-12 w-full min-w-0 rounded-control border border-border bg-field px-3 py-2 text-base font-normal sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
 export function bucketLabel(value: string) {
   const words = value.replaceAll("_", " ");
@@ -97,21 +99,17 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
 
   return (
     <div>
-      {listId ? <Link href="/bucket" className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-primary hover:underline"><ArrowLeft className="size-4" />All lists</Link> : null}
-      <header className="flex flex-col gap-5 border-b border-border pb-7 sm:flex-row sm:items-end sm:justify-between">
-        <div className="min-w-0">
-          <p className="text-sm font-semibold text-primary">Someday starts here</p>
-          <h1 className="mt-2 font-display break-words text-4xl tracking-[-0.03em] sm:text-5xl">{activeList?.title ?? "Our bucket lists."}</h1>
-          <p className="mt-3 max-w-prose text-sm leading-6 text-muted-foreground">{listId ? "Keep the idea. Take a little step. Make it a day to remember." : "A place for every kind of someday. Open a list to explore your ideas."}</p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          {listId ? <>
-            <Button asChild className="flex-1 sm:flex-none"><Link href={`/bucket/new?list=${listId}`}><Plus className="size-4" />Add idea</Link></Button>
-            <Button variant="outline" onClick={() => showOptions()}><SlidersHorizontal className="size-4" />Options</Button>
-          </> : <Button onClick={() => showOptions("create")}><Plus className="size-4" />Add list</Button>}
-
-        </div>
-      </header>
+      <PageHeader
+        scale="compact"
+        eyebrow="Someday starts here"
+        title={activeList?.title ?? "Our bucket lists."}
+        lede={listId ? "Keep the idea. Take a little step. Make it a day to remember." : "A place for every kind of someday. Open a list to explore your ideas."}
+        back={listId ? <InlineLink href="/bucket"><ArrowLeft className="size-4" />All lists</InlineLink> : null}
+        actions={listId ? <>
+          <Button asChild><Link href={`/bucket/new?list=${listId}`}><Plus className="size-4" />Add idea</Link></Button>
+          <Button variant="outline" onClick={() => showOptions()}><SlidersHorizontal className="size-4" />Options</Button>
+        </> : <Button onClick={() => showOptions("create")}><Plus className="size-4" />Add list</Button>}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent title={view === "options" ? "List options" : view === "create" ? "Create new list" : "Manage this list"} className="max-w-xl" dismissible={!pending}>
@@ -185,7 +183,7 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
               <ArrowRight aria-hidden="true" className="size-5 shrink-0 text-primary" />
             </Link>
           </li>)}
-        </ul> : <div className="rounded-2xl border border-dashed border-border bg-card/50 px-6 py-12 text-center">
+        </ul> : <div className="rounded-panel border border-dashed border-border bg-card/50 px-6 py-12 text-center">
           <h2 className="font-display text-2xl sm:text-3xl">What would you love to do together?</h2>
           <p className="mx-auto mt-3 max-w-prose text-sm leading-6 text-muted-foreground">Add your first list for a weekend ritual, a faraway place, or a small adventure close to home.</p>
         </div>}
@@ -224,7 +222,7 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
             ))}
           </ul>
         ) : (
-          <div className="rounded-2xl border border-dashed border-border bg-card/50 px-6 py-12 text-center">
+          <div className="rounded-panel border border-dashed border-border bg-card/50 px-6 py-12 text-center">
             <h2 className="font-display text-2xl sm:text-3xl">{lists.length ? "Room for your next idea." : "What would you love to do together?"}</h2>
             <p className="mx-auto mt-3 max-w-prose text-sm leading-6 text-muted-foreground">{lists.length ? "No ideas match this view. Try another filter, or add something you've been talking about." : "Make a list first. It can hold a weekend ritual, a faraway place, or a small adventure close to home."}</p>
             {lists.length ? <Button asChild className="mt-6"><Link href={`/bucket/new?list=${listId}`}>Add idea</Link></Button> : <Button className="mt-6" onClick={() => showOptions("create")}><Plus className="size-4" />Create your first list</Button>}

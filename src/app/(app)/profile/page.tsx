@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ProfileForm } from "@/components/profile/profile-form";
+import { PageHeader } from "@/components/app/page-header";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState } from "@/lib/auth/dev-session";
@@ -19,11 +20,18 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-xl">
-      <p className="text-sm font-semibold text-primary">Your account</p>
-      <h1 className="mt-3 font-display text-5xl tracking-[-0.03em]">Make this space feel like yours.</h1>
-      <p className="mt-5 mb-9 leading-7 text-muted-foreground">Your timezone keeps future plans and letters honest. Only you can access these profile fields right now.</p>
-      <div className="rounded-[1rem] bg-card p-6 shadow-[0_20px_55px_-42px_rgba(58,25,34,.55)] sm:p-8"><ProfileForm displayName={profile?.display_name ?? ""} timezone={profile?.timezone ?? "UTC"} /></div>
+    <div className="mx-auto max-w-xl reveal-on-load">
+      <PageHeader
+        scale="compact"
+        rule={false}
+        eyebrow="Your account"
+        title="Make this space feel like yours."
+        lede="Your timezone keeps future plans and letters honest. Only you can access these profile fields right now."
+        className="pb-0"
+      />
+      <div className="mt-9 rounded-panel bg-card p-6 shadow-paper sm:p-8">
+        <ProfileForm displayName={profile?.display_name ?? ""} timezone={profile?.timezone ?? "UTC"} />
+      </div>
     </div>
   );
 }

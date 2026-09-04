@@ -10,7 +10,7 @@ type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabl
 const options: Array<{ name: keyof Preferences; label: string; copy: string }> = [
   { name: "plansEnabled", label: "Plans", copy: "Changes to shared plans and reminders." },
   { name: "memoriesEnabled", label: "Memories", copy: "New shared memories and follow-ups." },
-  { name: "milestonesEnabled", label: "Milestones", copy: "New moments added to your shared timeline." },
+  { name: "milestonesEnabled", label: "Moments", copy: "New moments added to your shared timeline." },
   { name: "notesEnabled", label: "Notes", copy: "Shared-note activity when notes arrive in a later phase." },
 ];
 

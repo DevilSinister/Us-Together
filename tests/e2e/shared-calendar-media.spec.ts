@@ -8,11 +8,11 @@ test("preview galleries keep six photos, all files, captions and file-specific c
  for(const kind of ["memory","moment"] as const){
  await page.goto(kind==="memory"?"/memories/new":"/milestones/new");
  await expect(page.getByLabel("Latitude",{exact:true})).toHaveCount(0);
- await page.getByLabel(kind==="memory"?"Memory title":"Milestone name",{exact:true}).fill("Gallery "+kind);
+ await page.getByLabel(kind==="memory"?"Memory title":"Moment name",{exact:true}).fill("Gallery "+kind);
  await page.getByLabel("Date",{exact:true}).fill(today);
  await page.getByLabel("Choose photos or videos").setInputFiles(Array.from({length:7},(_,i)=>({name:"photo-"+i+".png",mimeType:"image/png",buffer:png})));
  await page.getByLabel("Caption for file 1",{exact:true}).fill("First "+kind+" photo");
- await page.getByRole("button",{name:kind==="memory"?"Save the memory":"Save milestone",exact:true}).click();
+ await page.getByRole("button",{name:kind==="memory"?"Save the memory":"Save the moment",exact:true}).click();
  await expect(page.getByText("7 photos · 0 videos",{exact:true})).toBeVisible({timeout:45000});
  await page.getByRole("link",{name:"View "+kind,exact:true}).click();await expect(page).toHaveURL(new RegExp((kind==="memory"?"/memories/":"/milestones/")+"[0-9a-f-]+$"));
  await expect(page.getByRole("button",{name:/Open photo/})).toHaveCount(6);

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/app/page-header";
+import { EmptyState } from "@/components/app/states";
 import { BucketWorkspace } from "@/components/bucket/bucket-workspace";
 import { loadBucketLists } from "@/lib/bucket/data";
 import type { BucketList } from "@/lib/bucket/schema";
@@ -18,23 +20,24 @@ export default async function BucketPage() {
 
   if (failure) {
     return (
-      <section className="max-w-prose">
-        <h1 className="font-display text-4xl">Your ideas belong here.</h1>
-        <p className="mt-4 leading-7 text-muted-foreground">{failure}</p>
-        <div className="mt-6 flex gap-3">
-          <Button asChild>
-            <Link href="/pairing">Your shared space</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/bucket">Try again</Link>
-          </Button>
-        </div>
-      </section>
+      <div className="reveal-on-load">
+        <PageHeader scale="compact" eyebrow="Bucket lists" title="Your ideas belong here." />
+        <EmptyState
+          title="We couldn’t open your lists."
+          body={failure}
+          action={
+            <>
+              <Button asChild><Link href="/bucket">Try again</Link></Button>
+              <Button asChild variant="outline"><Link href="/pairing">Your shared space</Link></Button>
+            </>
+          }
+        />
+      </div>
     );
   }
 
   return (
-    <div>
+    <div className="reveal-on-load">
       <BucketWorkspace lists={lists} initialPage={{ items: [], next: null }} />
     </div>
   );

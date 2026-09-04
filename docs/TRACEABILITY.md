@@ -14,7 +14,7 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 6 | Couples/members | [Database](DATABASE.md), [Features](FEATURES.md) | Phase 2, lifecycle implemented | Capacity/leave/delete pgTAP; concurrency gate open |
 | 7 | Invite link and six-digit code | [Features](FEATURES.md), [Security](SECURITY.md) | Phase 2, hardened | Attempt-limit/revoke/used-code pgTAP; local execution pending runtime |
 | 8 | Onboarding | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Phase 2 | Paired/solo fixture and desktop/mobile browser tests; real-account journey open |
-| 9 | Navigation | [Design Brief](DESIGN_BRIEF.md) | Phase 1 plus mobile follow-up | Five destinations, More keyboard/destination checks and 320px–767px browser coverage; [verification](MOBILE_LISTS_VERIFICATION.md) |
+| 9 | Navigation | [Design Brief](DESIGN_BRIEF.md), [Design System](../DESIGN.md) | Phase 1 plus mobile and consistency follow-ups | Five destinations, More keyboard/destination checks and 320px–767px browser coverage; grouped sidebar reaching every route including Gallery and Notifications, per-destination icons and a skip-to-content link; [mobile verification](MOBILE_LISTS_VERIFICATION.md), [consistency verification](UI_CONSISTENCY_VERIFICATION.md) |
 | 10 | Home dashboard | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 3, implemented | Empty/populated/mixed-privacy and two-timezone unit cases; paired desktop/mobile browser journey |
 | 11 | Plans/date planner | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 5 implemented | Full CRUD/calendar/checklist/reminder browser flow; hosted 40-assertion suite; [integration boundaries](PHASE5_VERIFICATION.md) |
 | 12 | Plan details/checklist | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 5 implemented | Versioned checklist CRUD/reorder, details, map/budget persistence; keyboard/reduced-motion browser coverage |
@@ -37,7 +37,7 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 29 | Memories | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 6 implemented | Detail/edit/delete, free place selection without manual coordinates, normalized tags, rating/favorite, cursor gallery; 42 hosted RLS assertions and browser journeys |
 | 30 | Memory media | [Database](DATABASE.md), [Security](SECURITY.md) | Phase 6 implemented | Authenticated TUS, signature/container checks, derivatives, signed viewer, recovery/cleanup; 34 hosted binary checks and desktop/mobile signed-in tests |
 | 31 | Our Story timeline | [Features](FEATURES.md) | R2 | Visibility/projection tests |
-| 32 | Milestones | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3 basic create/list/feature implemented; richer R2 | Negative RLS specification, generated types, create/list browser journey; edit/delete UI remains later |
+| 32 | Milestones | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3 basic create/list/feature implemented; richer R2 | Negative RLS specification, generated types, create/list browser journey; interface copy consolidated on “Moments” with the `/milestones` route and table names unchanged ([consistency verification](UI_CONSISTENCY_VERIFICATION.md)); edit/delete UI remains later |
 | 33 | Vault purpose | [Vault](VAULT.md) | R2 | Threat-model gate |
 | 34 | PIN/passkey/auto-lock | [Vault](VAULT.md) | R2 | Unlock/timeout tests |
 | 35 | Private vault storage | [Vault](VAULT.md), [Security](SECURITY.md) | R2 | URL/storage negatives |

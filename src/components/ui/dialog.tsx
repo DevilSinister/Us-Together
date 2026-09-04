@@ -109,7 +109,7 @@ export function DialogContent({
       aria-label={title}
       aria-modal="true"
       className={cn(
-        "fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-hidden rounded-2xl border border-border bg-card p-0 text-foreground shadow-xl backdrop:bg-black/40 backdrop:backdrop-blur-xs",
+        "fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg overflow-hidden rounded-panel border border-border bg-card p-0 text-foreground shadow-xl backdrop:bg-black/40 backdrop:backdrop-blur-xs",
         className,
       )}
       onCancel={(event) => {
