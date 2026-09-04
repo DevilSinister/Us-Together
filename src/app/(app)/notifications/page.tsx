@@ -26,6 +26,7 @@ function targetHref(notification: NotificationRow) {
   if (notification.target_type === "milestone") return `/milestones/${notification.target_id}`;
   if (notification.target_type === "plan") return `/plans/${notification.target_id}`;
   if (notification.target_type === "memory") return `/memories/${notification.target_id}`;
+  if (notification.target_type === "note") return `/notes/${notification.target_id}`;
   return "/home";
 }
 

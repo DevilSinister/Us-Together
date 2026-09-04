@@ -24,13 +24,13 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 16 | Bucket subtasks | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 4 implemented | Keyboard reorder/progress; 320px/tablet editing targets; hosted stale-version rejection; overlapping-session timing open |
 | 17 | Bucket to plan | [UX Flows](UX_FLOWS.md), [API Contracts](API_CONTRACTS.md) | Phases 4–5 | Source-locking conversion, retry uniqueness and desktop/mobile handoff verified |
 | 18 | Bucket to memory | [UX Flows](UX_FLOWS.md), [Features](FEATURES.md) | Phase 4 story conversion; Phase 6 media | Completed-bucket conversion/retry verified; Phase 6 authenticated media upload/view/removal verified |
-| 19 | Wishlist | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 7 | Owner/partner matrix |
-| 20 | Secret purchases | [Security](SECURITY.md), [Database](DATABASE.md) | Phase 7 | Non-inference suite |
-| 21 | Product links/manual entry | [Features](FEATURES.md) | Phase 7 | URL/input validation |
+| 19 | Wishlist | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 7 implemented | Owner reads and mutates, partner reads only; former member and cross-couple denial; owner and space immutable. Manual image deferred. [Verification](PHASE7_VERIFICATION.md) |
+| 20 | Secret purchases | [Security](SECURITY.md), [Database](DATABASE.md) | Phase 7 implemented | Owner denied by id, item id, join, status count and instant aggregate; cannot plant a probe row; item delete cascades without a restrict error. [Verification](PHASE7_VERIFICATION.md) |
+| 21 | Product links/manual entry | [Features](FEATURES.md) | Phase 7 implemented | https-only product URL enforced in Zod and a column check; no page is fetched or scraped; unit tests reject http and javascript schemes |
 | 22 | Know Me | [Features](FEATURES.md) | R2 | Visibility/UX tests |
 | 23 | Optional sizes | [Database](DATABASE.md), [Security](SECURITY.md) | R2 | Partner/private RLS |
-| 24 | Notes/letters | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 7/R2 | Type visibility matrix |
-| 25 | Private notes | [Security](SECURITY.md) | Phase 7 | Mandatory negative #2 |
+| 24 | Notes/letters | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 7 shared and private implemented; advanced types R2 | Shared reaches both members, private only its author; plain-text rendering; per-user read state; attachments deferred. [Verification](PHASE7_VERIFICATION.md) |
+| 25 | Private notes | [Security](SECURITY.md) | Phase 7 implemented | Partner denied by id and by content probe; no notification for a private note; withdrawing sharing withdraws the partner notification. [Verification](PHASE7_VERIFICATION.md) |
 | 26 | Surprise notes | [Features](FEATURES.md), [Security](SECURITY.md) | R2 | Pre-reveal non-disclosure |
 | 27 | Scheduled notes/timezones | [Features](FEATURES.md), [Operations](OPERATIONS.md) | R2 | Timing/idempotency |
 | 28 | Open-when letters | [Features](FEATURES.md), [UX Flows](UX_FLOWS.md) | R2 | Eligibility/read tests |

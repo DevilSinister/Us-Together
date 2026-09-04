@@ -90,6 +90,8 @@ A design-system consistency pass followed on the same day. It tokenises the docu
 
 ## Phase 7 — Wishlists and notes
 
+Status: **implemented; hosted inference suite passed, browser and final integration gates open**. User-owned wishlist items with partner read access and owner-only mutation, purchaser-only purchase secrets, and shared or author-private notes with per-user read state are shipped, along with wishlist and note destinations, a Home note and wish preview, and note-targeted notification routing. The hosted suite runs 52 assertions covering every mandatory negative scenario for this phase; database and security advisors report no new findings. Note attachments and the manual wishlist image are deliberately deferred. See [Phase 7 verification](PHASE7_VERIFICATION.md).
+
 - Add user-owned wishlist items with partner visibility and purchaser-only purchase-secret records.
 - Add shared and author-private notes with sanitized rendering and attachments as supported.
 - Audit notifications, activity, search-ready projections, and realtime for inference leaks.

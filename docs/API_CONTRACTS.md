@@ -155,3 +155,17 @@ Reminder controls choose offsets relative to plan start. Cancel/complete stops p
 - `/bucket/lists/[listId]` awaits route params, validates the UUID with Zod and requires the ID in the existing session-authorized list result before loading a bounded page of ideas. Missing, malformed and inaccessible lists return 404.
 - `/bucket/new?list=<UUID>` validates the optional UUID and checks the same authorized list result before preselecting it. The existing server mutation independently validates membership and list ownership. List and idea text never enter route parameters.
 - Filter resets preserve the opened list. Existing bucket mutations invalidate `/bucket/lists/[listId]` as a page pattern; mutation inputs, schemas and database policies are unchanged.
+
+### Wishlists and purchase secrets
+
+- saveWishlistItem accepts an optional item UUID plus title (1-160 trimmed), description, product URL, price string, currency, category, priority and notes. A decimal amount becomes integer minor units; the currency is upper-cased; price and currency are required together or not at all. A product URL must match `https://`; nothing fetches the page. Owner and couple are derived from the server session and never accepted from the caller. An update without owner rights matches no row and returns the same generic message as a missing item.
+- deleteWishlistItem accepts an item UUID. Only the owner matches a row. The purchase secret cascades silently, so a partner gift plan disappears with the wish and the owner is told nothing about it.
+- savePurchaseSecret accepts an item UUID, a status from `planned|purchased|given|cancelled` and optional notes. The purchaser is the session user and is never read from the payload. The server rejects an item the caller owns before touching the secrets table, and returns one generic message whether the item was absent or forbidden, so probing yields no signal. `purchased_at` is derived by the database.
+- deletePurchaseSecret accepts an item UUID and removes only the caller own row.
+- loadWishlist issues two independent reads and joins nothing: items for the couple, and secrets for the caller. Secrets are keyed only for items the caller does not own, so no owner-facing shape can carry gift state. loadWishlistItem attaches a secret only when the caller is not the owner.
+
+### Notes
+
+- saveNote accepts an optional note UUID, a type from `shared|private`, title (1-160 trimmed) and body (1-20000 trimmed). Author and couple come from the session. An update by anyone other than the author matches no row. Switching type is an ordinary authored edit; the database trigger adds or withdraws the partner notification to match.
+- deleteNote accepts a note UUID and succeeds only for the author.
+- loadNotes reads the couple notes without filtering by type, leaving row level security as the single source of visibility, and reads the caller own read rows to mark unread shared notes. loadNote records read state for a note the caller did not author. Bodies are returned and rendered as plain text; nothing is parsed as markup.

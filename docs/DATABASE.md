@@ -53,11 +53,17 @@ Source relationships are nullable foreign keys. Deleting a source should normall
 
 User owner, couple, title/description, product URL, manual image path, price/currency, priority/category, notes, timestamps. Active couple partner may read; only owner may mutate normal fields.
 
+Phase 7 shipped every field except the manual image, which is deferred (see below). `product_url` carries a column check requiring an `https://` prefix; nothing fetches or scrapes the page. Price is integer minor units with an ISO-4217 code, and a constraint requires the pair together or neither. A trigger makes `couple_id` and `owner_id` immutable after insert. Indexed on couple page order, couple plus owner, couple plus priority, and owner alone so an account cascade does not scan.
+
 ### `wishlist_purchase_secrets`
 
 Wishlist item, purchaser, status, purchaser-only notes, purchased time, timestamps. Only the purchaser can select/insert/update/delete. Check purchaser differs from item owner and is an active member of the same couple. No owner-readable view or parent projection includes existence/state.
 
+Phase 7 enforces the purchaser rule through `private.can_hold_purchase_secret`, a definer function granted only to authenticated callers and referenced by the insert and update policies, so the item owner cannot plant a probe row on their own item. Status is `planned`, `purchased`, `given` or `cancelled`; `purchased_at` is derived by trigger from status and never accepted from a client. The child cascades on item delete on purpose: `restrict` would raise an error that proves to the owner that a secret exists. There is no view, count, aggregate or notification path from an item to a secret.
+
 ### `notes`, `note_attachments`, `note_reads`
+
+Phase 7 shipped `notes` and `note_reads`; `note_attachments` is deferred (see below). The select policy is `active member and (type = 'shared' or author = caller)`, so a private note reaches only its author and leaving the couple withdraws access to both kinds. Insert and update require authorship and validate `recipient_id` through `private.can_receive_note`; a trigger makes `couple_id` and `author_id` immutable. `note_reads` is select, insert and delete only for its own user, and its insert policy nests a select on `notes`, so a read row can only be created for a note the caller may already read. A body is stored and rendered as plain text; nothing is parsed as markup.
 
 Notes include couple, author, optional recipient, type, title/content, reveal/delivery instants where applicable, delivery state, timestamps. MVP permits `shared` and `private`; R2 adds `surprise`, `scheduled`, and `open_when`. Attachments inherit note visibility. Read rows are created only after the user is eligible to read.
 
@@ -84,6 +90,17 @@ Actor when available, couple, action, safe target type/ID, request correlation, 
 - `calendar_connections`, `calendar_selections`, and `calendar_event_links` with encrypted/secured credentials and user ownership
 - `push_subscriptions` and category preferences
 - Search documents/projections that preserve source visibility
+
+### Phase 7 deferrals
+
+Two documented wishlist and note fields are deliberately unbuilt, and no column stands in for them:
+
+- **Manual wishlist image.** Storing a user-supplied remote image URL would make the app fetch third-party hosts on render, leaking a viewer IP and referrer for a privacy-first product; storing an upload needs its own bucket and object policy. The wish shows the product link host as text instead. Revisit with the plan-attachment storage pattern.
+- **Note attachments.** The same storage decision as above, and the phase gate for notes is the visibility matrix rather than attachments.
+
+### Note notifications
+
+`private.notify_note_visibility` fires after insert and after an update of `type`. A shared note inserts one generic `note` notification per other active member, subject to `in_app_enabled` and `notes_enabled`, keyed idempotently as `note:<id>:<user>`. A private note produces nothing. Switching a shared note to private deletes the notifications it produced for everyone except its author. No notification carries a title, body or any note content.
 
 ## Enums
 

@@ -739,6 +739,76 @@ export type Database = {
           },
         ]
       }
+      note_reads: {
+        Row: {
+          note_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          note_id: string
+          read_at?: string
+          user_id?: string
+        }
+        Update: {
+          note_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "note_reads_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notes: {
+        Row: {
+          author_id: string
+          body: string
+          couple_id: string
+          created_at: string
+          id: string
+          recipient_id: string | null
+          title: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          author_id?: string
+          body: string
+          couple_id: string
+          created_at?: string
+          id?: string
+          recipient_id?: string | null
+          title: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          couple_id?: string
+          created_at?: string
+          id?: string
+          recipient_id?: string | null
+          title?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notes_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           created_at: string
@@ -1085,6 +1155,103 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wishlist_items: {
+        Row: {
+          category: string | null
+          couple_id: string
+          created_at: string
+          currency: string | null
+          description: string | null
+          id: string
+          notes: string | null
+          owner_id: string
+          price_minor: number | null
+          priority: string
+          product_url: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          couple_id: string
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          price_minor?: number | null
+          priority?: string
+          product_url?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          couple_id?: string
+          created_at?: string
+          currency?: string | null
+          description?: string | null
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          price_minor?: number | null
+          priority?: string
+          product_url?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_items_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wishlist_purchase_secrets: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          purchased_at: string | null
+          purchaser_id: string
+          status: string
+          updated_at: string
+          wishlist_item_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          purchased_at?: string | null
+          purchaser_id?: string
+          status?: string
+          updated_at?: string
+          wishlist_item_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          purchased_at?: string | null
+          purchaser_id?: string
+          status?: string
+          updated_at?: string
+          wishlist_item_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_purchase_secrets_wishlist_item_id_fkey"
+            columns: ["wishlist_item_id"]
+            isOneToOne: false
+            referencedRelation: "wishlist_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

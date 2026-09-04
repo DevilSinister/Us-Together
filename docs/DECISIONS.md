@@ -218,3 +218,15 @@ Remove manual coordinates from memory/plan UI and current memory DTOs; preserve 
 Phone navigation has Home, Calendar, Lists, Memories and More. More opens an accessible modal containing Plans, Moments, Profile and Partner. Preserve the desktop sidebar and reserve bottom safe-area space for content.
 
 **Consequences:** The list landing page no longer queries all ideas. A list route validates its UUID and checks it against the session-authorized list result before loading ideas; missing and inaccessible lists return the same 404. Bucket mutations invalidate the list route pattern as well as existing destinations. Existing partner-refresh behavior remains in place.
+
+## ADR-023 — Purchase secrets cascade, and Phase 7 has no developer-preview store
+
+**Status:** Accepted, 2026-09-04.
+
+**Decision:** A purchase secret references its wishlist item `on delete cascade`, not `on delete restrict`. Only the purchaser holds any privilege on the secrets table, and `private.can_hold_purchase_secret` additionally requires that the caller is not the item owner. No view, aggregate, count or notification joins an item to a secret, and the server returns one generic message whether a probed item was missing or forbidden.
+
+Wishlists and notes read and write only through a connected Supabase account. The developer preview keeps no local wishlist or note store and shows the standard pairing notice instead.
+
+**Consequences:** Deleting a wish silently removes a partner gift plan. That is the point: `restrict` would surface a foreign-key error to the owner and prove a secret existed, which fails the phase exit gate. The cost is that a purchaser can lose a plan without explanation when the owner removes the wish, which is the correct trade against disclosure.
+
+Because there is no preview store, these two surfaces cannot be exercised by the local dev-login fixture, so their forms are verified by the hosted assertion suite, types, lint and build rather than by preview screenshots. Building a second local source of truth was rejected as fake behavior presented as complete.
