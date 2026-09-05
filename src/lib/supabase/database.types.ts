@@ -816,7 +816,9 @@ export type Database = {
           memories_enabled: boolean
           milestones_enabled: boolean
           notes_enabled: boolean
+          on_this_day_enabled: boolean
           plans_enabled: boolean
+          push_enabled: boolean
           updated_at: string
           user_id: string
         }
@@ -826,7 +828,9 @@ export type Database = {
           memories_enabled?: boolean
           milestones_enabled?: boolean
           notes_enabled?: boolean
+          on_this_day_enabled?: boolean
           plans_enabled?: boolean
+          push_enabled?: boolean
           updated_at?: string
           user_id: string
         }
@@ -836,7 +840,9 @@ export type Database = {
           memories_enabled?: boolean
           milestones_enabled?: boolean
           notes_enabled?: boolean
+          on_this_day_enabled?: boolean
           plans_enabled?: boolean
+          push_enabled?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -1156,6 +1162,99 @@ export type Database = {
         }
         Relationships: []
       }
+      push_deliveries: {
+        Row: {
+          attempts: number
+          created_at: string
+          delivered_at: string | null
+          id: string
+          last_error_code: string | null
+          next_attempt_at: string
+          notification_id: string
+          state: string
+          subscription_id: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string
+          notification_id: string
+          state?: string
+          subscription_id: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string
+          notification_id?: string
+          state?: string
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_deliveries_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "push_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_subscriptions: {
+        Row: {
+          auth: string
+          created_at: string
+          disabled_at: string | null
+          endpoint: string
+          failure_count: number
+          id: string
+          label: string | null
+          last_delivered_at: string | null
+          p256dh: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auth: string
+          created_at?: string
+          disabled_at?: string | null
+          endpoint: string
+          failure_count?: number
+          id?: string
+          label?: string | null
+          last_delivered_at?: string | null
+          p256dh: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          auth?: string
+          created_at?: string
+          disabled_at?: string | null
+          endpoint?: string
+          failure_count?: number
+          id?: string
+          label?: string | null
+          last_delivered_at?: string | null
+          p256dh?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wishlist_items: {
         Row: {
           category: string | null
@@ -1273,6 +1372,19 @@ export type Database = {
         }
         Relationships: []
       }
+      story_entries: {
+        Row: {
+          couple_id: string | null
+          id: string | null
+          kind: string | null
+          location: string | null
+          occurred_on: string | null
+          source_bucket_item_id: string | null
+          source_plan_id: string | null
+          title: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       can_access_entry: {
@@ -1362,6 +1474,7 @@ export type Database = {
         Args: { due: string; memory: string; moment: string }
         Returns: string
       }
+      settle_push_deliveries: { Args: { input: Json }; Returns: undefined }
       update_memory_details: { Args: { input: Json }; Returns: Json }
       update_plan_details: { Args: { input: Json }; Returns: Json }
     }

@@ -83,6 +83,7 @@ export async function updateNotificationPreferencesAction(_previous: ActionState
     memoriesEnabled: formData.get("memoriesEnabled") === "on",
     milestonesEnabled: formData.get("milestonesEnabled") === "on",
     notesEnabled: formData.get("notesEnabled") === "on",
+    onThisDayEnabled: formData.get("onThisDayEnabled") === "on",
   };
   if (identity.kind === "developer") {
     const state = await readDeveloperState();
@@ -96,6 +97,7 @@ export async function updateNotificationPreferencesAction(_previous: ActionState
       memories_enabled: values.memoriesEnabled,
       milestones_enabled: values.milestonesEnabled,
       notes_enabled: values.notesEnabled,
+      on_this_day_enabled: values.onThisDayEnabled,
     }, { onConflict: "user_id" });
     if (error) return { status: "error", message: "We couldn't update your notification preferences." };
   }

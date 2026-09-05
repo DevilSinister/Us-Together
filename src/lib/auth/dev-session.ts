@@ -79,6 +79,7 @@ export type DevState = {
     memoriesEnabled: boolean;
     milestonesEnabled: boolean;
     notesEnabled: boolean;
+    onThisDayEnabled: boolean;
   };
 };
 
@@ -97,7 +98,7 @@ function createDeveloperState(fixture: "paired" | "solo" = "solo"): DevState {
       memories: [],
       milestones: [{ id: "00000000-0000-4000-8000-000000000301", title: "The day we chose us", description: "A date worth keeping close.", type: "relationship", milestoneDate: "2022-08-14", featured: true }],
       notifications: [{ id: "00000000-0000-4000-8000-000000000302", title: "A milestone was added", category: "milestone", targetType: "milestone", targetId: "00000000-0000-4000-8000-000000000301", readAt: null, createdAt: "2026-08-31T12:00:00.000Z" }],
-      notificationPreferences: { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true },
+      notificationPreferences: { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true, onThisDayEnabled: true },
     };
   }
   return {
@@ -112,7 +113,7 @@ function createDeveloperState(fixture: "paired" | "solo" = "solo"): DevState {
     memories: [],
     milestones: [],
     notifications: [],
-    notificationPreferences: { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true },
+    notificationPreferences: { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true, onThisDayEnabled: true },
   };
 }
 

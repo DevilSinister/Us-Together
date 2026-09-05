@@ -6,12 +6,13 @@ import { updateNotificationPreferencesAction } from "@/app/actions/dashboard";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { initialActionState } from "@/lib/auth/types";
 
-type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabled: boolean; milestonesEnabled: boolean; notesEnabled: boolean };
+type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabled: boolean; milestonesEnabled: boolean; notesEnabled: boolean; onThisDayEnabled: boolean };
 const options: Array<{ name: keyof Preferences; label: string; copy: string }> = [
   { name: "plansEnabled", label: "Plans", copy: "Changes to shared plans and reminders." },
   { name: "memoriesEnabled", label: "Memories", copy: "New shared memories and follow-ups." },
   { name: "milestonesEnabled", label: "Moments", copy: "New moments added to your shared timeline." },
   { name: "notesEnabled", label: "Notes", copy: "Shared-note activity when notes arrive in a later phase." },
+  { name: "onThisDayEnabled", label: "On this day", copy: "A moment or memory from this date in an earlier year." },
 ];
 
 export function NotificationPreferencesForm({ preferences }: { preferences: Preferences }) {

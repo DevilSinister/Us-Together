@@ -414,3 +414,9 @@ enabled = true
 
 [functions.memory-media]
 verify_jwt = true
+
+# Called by the database dispatcher through pg_net, which carries no user JWT.
+# It authenticates with the x-dispatch-secret shared secret instead, and answers
+# 404 to anything without it.
+[functions.push-dispatch]
+verify_jwt = false

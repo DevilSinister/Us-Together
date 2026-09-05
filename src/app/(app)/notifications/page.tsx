@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bell, Check } from "lucide-react";
 import { markNotificationReadAction } from "@/app/actions/dashboard";
 import { NotificationPreferencesForm } from "@/components/dashboard/notification-preferences-form";
+import { DeviceAlerts } from "@/components/app/device-alerts";
 import { Button } from "@/components/ui/button";
 import { InlineLink } from "@/components/ui/inline-link";
 import { PageHeader } from "@/components/app/page-header";
@@ -12,14 +13,14 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Notifications" };
 type NotificationRow = { id: string; title: string; category: string; target_type: string | null; target_id: string | null; read_at: string | null; created_at: string };
-type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabled: boolean; milestonesEnabled: boolean; notesEnabled: boolean };
-const defaults: Preferences = { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true };
+type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabled: boolean; milestonesEnabled: boolean; notesEnabled: boolean; onThisDayEnabled: boolean };
+const defaults: Preferences = { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true, onThisDayEnabled: true };
 
 /**
  * Stored categories keep their database names ('milestone', 'note', ...). Only the
  * reader-facing label follows the product's vocabulary.
  */
-const categoryLabels: Record<string, string> = { plan: "Plan", memory: "Memory", milestone: "Moment", note: "Note", system: "System" };
+const categoryLabels: Record<string, string> = { plan: "Plan", memory: "Memory", milestone: "Moment", note: "Note", system: "System", on_this_day: "On this day" };
 
 function targetHref(notification: NotificationRow) {
   if (!notification.target_id) return "/home";
@@ -42,10 +43,10 @@ export default async function NotificationsPage() {
     const supabase = await createServerSupabaseClient();
     const [{ data: rows }, { data: row }] = await Promise.all([
       supabase.from("notifications").select("id,title,category,target_type,target_id,read_at,created_at").eq("recipient_id", identity.userId).order("created_at", { ascending: false }).limit(30),
-      supabase.from("notification_preferences").select("in_app_enabled,plans_enabled,memories_enabled,milestones_enabled,notes_enabled").eq("user_id", identity.userId).maybeSingle(),
+      supabase.from("notification_preferences").select("in_app_enabled,plans_enabled,memories_enabled,milestones_enabled,notes_enabled,on_this_day_enabled").eq("user_id", identity.userId).maybeSingle(),
     ]);
     notifications = (rows ?? []) as NotificationRow[];
-    if (row) preferences = { inAppEnabled: row.in_app_enabled, plansEnabled: row.plans_enabled, memoriesEnabled: row.memories_enabled, milestonesEnabled: row.milestones_enabled, notesEnabled: row.notes_enabled };
+    if (row) preferences = { inAppEnabled: row.in_app_enabled, plansEnabled: row.plans_enabled, memoriesEnabled: row.memories_enabled, milestonesEnabled: row.milestones_enabled, notesEnabled: row.notes_enabled, onThisDayEnabled: row.on_this_day_enabled };
   }
   const formatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });
   const unread = notifications.filter((item) => !item.read_at).length;
@@ -93,8 +94,13 @@ export default async function NotificationsPage() {
             />
           )}
         </section>
-        <aside className="h-fit rounded-panel bg-secondary p-6">
-          <NotificationPreferencesForm preferences={preferences} />
+        <aside className="space-y-8">
+          <div className="rounded-panel bg-secondary p-6">
+            <NotificationPreferencesForm preferences={preferences} />
+          </div>
+          <div className="rounded-panel bg-secondary p-6">
+            <DeviceAlerts />
+          </div>
         </aside>
       </div>
     </div>
