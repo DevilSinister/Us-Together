@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the architecture for Us Together. Foundation through Phase 6 have implementation evidence; later phases remain design contracts. Verify package versions and platform-specific APIs against current official documentation before each implementation phase.
+This document defines the architecture for Us Together. Foundation through Phase 7 have implementation evidence, including owner-reported manual testing. Release 2 remains planned; account lifecycle completion is on hold. See [Release 2](docs/release-2/README.md) for current scope and deferred verification. Verify package versions and platform-specific APIs against current official documentation before each implementation phase.
 
 ## System context
 
@@ -122,3 +122,7 @@ Preview binaries/comments live in IndexedDB, scoped to the random developer-sess
 Location search proxies Photon from authenticated Server Actions. Search text and explicit geolocation are sent only to the configured provider; neither coordinates nor whole provider responses are persisted. Selected place labels use the existing bounded location text field. See SETUP and ADR-020.
 
 The Home gallery reads the security-invoker shared_gallery view, joining ready media with authorized memory/milestone metadata. Pages contain at most 48 files, using entry date plus a kind/UUID cursor; filter values are Zod validated. Files load lazily through the existing authenticated media endpoint. No storage paths, author identifiers or signed URLs enter gallery DTOs.
+
+## Project-wide location rule — 2026-09-05
+
+Use OpenStreetMap-based APIs/services wherever location functionality is mentioned. Reuse existing Photon lookup and follow the [location policy](docs/release-2/LOCATION_POLICY.md). Google Calendar integration does not select a geocoding provider. This documentation update adds no API, schema or runtime behavior.

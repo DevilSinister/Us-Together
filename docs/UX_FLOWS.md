@@ -130,3 +130,7 @@ External events start as “Private external event.” Sharing details is per ev
 - **Upload interrupted:** resume only when the storage mechanism safely supports it; otherwise retain a draft and retry.
 - **Background job delayed:** show pending state to the authorized actor; do not duplicate delivery.
 - **Unknown error:** provide retry/support path and a correlation ID safe for users, with sensitive details only in protected logs.
+
+## Project-wide location rule — 2026-09-05
+
+Use OpenStreetMap-based APIs/services wherever location functionality is mentioned. Reuse existing Photon lookup and follow the [location policy](release-2/LOCATION_POLICY.md). Google Calendar integration does not select a geocoding provider. This documentation update adds no API, schema or runtime behavior.

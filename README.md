@@ -6,7 +6,11 @@
 
 ## Status
 
-The project now has its **Phase 1–4 MVP implementation** plus active Plans/Memories vertical slices: a Next.js application shell, typed Supabase SSR clients, authentication/profile recovery, hardened couple pairing, a privacy-safe relationship dashboard, basic milestones, content-minimal in-app notifications/preferences, bucket lists with ordered steps, filters and completion, retry-safe Bucket-to-Plan/Memory conversion, and the direct Plan-to-Memory journey. The migrations are applied to the managed Us-Together Supabase project; application deployment is still pending.
+Current status (2026-09-05): implementation through Phase 7. The owner has manually tested Phase 7, account creation, linking and sync. Account lifecycle completion is on hold; keep current gallery changes. Start future planning in [Release 2](docs/release-2/README.md), including deferred work and verification.
+
+### Historical foundation summary
+
+The project now has its **Phase 1–4 MVP implementation** plus active Plans/Memories vertical slices: a Next.js application shell, typed Supabase SSR clients, authentication/profile recovery, hardened couple pairing, a privacy-safe relationship dashboard, basic milestones, content-minimal in-app notifications/preferences, bucket lists with ordered steps, filters and completion, retry-safe Bucket-to-Plan/Memory conversion, and the direct Plan-to-Memory journey. The migrations are applied to the managed Us-Together Supabase project; that historical deployment status is superseded by later owner-reported live use.
 
 The deterministic paired developer fixture (Alex + Maya) now includes a featured milestone and generic unread notification. Playwright covers the named-partner, Plan-to-Memory, milestone, notification, preferences, mobile, keyboard, and reduced-motion journey.
 

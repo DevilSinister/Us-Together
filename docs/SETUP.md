@@ -132,3 +132,7 @@ Location queries go to Photon only after typing at least three characters. Use m
 ### Portable dependency installation
 
 Use Node.js 22 or newer. Keep the pinned cross-platform supabase package; its platform binaries are optional dependencies. Do not add cli-windows-x64 as a direct dependency, which breaks Linux/Vercel installation. Type checking generates Next route types before running TypeScript, including on fresh CI checkouts.
+
+## Project-wide location rule — 2026-09-05
+
+Use OpenStreetMap-based APIs/services wherever location functionality is mentioned. Reuse existing Photon lookup and follow the [location policy](release-2/LOCATION_POLICY.md). Google Calendar integration does not select a geocoding provider. This documentation update adds no API, schema or runtime behavior.

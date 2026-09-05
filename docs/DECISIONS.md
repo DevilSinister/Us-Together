@@ -230,3 +230,19 @@ Wishlists and notes read and write only through a connected Supabase account. Th
 **Consequences:** Deleting a wish silently removes a partner gift plan. That is the point: `restrict` would surface a foreign-key error to the owner and prove a secret existed, which fails the phase exit gate. The cost is that a purchaser can lose a plan without explanation when the owner removes the wish, which is the correct trade against disclosure.
 
 Because there is no preview store, these two surfaces cannot be exercised by the local dev-login fixture, so their forms are verified by the hosted assertion suite, types, lint and build rather than by preview screenshots. Building a second local source of truth was rejected as fake behavior presented as complete.
+
+## ADR-024 — Release 2 carryovers, manual acceptance and account lifecycle hold
+
+**Status:** Accepted, owner-directed, 2026-09-05.
+
+**Decision:** Record owner manual testing of Phase 7 changes, account creation, linking and synchronization. Defer remaining implementation and automated verification to `docs/release-2/`. Account lifecycle completion is on hold and requires an explicit instruction to resume. Preserve existing gallery changes; the owner believes Claude probably fixed the issue and asks not to reopen it now.
+
+**Consequences:** Manual evidence is valid and recorded separately from automated tests. Historical gaps are retained as deferred work, not erased or represented as passed. This is a scope/status decision, not a change to existing authorization rules, application behavior or future phase gates.
+
+## ADR-025 — OpenStreetMap wherever location is involved
+
+**Status:** Accepted, owner-directed, 2026-09-05; extends ADR-020 project-wide.
+
+**Decision:** Use OpenStreetMap-based services for every location-bearing feature. Reuse authenticated Photon search/nearby lookup, editable place labels and explicit geolocation permission. Follow [location policy](release-2/LOCATION_POLICY.md). Do not introduce Google Places or a paid proprietary default. Google Calendar remains independent of location lookup.
+
+**Consequences:** Future map/routing capabilities choose a suitable OpenStreetMap-based service with policy/attribution review before implementation. No endpoints, coordinates, existing map links or schema are changed by this documentation update.

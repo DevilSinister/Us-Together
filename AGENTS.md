@@ -80,3 +80,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Current owner direction — 2026-09-05
+
+- Read `docs/release-2/README.md` and its backlog before choosing follow-up work.
+- Account lifecycle completion is on hold; do not resume without explicit owner direction.
+- Phase 7, account creation, linking and sync have owner-reported manual testing; keep automated evidence distinct.
+- Preserve current gallery changes unless a fresh regression or explicit request reopens them.
+- Use OpenStreetMap-based APIs wherever location functionality is mentioned; reuse Photon and follow `docs/release-2/LOCATION_POLICY.md`.

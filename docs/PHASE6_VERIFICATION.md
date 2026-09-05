@@ -1,5 +1,7 @@
 # Phase 6 verification — 2026-09-02
 
+> Status update — 2026-09-05: the owner confirms manual testing of Phase 7, account creation, linking and sync. Keep current gallery changes; previous gallery follow-up is not an active task. Account lifecycle is on hold. Historical results below remain evidence for their date; outstanding implementation/automated checks are tracked in the [Release 2 backlog](release-2/BACKLOG.md) and [verification ledger](release-2/VERIFICATION.md), not claimed passed.
+
 Status: implementation and functional checks passed; release closeout awaits explicit approval for disposable-fixture account cleanup. No application production deployment was performed.
 
 ## Delivered

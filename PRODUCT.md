@@ -45,7 +45,8 @@ Us Together connects planning, personal knowledge, surprises, and memories aroun
 - Memories with private photo/video storage
 - Personal wishlists with purchaser-only secret state
 - Shared and author-private notes
-- Basic milestones, notifications, settings, export, leave, and deletion workflows
+- Basic milestones, notifications, profile/notification settings, leave and empty-couple deletion
+- Full account lifecycle, export and broader deletion completion are on hold by owner direction; tracked in Release 2
 - Responsive, accessible, installable PWA shell
 
 ### Release 2
@@ -87,3 +88,9 @@ Target WCAG 2.2 AA for application surfaces. Support keyboard and screen-reader 
 ## Phase 6 shared calendar and media extension
 
 Home and navigation expose a shared Calendar with plans, memories and moments. Memories and moments accept multiple photos/videos during creation and on their detail pages, individual captions, comments on each photo/video and shared story comments. Memories and Moments listings and entry detail pages show six small photo previews. Previews open a swipeable viewer; Show more opens that entry's photos and videos in the shared Gallery route. Home opens a combined gallery grouped by memory/moment or date, with type and date filters. Developer preview supports real browser-local files and comments. Reminders apply to plans; memories and moments have no reminder controls or delivery. Manual coordinate fields are removed. Location suggestions and user-triggered nearby lookup use free Photon/OpenStreetMap with no paid API key; a place name remains editable when lookup is unavailable.
+
+## Current owner direction — 2026-09-05
+
+Phase 7 wishlists/private gift plans and shared/private notes are implemented. The owner confirms manual testing of Phase 7 changes, account creation, linking and sync. This is user-reported manual evidence, separate from automated release checks. Keep current gallery changes; do not reopen the previous issue without a new report or instruction. Account lifecycle completion is on hold. [Release 2](docs/release-2/README.md) owns future features and implementation/verification carryovers.
+
+Use OpenStreetMap-based APIs wherever location is mentioned, reusing Photon for search/nearby lookup. Follow the project-wide [location policy](docs/release-2/LOCATION_POLICY.md), including attribution, explicit geolocation permission and editable-place fallback.

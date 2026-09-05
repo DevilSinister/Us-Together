@@ -65,3 +65,7 @@ Persist only fields needed for the selected behavior. Avoid copying full private
 - Refresh rotation/concurrency, revoked credentials, rate limit, provider outage
 - Idempotent event creation and conflict handling
 - Disconnect/revocation and account/couple deletion cleanup
+
+## Project-wide location rule — 2026-09-05
+
+Use OpenStreetMap-based APIs/services wherever location functionality is mentioned. Reuse existing Photon lookup and follow the [location policy](release-2/LOCATION_POLICY.md). Google Calendar integration does not select a geocoding provider. This documentation update adds no API, schema or runtime behavior.

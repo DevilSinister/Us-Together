@@ -59,7 +59,7 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 51 | Error handling | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Every feature | Failure-state tests |
 | 52 | Empty states | [Design Brief](DESIGN_BRIEF.md), [Features](FEATURES.md) | Every feature | First-run/empty tests |
 | 53 | Global search | [Features](FEATURES.md), [Security](SECURITY.md) | R2 | Source-equivalent RLS |
-| 54 | Export/delete/leave | [UX Flows](UX_FLOWS.md), [Operations](OPERATIONS.md), [Decisions](DECISIONS.md) | Leave/empty-delete implemented; account/export Phase 8 | Lifecycle pgTAP and confirmation UI; full account workflow open |
+| 54 | Export/delete/leave | [UX Flows](UX_FLOWS.md), [Operations](OPERATIONS.md), [Decisions](DECISIONS.md) | Leave/empty-delete implemented; account/export on hold, [R2-01](release-2/BACKLOG.md) | Lifecycle pgTAP and confirmation UI; full account workflow open |
 | 55 | Audit logging | [Security](SECURITY.md), [Operations](OPERATIONS.md) | MVP/R2 | Redaction/retention review |
 | 56 | Migrations/indexes/FKs | [Database](DATABASE.md), [Setup](SETUP.md) | Every data phase | Reset/list/advisors |
 | 57 | RLS requirements | [Database](DATABASE.md), [Security](SECURITY.md) | Every data phase | Full RLS matrix |
@@ -105,3 +105,13 @@ A source requirement is covered only when its canonical specification contains b
 | Six-photo previews | Six images per entry on Memories/Moments listings and details | Lazy EntryPreview and MediaCollection; Show more routes to scoped Gallery; touch swipe and keyboard viewer | Desktop/mobile seven-photo listing, swipe, scoped gallery and file-comment journey |
 | Home gallery | Browse all files by memory or date | /gallery, Home link, shared_gallery invoker view, 48-file cursor, filters | Desktop/mobile grouping, media/date filters; foreign/former/anon RLS |
 | File conversations | Caption and partner comments on each photo/video | Shared MediaViewer and media_comments; IndexedDB equivalent in preview | Per-file isolation, cross-gallery persistence, partner author rules, cascade and quota checks |
+
+## Owner-directed release transition — 2026-09-05
+
+| Requirement | Current disposition | Evidence / next reference |
+| --- | --- | --- |
+| Phase 7 and account/link/sync flows | Implemented, owner-manually-tested | [Verification ledger](release-2/VERIFICATION.md); automated coverage remains R2-08 |
+| Account lifecycle completion | On hold; explicit resume required | [R2-01](release-2/BACKLOG.md) |
+| Current gallery | Preserve; no active repair | Owner believes prior issue probably fixed; no new device result claimed |
+| Implementation and verification carryovers | Deferred to Release 2 | [Backlog](release-2/BACKLOG.md) |
+| Every location-bearing feature | OpenStreetMap-based services; reuse Photon | [Location policy](release-2/LOCATION_POLICY.md) |

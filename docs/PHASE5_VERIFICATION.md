@@ -1,5 +1,7 @@
 # Phase 5 verification — 2026-09-02
 
+> Status update — 2026-09-05: the owner confirms manual testing of Phase 7, account creation, linking and sync. Keep current gallery changes; previous gallery follow-up is not an active task. Account lifecycle is on hold. Historical results below remain evidence for their date; outstanding implementation/automated checks are tracked in the [Release 2 backlog](release-2/BACKLOG.md) and [verification ledger](release-2/VERIFICATION.md), not claimed passed.
+
 ## Delivered
 
 Plans now have upcoming/month/week views, a mobile day agenda, bounded pagination, status filters, dedicated detail/edit routes, cancellation/restoration, confirmed deletion, and completion-to-memory continuity. Details include location, optional coordinates/HTTPS map link, budget/currency, ordered editable checklist, reminder controls, and private attachments.

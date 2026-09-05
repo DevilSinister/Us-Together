@@ -1,5 +1,7 @@
 # Operations
 
+> Status update — 2026-09-05: the owner confirms manual testing of Phase 7, account creation, linking and sync. Keep current gallery changes; previous gallery follow-up is not an active task. Account lifecycle is on hold. Historical results below remain evidence for their date; outstanding implementation/automated checks are tracked in the [Release 2 backlog](release-2/BACKLOG.md) and [verification ledger](release-2/VERIFICATION.md), not claimed passed.
+
 ## Observability
 
 Monitor availability, request latency/error rate, database latency/connections/locks, auth failures, storage/upload failures, signed URL errors, job backlog/age/retries, email/push/provider errors, and client performance. Alerts should identify the subsystem and safe correlation ID without content.

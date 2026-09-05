@@ -169,3 +169,7 @@ Reminder controls choose offsets relative to plan start. Cancel/complete stops p
 - saveNote accepts an optional note UUID, a type from `shared|private`, title (1-160 trimmed) and body (1-20000 trimmed). Author and couple come from the session. An update by anyone other than the author matches no row. Switching type is an ordinary authored edit; the database trigger adds or withdraws the partner notification to match.
 - deleteNote accepts a note UUID and succeeds only for the author.
 - loadNotes reads the couple notes without filtering by type, leaving row level security as the single source of visibility, and reads the caller own read rows to mark unread shared notes. loadNote records read state for a note the caller did not author. Bodies are returned and rendered as plain text; nothing is parsed as markup.
+
+## Project-wide location rule — 2026-09-05
+
+Use OpenStreetMap-based APIs/services wherever location functionality is mentioned. Reuse existing Photon lookup and follow the [location policy](release-2/LOCATION_POLICY.md). Google Calendar integration does not select a geocoding provider. This documentation update adds no API, schema or runtime behavior.

@@ -1,5 +1,7 @@
 # Feature Specification
 
+> Current delivery direction (2026-09-05): account lifecycle completion is on hold; retained export/account-deletion acceptance describes future work. Phase 7 has owner-reported manual testing. Future features and carryovers live in [Release 2](release-2/README.md). All location functionality follows the [OpenStreetMap location policy](release-2/LOCATION_POLICY.md).
+
 ## Release legend
 
 - **MVP:** Dream-to-Memory first usable release
@@ -125,7 +127,7 @@ Acceptance:
 - Title, description, date, location, rating, favorite, tags, and provenance
 - Free Photon/OpenStreetMap place suggestions and user-triggered nearby lookup; no manual coordinate fields
 - Multiple photos/videos with captions and comments; local photo testing in developer preview
-- Memories and moments appear alongside plans on the shared calendar and support reminder notifications
+- Memories and moments appear alongside plans on the shared calendar; reminders apply only to plans
 - Separate media records for photos/videos and derivative metadata
 - Private Storage buckets, validated uploads, paginated gallery, lazy media, lightbox/viewer
 - Bucket/plan conversion pre-fills editable values and retains relationship links

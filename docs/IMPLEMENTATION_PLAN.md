@@ -1,5 +1,7 @@
 # Implementation Plan
 
+> Current direction — 2026-09-05: owner-manually-tested Phase 7, account creation, linking and sync. Account lifecycle is on hold. Keep current gallery changes. [Release 2](release-2/README.md) now owns deferred work and verification. Older phase paragraphs below preserve historical evidence; they do not override this scheduling decision or assert that all automated gates passed.
+
 ## Delivery method
 
 Current workflow (ADR-014, 2026-09-02): use hosted Supabase without Docker/Podman; real two-account pairing is deferred to final integration by user direction. Earlier phase status paragraphs retain historical evidence and do not require installing a local runtime. Clean migration replay and genuinely concurrent-session checks remain open release obligations, not silently passed tests.
@@ -98,7 +100,9 @@ Status: **implemented; hosted inference suite passed, browser and final integrat
 
 Exit gate: wishlist owner cannot detect purchase secrets; partner cannot detect private notes through any supported channel.
 
-## Phase 8 — MVP completion
+## Phase 8 — MVP completion (deferred; account lifecycle on hold)
+
+The original checklist below is retained for traceability. It is not the immediate work queue. See [Release 2 backlog](release-2/BACKLOG.md); account lifecycle requires an explicit owner instruction to resume.
 
 - Complete settings, notification preferences, exports, leave/disconnect, account/couple deletion, audit events, and operations hooks.
 - Perform accessibility, responsive, performance, security, RLS, copy, empty/error/loading, and dependency reviews.
@@ -108,6 +112,8 @@ Exit gate: wishlist owner cannot detect purchase secrets; partner cannot detect 
 Exit gate: all MVP acceptance criteria and the release checklist in [Testing](TESTING.md) pass.
 
 ## Release 2 phases
+
+Use the dedicated [Release 2 roadmap](release-2/ROADMAP.md) and [carryover backlog](release-2/BACKLOG.md) for current sequencing and status. The capability groups below remain the original scope.
 
 1. Advanced notes, Know Me, and Our Story
 2. Vault implementation followed by a dedicated threat-model and security review
