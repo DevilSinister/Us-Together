@@ -2,6 +2,14 @@
 
 These instructions apply to all work in this repository.
 
+## Knowledge vault
+
+The Obsidian vault at `D:\obsidian\agents` is the cross-session memory for this repository and its siblings. This project's folder is `Us Together`.
+
+Before starting work, read `00 - Shared/Vault Reading Protocol.md`, `00 - Shared/Cross-Project Lessons.md`, and `00 - Shared/Windows Environment Traps.md`, then `Us Together/README.md`, `Us Together/80 - Delivery/Project Status.md`, and `Us Together/70 - Bugs and Risks/`. The vault records why past work failed and which gates are blocked at the machine level; this repository records what the code currently is. When they disagree, the repository wins on code and the vault wins on history — reconcile both in the same change.
+
+Before reporting material work complete, update the relevant `Us Together` focused note, its domain index, `Project Status`, and `Verification Evidence`, recording the final result of every gate that ran and naming every gate that did not. Follow `Us Together/90 - Agent Handbook/Vault Maintenance Protocol.md`. Lift a genuinely general lesson into `00 - Shared/Cross-Project Lessons.md`. Never store credentials, project references, private URLs, or personal relationship content in the vault.
+
 ## Product source of truth
 
 Read `PRODUCT.md`, `ARCHITECTURE.md`, the relevant documents in `docs/`, and any nearer `AGENTS.md` before changing the project. If code and documentation disagree, stop and determine whether the implementation or the documented decision is stale. Update the appropriate source of truth in the same change.

@@ -152,3 +152,17 @@ body:has(dialog[open]) { overflow: hidden; }
     to { opacity: 1; clip-path: inset(0); transform: translateY(0); }
   }
 }
+
+/* The kept-note thread: a one-pixel echo of the relationship thread, used to
+   mark a passage of the couple's own writing rather than interface copy. */
+.note-thread { position: relative; }
+
+.note-thread::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.25rem;
+  bottom: 0.25rem;
+  width: 1px;
+  background: linear-gradient(var(--border), var(--rose), var(--border));
+}
