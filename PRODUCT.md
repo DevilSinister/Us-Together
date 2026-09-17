@@ -98,3 +98,7 @@ Use OpenStreetMap-based APIs wherever location is mentioned, reusing Photon for 
 ## Drawing notes extension — 2026-09-16
 
 The owner approved hand-drawn notes in the existing web app and an Android home-screen widget. Drawings use a fixed note card, review-before-send, immutable delivery and private history. The Android widget shows the newest drawing received from the partner; tapping opens the web note. Android is the first native target, initially distributed as a private APK. The web flow is deployed and verified with two fictional paired accounts, and the database migrations are applied. Android device acceptance remains open; Firebase is required for prompt background widget updates.
+
+## Drawing interface revision — 2026-09-17
+
+The owner separated Drawings from text Notes in navigation and asked for a canvas-first interface inspired by NoteIt. Drawing controls now use named icon buttons, preset colors only, and a stroke-size slider. The history and detail surfaces use pastel paper mats. The immutable private send flow and Android widget data contract are unchanged.

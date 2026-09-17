@@ -1,6 +1,6 @@
 export const WIDTH = 640;
 export const HEIGHT = 480;
-export const SWATCHES = ["#2f2527", "#6f1730", "#b75a6d", "#e89f45", "#e2bd42", "#5c8d78", "#438ab0", "#805b9b", "#ffffff"] as const;
+export const SWATCHES = ["#2f2527", "#6f1730", "#e45a83", "#f7836b", "#f4a646", "#f2d958", "#86b65b", "#5c8d78", "#50a9c5", "#805b9b", "#ffffff"] as const;
 
 /** Bounded, four-neighbour fill. Alpha is kept opaque for a printable note. */
 export function fillPixels(image: ImageData, x: number, y: number, color: [number, number, number]): boolean {

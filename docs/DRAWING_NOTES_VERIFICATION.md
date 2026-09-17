@@ -4,7 +4,7 @@ Status: drawing web source is deployed and live between two fictional paired acc
 
 ## Source and behavior
 
-The drawing editor uses a 640×480 fixed white card with pencil, marker, highlighter, paint bucket, filled rectangle and ellipse, eyedropper, eraser, swatches/custom color, undo/redo, local draft and review-confirmed send. Text notes retain their existing edit/private behavior. The upload route re-encodes PNG input, derives couple/author/recipient from the server session, and publishes only after private Storage upload. The recipient widget reads only received ready rows through RLS. FCM payload is only `type=drawing`.
+The drawing editor uses a 640×480 fixed white card with pencil, marker, highlighter, paint bucket, filled rectangle and ellipse, eyedropper, eraser, preset swatches and a stroke-size slider, undo/redo, local draft and review-confirmed send. Text notes retain their existing edit/private behavior. The upload route re-encodes PNG input, derives couple/author/recipient from the server session, and publishes only after private Storage upload. The recipient widget reads only received ready rows through RLS. FCM payload is only `type=drawing`.
 
 ## Completed gates
 
@@ -47,3 +47,9 @@ Desktop and 390 px mobile Chromium screenshots were inspected. The recipient car
 - Refresh Graphify after resolving the pre-existing untracked `graphify-out/` work; the graph was queried first but left untouched to preserve owner files.
 
 Deploy sequence: hosted migration and web deployment are complete. Owner installation and native widget acceptance remain; Firebase setup is required for prompt background updates. The transactional negative RLS suite remains a separate test-environment gate.
+
+## Drawing workspace UI revision — 2026-09-17
+
+The owner requested a distinct Drawings destination and NoteIt-inspired canvas-first presentation. Notes no longer links into the drawing flow. The editor presents eight named icon tools, eleven preset swatches, no custom color input, and a size slider for pencil, marker, highlighter and eraser. The history and detail retain authorized image routes and newest-first metadata. This revision adds no migration, API or Android change.
+
+After the UI change, lint, typecheck, all 93 unit tests and production build passed. Authenticated desktop Chromium (1440 px) and Pixel 7 emulation exercised highlighter selection, slider value 8, icon tool count, preset swatch count, absence of a custom color input, review/back transition and no horizontal overflow. Full-page screenshots were inspected for both layouts. Reduced motion was enabled in both runs. The Impeccable detector reported no findings. The existing full Playwright suite was not rerun for this visual-only revision; its last result remains 11 passed, 8 failed, 3 skipped. Migration reset, negative SQL RLS and database advisors were not rerun because schema did not change. Android device and Firebase background-push gates remain open as above.

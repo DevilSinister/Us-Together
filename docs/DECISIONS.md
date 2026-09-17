@@ -254,3 +254,11 @@ Because there is no preview store, these two surfaces cannot be exercised by the
 **Decision:** Keep existing editable shared/private text notes unchanged. Add a distinct immutable drawing-note table and private PNG bucket. The web editor keeps local drafts, previews before send and publishes only after validated upload. Android reads the latest received drawing with its own Supabase session, keeps one app-private image cache and opens the web detail on tap. Use content-free normal-priority FCM data messages for prompt refresh, with app-open, reconnection and periodic refresh as backups. Android is first and the first package is a private APK.
 
 **Consequences:** A fixed delivery deadline cannot be promised under Android background limits. A home-screen drawing is visible to anyone viewing that phone. Server and Firebase credentials are required for push but not for sending or manual refresh. Database migration and device testing precede release; text-note edit/privacy behavior remains intact.
+
+## ADR-027 — Separate Drawings and a compact canvas workspace
+
+**Status:** Accepted by the owner, 2026-09-17.
+
+**Decision:** Drawings has a distinct destination from editable text Notes. Its editor uses a fixed 4:3 canvas, icon buttons with accessible names, preset swatches instead of a custom color picker, and a size slider for stroke tools. The same private, immutable send and widget flow remains.
+
+**Consequences:** The editor and drawing history use a playful paper treatment while retaining the established brand colors. Canvas-first headings are deliberately compact. No schema, API or Android change is needed.

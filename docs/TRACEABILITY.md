@@ -119,3 +119,7 @@ A source requirement is covered only when its canonical specification contains b
 ## User-directed drawing note extension — 2026-09-16
 
 The new owner request extends row 24 (notes) and row 39 (push). Source routes `/drawings`, `/drawings/new`, `/drawings/[id]`, the drawing APIs, private Storage migration and `android-widget/` implement the approved fixed-card editor and latest-received Android widget. Unit/type/lint/build evidence, applied hosted migrations, live paired browser acceptance and outstanding negative RLS/native device gates are recorded in [Drawing Notes Verification](DRAWING_NOTES_VERIFICATION.md). Existing editable text notes remain Phase 7 behavior.
+
+## 2026-09-17 drawing workspace revision
+
+Owner request: Drawings is now a separate navigation destination from Notes. `/drawings/new` shows the canvas before eight icon-only drawing tools, eleven preset colors, a 1–12 stroke size slider, compact undo/redo/clear controls, and review-confirmed send. Icon names remain available to assistive technology and tooltips. The drawing history and detail use pastel paper framing. The private note API, migration and Android package are unchanged. Desktop and mobile authenticated Chromium checks are recorded in [Drawing Notes Verification](DRAWING_NOTES_VERIFICATION.md).

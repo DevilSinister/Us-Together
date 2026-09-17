@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Bell, CalendarClock, CalendarDays, Camera, Flag, Gift, HeartHandshake, Home, Images, ListChecks, Menu, NotebookPen, ScrollText, UserRound, type LucideIcon } from "lucide-react";
+import { Bell, Brush, CalendarClock, CalendarDays, Camera, Flag, Gift, HeartHandshake, Home, Images, ListChecks, Menu, NotebookPen, ScrollText, UserRound, type LucideIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +21,7 @@ const items: Destination[] = [
   { href: "/gallery", label: "Gallery", icon: Camera, group: "keep" },
   { href: "/milestones", label: "Moments", icon: Flag, group: "keep" },
   { href: "/notes", label: "Notes", icon: NotebookPen, group: "keep" },
+  { href: "/drawings", label: "Drawings", icon: Brush, group: "keep" },
   { href: "/wishlist", label: "Wishlists", short: "Wishes", icon: Gift, group: "keep" },
   { href: "/notifications", label: "Notifications", icon: Bell, group: "account" },
   { href: "/profile", label: "Profile", icon: UserRound, group: "account" },

@@ -268,3 +268,6 @@ The signature component is a content-led vertical sequence: circular card-paper 
 - **Don't** use pill shapes for ordinary buttons, fields, or panels.
 - **Don't** hand-build a page header, pairing notice, or empty state when the shared component exists.
 - **Don't** paste a radius or shadow value that the named scale already covers.
+## Drawing workspace — 2026-09-17
+
+Drawings have their own navigation destination and history, separate from editable text Notes. The editor places a fixed 4:3 white card inside a soft rose mat. Eight drawing tools are shown as icon buttons with accessible names and a visible selected state. Eleven preset swatches replace the custom color input; the eyedropper can still sample the page. A 1–12 size slider controls pencil, marker, highlighter and eraser strokes. Undo, redo and clear use compact icon controls. Send remains a two-step preview and confirmation. Mobile uses a four-column tool grid and wraps swatches; desktop uses one tool row. Keyboard focus and reduced-motion behavior remain explicit.
