@@ -852,6 +852,8 @@ export type Database = {
       notification_preferences: {
         Row: {
           created_at: string
+          bucket_enabled: boolean
+          drawings_enabled: boolean
           in_app_enabled: boolean
           memories_enabled: boolean
           milestones_enabled: boolean
@@ -859,11 +861,14 @@ export type Database = {
           on_this_day_enabled: boolean
           plans_enabled: boolean
           push_enabled: boolean
+          wishlist_enabled: boolean
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          bucket_enabled?: boolean
+          drawings_enabled?: boolean
           in_app_enabled?: boolean
           memories_enabled?: boolean
           milestones_enabled?: boolean
@@ -871,11 +876,14 @@ export type Database = {
           on_this_day_enabled?: boolean
           plans_enabled?: boolean
           push_enabled?: boolean
+          wishlist_enabled?: boolean
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          bucket_enabled?: boolean
+          drawings_enabled?: boolean
           in_app_enabled?: boolean
           memories_enabled?: boolean
           milestones_enabled?: boolean
@@ -883,6 +891,7 @@ export type Database = {
           on_this_day_enabled?: boolean
           plans_enabled?: boolean
           push_enabled?: boolean
+          wishlist_enabled?: boolean
           updated_at?: string
           user_id?: string
         }
@@ -1427,6 +1436,13 @@ export type Database = {
       }
     }
     Functions: {
+      app_lock_status: { Args: never; Returns: Json }
+      app_lock_open: { Args: { area: string }; Returns: boolean }
+      app_lock_configure: { Args: { code: string; areas: string[] }; Returns: boolean }
+      app_lock_change_code: { Args: { current_code: string; new_code: string }; Returns: boolean }
+      app_lock_verify: { Args: { code: string }; Returns: boolean }
+      app_lock_unlock: { Args: { code: string; area: string }; Returns: boolean }
+      app_lock_lock: { Args: { area: string }; Returns: undefined }
       can_access_entry: {
         Args: { memory: string; moment: string }
         Returns: boolean

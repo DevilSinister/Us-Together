@@ -236,3 +236,18 @@ shared_gallery is a security-invoker UNION ALL view over ready memory_media/mile
 ### Drawing notes extension — 2026-09-16
 
 `drawing_notes` is separate from editable `notes`. It records an immutable couple, author, other active recipient and exact author/id PNG path. A pending row is visible only to its author; a ready row is visible to the author and recipient while each remains an active member. The transition checks that the Storage object exists and stamps `sent_at`; ready rows cannot update or delete. The private `drawing-notes` bucket accepts only PNG files up to 2 MB. Storage policies authorize pending uploads by author and reads by active row visibility. `drawing_devices` stores FCM tokens under owner-only RLS; it contains no note content. The server-only sender reads recipient tokens with a secret key after an authorized send. Latest-recipient and history indexes support bounded queries. Hosted migrations: `20260917013807_drawing_notes.sql` and `20260917014059_drawing_notes_author_index.sql`. Both are applied; the author index covers its foreign key.
+
+## Partner activity envelopes — 2026-09-17
+
+Migration `20260917144048_partner_activity_notifications.sql` adds fixed-copy notifications for partner-visible bucket lists and ideas, plans, checklists, reminders, ready attachments, memories, moments, ready photos/videos, comments, wishlist items, shared-note edits, and sent drawings. Existing milestone creation, shared-note creation and scheduled deliveries remain separate. The trigger derives the active partner at commit time, skips the actor, respects category preferences, and stores no user-entered title, body, file path or secret. Pending media/attachments and drawings do not notify. Purchase-secret and private-note rows have no activity trigger. Deleting a shared target removes its envelopes. `public.mark_notification_read(uuid)` is a security-invoker POST RPC with recipient RLS.
+
+
+Hosted application: version `20260917144048` is in the Us-Together ledger. Readback confirmed 16 activity triggers, all three preference columns and a security-invoker mark-read RPC with no anonymous EXECUTE grant. Security/performance advisors had the same findings before and after this migration. Negative RLS fixtures remain unrun on production.
+
+## App section locks — 2026-09-17
+
+Hosted migration `20260917150133_app_section_locks.sql` creates private per-user code hashes, selected areas and unlock rows keyed by auth JWT `session_id`. Code checks use pgcrypto bcrypt and five failed attempts impose a 15-minute cooldown. Public status/open/configure/verify/unlock/lock RPCs are authenticated-only wrappers. Twenty-two restrictive SELECT policies gate selected content tables and private Storage objects in addition to existing ownership policies. Media requires Gallery and its source entry area to be open. Unlocks last five minutes, and configuration changes revoke all current unlock rows. The private tables are outside the exposed API schema and have no client table grants.
+
+### PIN flow migration
+
+`20260917163417_privacy_pin_flow.sql` is applied. New PIN hashes accept exactly four or six digits and record `pin_length`; earlier hashes have a null length and remain checkable during migration. `app_lock_change_code(current_code,new_code)` verifies the current code with the existing cooldown, hashes the new PIN with bcrypt, updates length and revokes all unlock rows atomically. `app_lock_status()` now returns `pin_length`. The public change RPC is security-invoker, authenticated only.

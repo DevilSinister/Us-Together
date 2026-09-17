@@ -4,11 +4,11 @@
 
 ## Platform
 
-web
+android
 
 ## Users
 
-The primary users are two adults in a romantic relationship who want a private, shared space for planning experiences, preserving memories, exchanging meaningful notes, and learning each other's preferences. They may use the product together or independently, primarily on mobile browsers and also on desktop.
+The primary users are two adults in a romantic relationship who want a private, shared space for planning experiences, preserving memories, exchanging meaningful notes, and learning each other's preferences. They may use the product together or independently, primarily in a native Android app, including when connectivity is unavailable.
 
 Each account belongs to an individual. Shared access exists only through an explicit couple membership. The initial product supports exactly two active partners in a couple.
 
@@ -102,3 +102,18 @@ The owner approved hand-drawn notes in the existing web app and an Android home-
 ## Drawing interface revision — 2026-09-17
 
 The owner separated Drawings from text Notes in navigation and asked for a canvas-first interface inspired by NoteIt. Drawing controls now use named icon buttons, preset colors only, and a stroke-size slider. The history and detail surfaces use pastel paper mats. The immutable private send flow and Android widget data contract are unchanged.
+
+## Android product direction — 2026-09-17
+
+The owner now requires an Android APK with every currently shipped product feature, offline operation and later synchronization. The existing web product remains the implemented baseline while the native parity work in [Android offline migration](docs/ANDROID_OFFLINE_MIGRATION.md) is open. The Android widget companion and its cached drawing view are an initial native slice, not the completed product.
+## Partner activity extension — 2026-09-17
+
+The notification source now covers partner-visible shared activity: lists, plans, memories, moments, ready media, comments, wishes, shared notes and sent drawings. Envelopes use generic copy and respect recipient preferences; private notes, purchase secrets and pending uploads are excluded. The native APK has a bounded inbox with offline read; prompt Android background delivery and full native destination parity remain open.
+
+## Web privacy locks — 2026-09-17
+
+The existing web product now offers Privacy locks under Your account. Each user creates and confirms a 4- or 6-digit PIN and choose Gallery, Memories, Moments, Plans, Bucket lists, Notes, Drawings, Wishlists and Notifications with a checkbox dropdown. Opening a selected section opens through a heart-button PIN screen or supported device unlock. Calendar and Our Story follow the locks on their source content. The five-minute unlock is scoped to the signed-in session. This web-first slice does not claim native Android offline-cache protection or the separate Release 2 Vault.
+
+## PIN flow refinement — 2026-09-17
+
+Initial setup asks for PIN length, PIN entry and confirmation before saving lock choices. Changing a PIN requires the current PIN, then a new length, new PIN and confirmation. A change revokes active section unlocks and removes this browser’s device-unlock wrapper. Existing longer codes remain usable only to authenticate and migrate to a 4- or 6-digit PIN.

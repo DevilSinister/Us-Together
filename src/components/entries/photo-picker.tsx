@@ -1,24 +1,32 @@
 "use client";
 import {useEffect,useId,useMemo,useState} from "react";
 import Image from "next/image";
-import {Film,ImagePlus,X} from "lucide-react";
+import {Film,Image as ImageIcon,ImagePlus,X} from "lucide-react";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
-import {validateUpload} from "@/lib/memories/media";
+import {acceptAttribute,acceptedMedia,isImage,rendersInBrowser,resolveMime,validateUpload} from "@/lib/memories/media";
 import {cn} from "@/lib/utils";
 
-export type QueuedPhoto={key:string;file:File;caption:string};
+export type QueuedPhoto={key:string;file:File;caption:string;mime:string};
 
 const LIMIT=30;
-const ACCEPT="image/jpeg,image/png,video/mp4,video/webm";
-export const photoLimits="JPEG or PNG up to 5 MB, MP4 or WebM up to 20 MB. Up to "+LIMIT+" files at once.";
+export const photoLimits=acceptedMedia+" Up to "+LIMIT+" files at once.";
 
-/** Adds files to a queue, rejecting the whole batch when one file cannot be kept. */
+/**
+ * Adds files to a queue, rejecting the whole batch when one file cannot be kept.
+ *
+ * Each file's type is resolved from its name when the browser reports nothing
+ * useful, and that resolved type — not the browser's — is what gets uploaded.
+ */
 export function queueFiles(current:QueuedPhoto[],incoming:File[]):QueuedPhoto[]{
  if(!incoming.length)return current;
  if(current.length+incoming.length>LIMIT)throw Error("Choose up to "+LIMIT+" files at once.");
- for(const file of incoming)validateUpload(file.name,file.type,file.size);
- return [...current,...incoming.map(file=>({key:crypto.randomUUID(),file,caption:""}))];
+ const queued=incoming.map(file=>{
+  const mime=resolveMime(file.name,file.type);
+  validateUpload(file.name,mime,file.size);
+  return {key:crypto.randomUUID(),file,caption:"",mime};
+ });
+ return [...current,...queued];
 }
 
 function weight(bytes:number){
@@ -28,14 +36,18 @@ function weight(bytes:number){
 /**
  * One queued file's thumbnail. The object URL is made per row and revoked when
  * that row leaves, so editing a caption never rebuilds the other thumbnails.
+ * A HEIC photo gets the still mark rather than a broken image: it uploads
+ * fine, but no browser outside Safari can paint it before it is processed.
  */
-function Thumbnail({file}:{file:File}){
- const url=useMemo(()=>file.type.startsWith("image/")?URL.createObjectURL(file):"",[file]);
+function Thumbnail({file,mime}:{file:File;mime:string}){
+ const paintable=rendersInBrowser(mime);
+ const url=useMemo(()=>paintable?URL.createObjectURL(file):"",[file,paintable]);
  useEffect(()=>()=>{if(url)URL.revokeObjectURL(url);},[url]);
+ const Mark=isImage(mime)?ImageIcon:Film;
  return <span className="relative size-14 shrink-0 overflow-hidden rounded-control bg-secondary">
   {url
    ?<Image src={url} alt="" fill unoptimized sizes="56px" className="object-cover"/>
-   :<span aria-hidden="true" className="absolute inset-0 grid place-items-center text-primary"><Film className="size-5"/></span>}
+   :<span aria-hidden="true" className="absolute inset-0 grid place-items-center text-primary"><Mark className="size-5"/></span>}
  </span>;
 }
 
@@ -64,7 +76,7 @@ export function PhotoChooser({value,onChange,onError,disabled=false,tile=false,l
    id={id}
    type="file"
    multiple
-   accept={ACCEPT}
+   accept={acceptAttribute}
    disabled={disabled}
    aria-describedby={id+"-limits"}
    className="peer sr-only"
@@ -102,7 +114,7 @@ export function PhotoQueue({value,onChange,disabled=false,className}:{
   <p role="status" className="text-sm font-semibold">{value.length===1?"1 file ready":value.length+" files ready"}</p>
   <ul className="mt-4 divide-y">{value.map((item,index)=>
    <li key={item.key} className="flex items-start gap-4 py-3 first:pt-0 last:pb-0">
-    <Thumbnail file={item.file}/>
+    <Thumbnail file={item.file} mime={item.mime}/>
     <span className="min-w-0 flex-1">
      <span className="block truncate text-sm font-semibold" title={item.file.name}>{item.file.name}</span>
      <span className="block text-xs text-muted-foreground">{weight(item.file.size)}</span>

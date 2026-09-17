@@ -262,3 +262,38 @@ Because there is no preview store, these two surfaces cannot be exercised by the
 **Decision:** Drawings has a distinct destination from editable text Notes. Its editor uses a fixed 4:3 canvas, icon buttons with accessible names, preset swatches instead of a custom color picker, and a size slider for stroke tools. The same private, immutable send and widget flow remains.
 
 **Consequences:** The editor and drawing history use a playful paper treatment while retaining the established brand colors. Canvas-first headings are deliberately compact. No schema, API or Android change is needed.
+
+## ADR-028 — Full offline Android product target
+
+**Status:** Owner-directed target, 2026-09-17; implementation incomplete.
+
+**Decision:** Deliver every current Us Together feature through one Android APK. Existing Supabase Auth, database and private Storage remain the synchronization service; the Android UI and prior authorized data must work offline. The Next.js app remains the functional baseline until native parity is verified. The widget opens a native cached drawing screen instead of a web route.
+
+**Consequences:** This is a full client migration with local data security, queued mutations, conflict rules, native feature screens and device acceptance. The current debug APK is not a standalone replacement. See [Android offline migration](ANDROID_OFFLINE_MIGRATION.md). This decision supersedes ADR-026's widget web tap, while its private Storage and immutable drawing rules remain.
+
+## ADR-029 — Android is the product target
+
+**Status:** Owner-directed, 2026-09-17; migration in progress.
+
+**Decision:** Build Us Together as a native Android app, not a webapp or hosted WebView. Use the existing Next.js implementation only as a behavior and data-contract reference while native parity is built. Keep Supabase as the shared synchronization backend. The first native offline mutation is a drawing: it is saved locally with a stable ID, then published through existing RLS-protected tables and private Storage when connected.
+
+**Consequences:** A compiled APK is not release acceptance. Every existing feature still needs native screens and offline data behavior; privileged and conflict-prone actions need equivalent server authorization. The native drawing send path needs device and paired-account verification before it is trusted.
+## 2026-09-17 — content-minimal partner activity
+
+Partner activity fans out from database triggers on shared rows, with fixed strings and target IDs. This covers web and future Android mutations through one Supabase boundary, subject to recipient membership and preferences. File activity waits for ready state. Private notes and purchaser-only gift state never enter this path. The native APK reads a bounded inbox and caches generic envelopes per account; prompt Android background alerts require separate Firebase delivery and are not claimed here.
+
+## ADR-030 — Web section locks before native parity
+
+**Status:** Owner-directed, 2026-09-17; web source and hosted migration implemented.
+
+**Decision:** Ship per-account selectable locks in the existing web Settings first. Use a code as universal fallback; offer platform device unlock only when WebAuthn PRF and user verification work in the current browser. Enforce selected areas through authenticated-session-bound database RLS and Storage policies, with route gates for understandable UI.
+
+**Consequences:** Calendar and Our Story inherit source-area restrictions. Current Android cached data and downloaded files are outside this web lock; native parity needs encrypted cache and device acceptance. A forgotten code has no self-service recovery yet, so settings explains that limitation. This does not enable the separately specified Vault.
+
+## ADR-031 — Guided heart-keypad PIN flow
+
+**Status:** Owner-directed, 2026-09-17; web source and hosted migration implemented.
+
+**Decision:** Use a numeric PIN screen with heart-shaped digit buttons for selected web sections. New PINs have four or six digits. Setup proceeds through length, create and confirm; change proceeds through current PIN, new length, create and confirm. The server rechecks the current PIN in the final change transaction and revokes active unlocks.
+
+**Consequences:** Four-digit PINs rely on the existing five-attempt cooldown. Existing longer codes continue working until changed. Device unlock on the current browser is removed after a PIN change; other browsers retain encrypted wrappers of the old PIN but server verification rejects them. The separate Vault specification remains unimplemented.

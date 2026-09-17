@@ -6,12 +6,15 @@ import { updateNotificationPreferencesAction } from "@/app/actions/dashboard";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { initialActionState } from "@/lib/auth/types";
 
-type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabled: boolean; milestonesEnabled: boolean; notesEnabled: boolean; onThisDayEnabled: boolean };
+type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabled: boolean; milestonesEnabled: boolean; notesEnabled: boolean; onThisDayEnabled: boolean; bucketEnabled: boolean; wishlistEnabled: boolean; drawingsEnabled: boolean };
 const options: Array<{ name: keyof Preferences; label: string; copy: string }> = [
+  { name: "bucketEnabled", label: "Bucket lists", copy: "Shared ideas, lists, and steps." },
   { name: "plansEnabled", label: "Plans", copy: "Changes to shared plans and reminders." },
   { name: "memoriesEnabled", label: "Memories", copy: "New shared memories and follow-ups." },
   { name: "milestonesEnabled", label: "Moments", copy: "New moments added to your shared timeline." },
-  { name: "notesEnabled", label: "Notes", copy: "Shared-note activity when notes arrive in a later phase." },
+  { name: "notesEnabled", label: "Notes", copy: "New and updated shared notes." },
+  { name: "wishlistEnabled", label: "Wishes", copy: "Items your partner shares on a wishlist." },
+  { name: "drawingsEnabled", label: "Drawings", copy: "A drawing sent by your partner." },
   { name: "onThisDayEnabled", label: "On this day", copy: "A moment or memory from this date in an earlier year." },
 ];
 

@@ -2,7 +2,7 @@
 
 ## Deployment and configuration
 
-Apply Phase 6 migrations, then deploy `supabase/functions/memory-media/index.ts` with `verify_jwt = true`. Include its shared `src/lib/memories/media.ts` dependency. The handler additionally validates the bearer with Auth `getUser` and reads the memory through the caller's RLS client before any elevated work. The built-in Edge environment supplies Supabase URL, anon key, and service-role key. No elevated key belongs in the Next.js environment or browser.
+Apply Phase 6 migrations and `20260907040000_phase9_media_formats`, then deploy `supabase/functions/memory-media/index.ts` with `verify_jwt = true`. The migration widens the `mime_type` check on `memory_media`/`milestone_media` and the `allowed_mime_types` on both buckets; the function must be redeployed alongside it, since the accepted-format list and the file inspector are shared code. Include its shared `src/lib/memories/media.ts` dependency. The handler additionally validates the bearer with Auth `getUser` and reads the memory through the caller's RLS client before any elevated work. The built-in Edge environment supplies Supabase URL, anon key, and service-role key. No elevated key belongs in the Next.js environment or browser.
 
 The image processor pins `@imagemagick/magick-wasm@0.0.43`. It reads the exported x86 WASM asset locally when packaged. The connector's deployment bundle omits binary npm assets, so the fallback fetches that exact public package asset from jsDelivr and verifies its SHA-256 against the pinned package before initialization. Only decoder code is fetched; user media never goes to the CDN. A decoder/CDN outage leaves the upload recoverable and unpublished.
 
@@ -10,16 +10,16 @@ Current library/runtime choices were checked against [Supabase image processing]
 
 ## Supported files and limits
 
-- JPEG/PNG: 5 MiB, at most eight megapixels, neither dimension above 8192. Actual images must decode; previews are oriented, resized to at most 960 pixels on the longest side, stripped of metadata, and encoded as JPEG.
-- MP4/WebM: 20 MiB, at most 3840 × 2160 pixels in total and five minutes. The container must include valid dimensions and duration. MP4 must contain media data; WebM must identify its document type and contain a cluster. Truncated containers and unknown-duration streams are rejected.
-- Thirty files and 300 MiB per memory. The current release intentionally does not accept WebP/HEIC, animated images, audio-only files, HTML, or SVG. Video originals are played with native controls; video transcoding/poster generation and automatic captions are not claimed.
+- Photos (JPEG, PNG, WebP, GIF, AVIF, HEIC/HEIF): 15 MiB, at most 25 megapixels, neither dimension above 12000. Actual images must decode; previews are oriented, resized to at most 960 pixels on the longest side, stripped of metadata, and encoded as JPEG. A structural parse gates the bytes before decoding, but the decoder is the authority on the real dimensions and those are what get stored. A JPEG may carry data after its end-of-image marker — phones append motion-photo payloads and extra thumbnails — and is still accepted; one with no end marker at all is refused as truncated.
+- Videos (MP4, MOV/QuickTime, WebM): 20 MiB, at most 3840 × 2160 pixels in total and five minutes. MOV shares the MP4 box reader. The container must include valid dimensions and duration. MP4 must contain media data; WebM must identify its document type and contain a cluster. Truncated containers and unknown-duration streams are rejected.
+- Thirty files and 300 MiB per memory. Every accepted image type is one the pinned ImageMagick build can read; an animated GIF, WebP or AVIF keeps its animated original and derives its preview from the first frame. The release does not accept audio-only files, RAW, TIFF, BMP, HTML or SVG. HEIC and HEIF are stored as uploaded, but only Safari can paint them, so the viewer serves the derived JPEG for them while Download still returns the untouched original. Video originals are played with native controls; video transcoding/poster generation and automatic captions are not claimed.
 - Per account: 60 allocations/hour, 120 processing requests/hour, 120 viewer authorizations/minute. Removal is not rate-limited so cleanup remains available.
 
 These controls validate file class and structure; they are not a malware-scanning claim. Originals may retain their original metadata. Preview derivatives strip metadata.
 
 ## Upload and recovery
 
-The Edge handler allocates immutable metadata/path values after fresh authorization. The browser uploads directly through authenticated TUS, with six-MiB chunks, bounded retries and visible progress. It never receives a service key. Upload authorization expires after one hour, and Storage requires the exact pending metadata, uploader and active membership. No upsert or browser object deletion is allowed.
+The Edge handler allocates immutable metadata/path values after fresh authorization. The browser resolves each file's media type before allocating — browsers report an empty type for HEIC and MOV on some platforms, and legacy aliases elsewhere, so the name is used as the fallback and the resolved type is what is allocated and sent. The browser then uploads directly through authenticated TUS, with six-MiB chunks, bounded retries and visible progress. It never receives a service key. Upload authorization expires after one hour, and Storage requires the exact pending metadata, uploader and active membership. No upsert or browser object deletion is allowed.
 
 Pause/resume works while the page is open. TUS fingerprints and private upload URLs are not persisted to browser storage. After leaving the page, finish a fully uploaded file with **Finish processing**; otherwise remove the unfinished upload and choose the file again. Failed/expired rows remain visible for recovery rather than disappearing.
 

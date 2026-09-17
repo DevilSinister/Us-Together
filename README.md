@@ -6,6 +6,8 @@
 
 ## Status
 
+**Current owner direction (2026-09-17): native Android app only.** The complete feature set still lives in the existing Next.js implementation, which is now migration reference material. The Android project has native sign-in, a drawing widget/viewer and a source-implemented drawing editor with local draft and queued send. It does not yet contain the other product features, so the APK is not a replacement release. See [Android offline migration](docs/ANDROID_OFFLINE_MIGRATION.md).
+
 Current status (2026-09-05): implementation through Phase 7. The owner has manually tested Phase 7, account creation, linking and sync. Account lifecycle completion is on hold; keep current gallery changes. Start future planning in [Release 2](docs/release-2/README.md), including deferred work and verification.
 
 ### Historical foundation summary

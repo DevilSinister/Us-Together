@@ -123,3 +123,37 @@ The new owner request extends row 24 (notes) and row 39 (push). Source routes `/
 ## 2026-09-17 drawing workspace revision
 
 Owner request: Drawings is now a separate navigation destination from Notes. `/drawings/new` shows the canvas before eight icon-only drawing tools, eleven preset colors, a 1–12 stroke size slider, compact undo/redo/clear controls, and review-confirmed send. Icon names remain available to assistive technology and tooltips. The drawing history and detail use pastel paper framing. The private note API, migration and Android package are unchanged. Desktop and mobile authenticated Chromium checks are recorded in [Drawing Notes Verification](DRAWING_NOTES_VERIFICATION.md).
+
+## 2026-09-17 Android offline owner direction
+
+The owner requires every current feature in one offline-capable APK with later Supabase sync. [The Android migration plan](ANDROID_OFFLINE_MIGRATION.md) maps the product areas and release gate. Current implementation covers only native sign-in, widget refresh, a native Home-to-cached-drawing path and offline viewing of the last authorized image. The web editor adds a distinct airbrush and differentiated pencil, marker and highlighter strokes. Full native feature parity, offline writes and sync are open.
+
+## 2026-09-17 native Android direction
+
+The owner replaced the webapp target with a native Android APK covering every existing feature. Android Home now opens a native nine-tool drawing editor and the cached received drawing. Drafts persist locally; a per-account queue retries immutable drawing sends through the existing Supabase RLS and private Storage contract. This is source-implemented and compiles, but has no device or two-account send acceptance yet. All other native features and general offline synchronization remain open under [Android offline migration](ANDROID_OFFLINE_MIGRATION.md).
+## 2026-09-17 partner activity notifications
+
+| Requirement | Source | Verification |
+| --- | --- | --- |
+| Shared additions and edits | `20260917144048_partner_activity_notifications.sql`, inbox/preferences, push map | Typecheck, lint, unit suite, build; hosted migration applied and metadata/advisors checked; negative RLS pending |
+| Photos and attachments only when ready | Media and attachment transition triggers | Source review; live transition test pending |
+| Private content remains silent | No trigger on purchase secrets or private notes; fixed strings | Source review; negative RLS test pending |
+| Native inbox with offline read | `NotificationActivity.java`, `DrawingApi.java` | Android assembly/lint pass; device test pending |
+
+## 2026-09-17 web privacy locks
+
+| Requirement | Source | Verification |
+| --- | --- | --- |
+| Code or supported device unlock for Gallery | `src/app/(app)/gallery/layout.tsx`, `src/components/privacy/`, `src/lib/privacy/device-unlock.ts` | lint, typecheck, 93 tests, build pass; live browser/device check open |
+| Selectable locks in Settings | `/privacy`, account navigation, validated server actions | Source gates pass; authenticated desktop/mobile check open |
+| Direct data and Storage enforcement | `20260917150133_app_section_locks.sql` | Hosted migration and policy/function readback pass; isolated negative RLS suite open |
+
+## 2026-09-17 PIN screen refinement
+
+| Requirement | Source | Verification |
+| --- | --- | --- |
+| Heart-button PIN entry for locked sections | `src/components/privacy/pin-pad.tsx`, `unlock-panel.tsx` | Lint/typecheck/build pass; desktop/mobile temporary-preview visual, keypad, keyboard and reduced-motion checks pass; signed-in acceptance open |
+| Create and confirm 4/6-digit PIN | `privacy-settings.tsx`, Zod boundary and SQL configure | 95 unit tests pass; hosted migration applied; isolated RLS attempted, no local Postgres connection |
+| Current PIN, new PIN, confirmation to change | `changePrivacyPin`, `app_lock_change_code` | Hosted RPC grants/ledger checked; negative SQL test authored but not run locally |
+
+Local `npm run test:rls` exited before assertions because Postgres at 127.0.0.1:54322 refused the connection; the isolated negative suite remains open.

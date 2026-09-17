@@ -1,5 +1,5 @@
 "use client";
-import {inspectMedia,validateUpload} from "@/lib/memories/media";
+import {inspectMedia,isImage,resolveMime,validateUpload} from "@/lib/memories/media";
 import type {EntryAccess,EntryComment,EntryMedia} from "./types";
 type Asset=EntryMedia&{scope:string;file:Blob;preview:Blob;expires:number};
 type Comment=EntryComment&{scope:string;expires:number;mediaId?:string};
@@ -9,11 +9,15 @@ async function rows<T>(store:string,key:string):Promise<T[]>{const db=await open
 async function write(store:string,id:string,value?:unknown){const db=await open();try{await new Promise<void>((resolve,reject)=>{const t=db.transaction(store,"readwrite"),s=t.objectStore(store);if(value)s.put(value);else s.delete(id);t.oncomplete=()=>resolve();t.onerror=()=>reject(Error("Browser storage is full or unavailable."));});}finally{db.close();}}
 export async function previewMedia(a:EntryAccess):Promise<EntryMedia[]>{const all=await rows<Asset>("assets",scope(a)),ready:EntryMedia[]=[];for(const r of all.sort((a,b)=>a.expires-b.expires)){if(r.expires<Date.now()){await write("assets",r.id);continue;}ready.push({id:r.id,caption:r.caption,media_type:r.media_type,mime_type:r.mime_type,state:r.state,size_bytes:r.size_bytes,duration_seconds:r.duration_seconds,url:URL.createObjectURL(r.file),previewUrl:URL.createObjectURL(r.preview)});}return ready;}
 export async function addPreviewMedia(a:EntryAccess,file:File,caption:string){
- validateUpload(file.name,file.type,file.size);const info=inspectMedia(new Uint8Array(await file.arrayBuffer()),file.type);
+ const mime=resolveMime(file.name,file.type);
+ validateUpload(file.name,mime,file.size);const info=inspectMedia(new Uint8Array(await file.arrayBuffer()),mime);
  const existing=await rows<Asset>("assets",scope(a));if(existing.length>=30||existing.reduce((s,x)=>s+x.size_bytes,0)+file.size>314572800)throw Error("Up to 30 files and 300 MB per entry.");
  let preview:Blob=file;
- if(file.type.startsWith("image/")){const bitmap=await createImageBitmap(file);const scale=Math.min(1,960/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));canvas.getContext("2d")!.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();preview=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error("Could not prepare photo.")),"image/jpeg",0.8));}
- const id=crypto.randomUUID();await write("assets",id,{id,scope:scope(a),file,preview,caption:caption.trim().slice(0,240),media_type:file.type.startsWith("image/")?"image":"video",mime_type:file.type,state:"ready",size_bytes:file.size,duration_seconds:info.duration,expires:Date.now()+86400000});return id;
+ // Preview mode has no server-side decoder, so it uses the browser's. A format
+ // this browser cannot decode (HEIC outside Safari) keeps the original as its
+ // own preview rather than failing the whole add.
+ if(isImage(mime))try{const bitmap=await createImageBitmap(file);const scale=Math.min(1,960/Math.max(bitmap.width,bitmap.height)),canvas=document.createElement("canvas");canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));canvas.getContext("2d")!.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();preview=await new Promise<Blob>((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(Error("Could not prepare photo.")),"image/jpeg",0.8));}catch{preview=file;}
+ const id=crypto.randomUUID();await write("assets",id,{id,scope:scope(a),file,preview,caption:caption.trim().slice(0,240),media_type:isImage(mime)?"image":"video",mime_type:mime,state:"ready",size_bytes:file.size,duration_seconds:info.duration,expires:Date.now()+86400000});return id;
 }
 export async function changePreviewMedia(a:EntryAccess,id:string,caption?:string){const r=(await rows<Asset>("assets",scope(a))).find(x=>x.id===id);if(!r)throw Error("File unavailable.");await write("assets",id,caption===undefined?undefined:{...r,caption:caption.trim().slice(0,240)});if(caption===undefined)for(const c of await previewComments(a,id))await write("comments",c.id);}
 export async function previewComments(a:EntryAccess,mediaId?:string){return (await rows<Comment>("comments",scope(a))).filter(x=>x.expires>Date.now()&&x.mediaId===mediaId).sort((x,y)=>x.created_at.localeCompare(y.created_at));}

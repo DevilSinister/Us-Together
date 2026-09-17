@@ -13,20 +13,24 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Notifications" };
 type NotificationRow = { id: string; title: string; category: string; target_type: string | null; target_id: string | null; read_at: string | null; created_at: string };
-type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabled: boolean; milestonesEnabled: boolean; notesEnabled: boolean; onThisDayEnabled: boolean };
-const defaults: Preferences = { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true, onThisDayEnabled: true };
+type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabled: boolean; milestonesEnabled: boolean; notesEnabled: boolean; onThisDayEnabled: boolean; bucketEnabled: boolean; wishlistEnabled: boolean; drawingsEnabled: boolean };
+const defaults: Preferences = { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true, onThisDayEnabled: true, bucketEnabled: true, wishlistEnabled: true, drawingsEnabled: true };
 
 /**
  * Stored categories keep their database names ('milestone', 'note', ...). Only the
  * reader-facing label follows the product's vocabulary.
  */
-const categoryLabels: Record<string, string> = { plan: "Plan", memory: "Memory", milestone: "Moment", note: "Note", system: "System", on_this_day: "On this day" };
+const categoryLabels: Record<string, string> = { plan: "Plan", memory: "Memory", milestone: "Moment", note: "Note", system: "System", on_this_day: "On this day", bucket: "Bucket list", wishlist: "Wish", drawing: "Drawing" };
 
 function targetHref(notification: NotificationRow) {
   if (!notification.target_id) return "/home";
   if (notification.target_type === "milestone") return `/milestones/${notification.target_id}`;
   if (notification.target_type === "plan") return `/plans/${notification.target_id}`;
   if (notification.target_type === "memory") return `/memories/${notification.target_id}`;
+  if (notification.target_type === "bucket_list") return `/bucket/lists/${notification.target_id}`;
+  if (notification.target_type === "bucket") return `/bucket/${notification.target_id}`;
+  if (notification.target_type === "wishlist") return `/wishlist/${notification.target_id}`;
+  if (notification.target_type === "drawing") return `/drawings/${notification.target_id}`;
   if (notification.target_type === "note") return `/notes/${notification.target_id}`;
   return "/home";
 }
@@ -43,10 +47,10 @@ export default async function NotificationsPage() {
     const supabase = await createServerSupabaseClient();
     const [{ data: rows }, { data: row }] = await Promise.all([
       supabase.from("notifications").select("id,title,category,target_type,target_id,read_at,created_at").eq("recipient_id", identity.userId).order("created_at", { ascending: false }).limit(30),
-      supabase.from("notification_preferences").select("in_app_enabled,plans_enabled,memories_enabled,milestones_enabled,notes_enabled,on_this_day_enabled").eq("user_id", identity.userId).maybeSingle(),
+      supabase.from("notification_preferences").select("in_app_enabled,plans_enabled,memories_enabled,milestones_enabled,notes_enabled,on_this_day_enabled,bucket_enabled,wishlist_enabled,drawings_enabled").eq("user_id", identity.userId).maybeSingle(),
     ]);
     notifications = (rows ?? []) as NotificationRow[];
-    if (row) preferences = { inAppEnabled: row.in_app_enabled, plansEnabled: row.plans_enabled, memoriesEnabled: row.memories_enabled, milestonesEnabled: row.milestones_enabled, notesEnabled: row.notes_enabled, onThisDayEnabled: row.on_this_day_enabled };
+    if (row) preferences = { inAppEnabled: row.in_app_enabled, plansEnabled: row.plans_enabled, memoriesEnabled: row.memories_enabled, milestonesEnabled: row.milestones_enabled, notesEnabled: row.notes_enabled, onThisDayEnabled: row.on_this_day_enabled, bucketEnabled: row.bucket_enabled, wishlistEnabled: row.wishlist_enabled, drawingsEnabled: row.drawings_enabled };
   }
   const formatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });
   const unread = notifications.filter((item) => !item.read_at).length;

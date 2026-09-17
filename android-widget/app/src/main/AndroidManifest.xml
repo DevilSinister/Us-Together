@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <application android:name=".WidgetApplication" android:allowBackup="false" android:label="Us Together" android:usesCleartextTraffic="false"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        <activity android:name=".NotificationActivity" android:exported="false"/>
+        <activity android:name=".DrawingEditorActivity" android:exported="false"/>
         <activity android:name=".MainActivity" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
         </activity>

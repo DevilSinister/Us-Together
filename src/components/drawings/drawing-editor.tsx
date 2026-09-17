@@ -1,15 +1,16 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Circle, Eraser, Highlighter, PaintBucket, PenLine, Pencil, Pipette, Redo2, Send, Square, Trash2, Undo2, type LucideIcon } from "lucide-react";
+import { ArrowRight, Circle, Eraser, Highlighter, PaintBucket, PenLine, Pencil, Pipette, Redo2, Send, SprayCan, Square, Trash2, Undo2, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fillPixels, HEIGHT, hexRgb, SWATCHES, WIDTH } from "@/lib/drawings/canvas";
 
-type Tool = "pencil" | "marker" | "highlighter" | "fill" | "rectangle" | "ellipse" | "dropper" | "eraser";
+type Tool = "pencil" | "marker" | "highlighter" | "airbrush" | "fill" | "rectangle" | "ellipse" | "dropper" | "eraser";
 const TOOLS: { id: Tool; label: string; icon: LucideIcon }[] = [
   { id: "pencil", label: "Pencil", icon: Pencil },
   { id: "marker", label: "Marker", icon: PenLine },
   { id: "highlighter", label: "Highlighter", icon: Highlighter },
+  { id: "airbrush", label: "Airbrush", icon: SprayCan },
   { id: "fill", label: "Paint bucket", icon: PaintBucket },
   { id: "rectangle", label: "Filled rectangle", icon: Square },
   { id: "ellipse", label: "Filled ellipse", icon: Circle },
@@ -18,10 +19,26 @@ const TOOLS: { id: Tool; label: string; icon: LucideIcon }[] = [
 ];
 const COLOR_NAMES = ["Ink", "Wine", "Pink", "Coral", "Orange", "Yellow", "Leaf", "Sage", "Sky", "Violet", "White"] as const;
 function brushWidth(tool: Tool, size: number) {
-  if (tool === "marker") return size * 2.5;
-  if (tool === "highlighter") return size * 5;
+  if (tool === "pencil") return Math.max(1, size * 0.65);
+  if (tool === "marker") return size * 3;
+  if (tool === "highlighter") return size * 6;
+  if (tool === "airbrush") return size * 7;
   if (tool === "eraser") return size * 4.5;
   return size;
+}
+function spray(context: CanvasRenderingContext2D, x: number, y: number, radius: number, ink: string) {
+  context.save();
+  context.fillStyle = ink;
+  const count = Math.max(25, Math.round(radius * 3));
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const distance = Math.sqrt(Math.random()) * radius;
+    context.globalAlpha = 0.025 + 0.12 * (1 - distance / radius);
+    context.beginPath();
+    context.arc(x + Math.cos(angle) * distance, y + Math.sin(angle) * distance, 0.6 + Math.random() * 1.2, 0, Math.PI * 2);
+    context.fill();
+  }
+  context.restore();
 }
 const DRAFT_KEY = "us-together-drawing-draft-v1";
 const HISTORY_LIMIT = 20;
@@ -117,12 +134,14 @@ export function DrawingEditor() {
     remember(context);
     stroke.current = { x, y, base: tool === "rectangle" || tool === "ellipse" ? context.getImageData(0, 0, WIDTH, HEIGHT) : undefined };
     if (tool === "rectangle" || tool === "ellipse") return;
-    context.globalAlpha = tool === "highlighter" ? 0.28 : tool === "marker" ? 0.88 : 1;
+    if (tool === "airbrush") { spray(context, x, y, brushWidth(tool, brushSize) / 2, color); changed(); return; }
+    context.globalAlpha = tool === "highlighter" ? 0.24 : 1;
     context.strokeStyle = tool === "eraser" ? "#ffffff" : color;
     context.fillStyle = context.strokeStyle;
     context.lineWidth = brushWidth(tool, brushSize);
-    context.lineCap = "round"; context.lineJoin = "round";
-    context.beginPath(); context.arc(x, y, context.lineWidth / 2, 0, Math.PI * 2); context.fill();
+    context.lineCap = tool === "highlighter" ? "square" : "round"; context.lineJoin = "round";
+    if (tool === "highlighter") context.fillRect(x - context.lineWidth / 2, y - context.lineWidth / 2, context.lineWidth, context.lineWidth);
+    else { context.beginPath(); context.arc(x, y, context.lineWidth / 2, 0, Math.PI * 2); context.fill(); }
     context.beginPath(); context.moveTo(x, y);
     changed();
   }
@@ -130,7 +149,14 @@ export function DrawingEditor() {
     const context = ctx(), start = stroke.current;
     if (!context || !start) return;
     if (start.base) paintShape(context, start, { x, y }, start.base);
-    else { context.lineTo(x, y); context.stroke(); }
+    else if (tool === "airbrush") {
+      const distance = Math.hypot(x - start.x, y - start.y);
+      const step = Math.max(2, brushWidth(tool, brushSize) / 8);
+      for (let traveled = step; traveled < distance; traveled += step)
+        spray(context, start.x + (x - start.x) * traveled / distance, start.y + (y - start.y) * traveled / distance, brushWidth(tool, brushSize) / 2, color);
+      spray(context, x, y, brushWidth(tool, brushSize) / 2, color);
+      stroke.current = { x, y };
+    } else { context.lineTo(x, y); context.stroke(); }
     changed();
   }
   function end() { stroke.current = null; const context = ctx(); if (context) context.globalAlpha = 1; }
@@ -155,7 +181,7 @@ export function DrawingEditor() {
     finally { setPending(false); }
   }
   const selectedTool = TOOLS.find((item) => item.id === tool)?.label ?? "Pencil";
-  const hasSize = tool === "pencil" || tool === "marker" || tool === "highlighter" || tool === "eraser";
+  const hasSize = tool === "pencil" || tool === "marker" || tool === "highlighter" || tool === "airbrush" || tool === "eraser";
   return <section className="mt-6 space-y-4" aria-label="Drawing workspace">
     {!review ? <>
       <div className="rounded-[1.5rem] bg-[#f5dfe2] p-3 dark:bg-[#4b303a] sm:p-5">
@@ -191,7 +217,7 @@ export function DrawingEditor() {
           <h2 className="text-sm font-bold text-foreground">Your tools</h2>
           <span className="text-xs text-muted-foreground" aria-live="polite">{selectedTool}</span>
         </div>
-        <div role="toolbar" aria-label="Drawing tools" className="grid grid-cols-4 gap-2 sm:grid-cols-8">
+        <div role="toolbar" aria-label="Drawing tools" className="grid grid-cols-3 gap-2 sm:grid-cols-9">
           {TOOLS.map((item) => { const Icon = item.icon; return <button key={item.id} type="button" title={item.label} aria-label={item.label} aria-pressed={tool === item.id}
             onClick={() => setTool(item.id)}
             className={"grid min-h-12 place-items-center rounded-xl border-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary " +

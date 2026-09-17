@@ -132,3 +132,22 @@ Use OpenStreetMap-based APIs/services wherever location functionality is mention
 Finished drawings are a separate domain from editable text notes. A Next.js route validates and re-encodes a fixed 640×480 PNG, inserts a pending drawing row from the authenticated couple context, uploads to a private Storage bucket, and transitions the row to ready. RLS hides pending rows from recipients and restricts ready rows and objects to active partners; a trigger forbids revisions and publication without an uploaded object. A read route serves only a ready, authorized image with no-store headers. History uses a keyset cursor.
 
 The Android companion signs into Supabase independently with email/password and keeps tokens in Android Keystore-encrypted preferences. It queries the newest received ready row and downloads the object through the same RLS policies; its home-screen widget renders an app-private cached copy. FCM carries only a drawing-change signal. The web server reads recipient device tokens with a server-only Supabase secret after send and calls FCM when credentials are configured. Missing push credentials leave sending intact and are shown as unavailable in the companion. No iOS client or phone-side drawing editor is included.
+
+## Android offline target — 2026-09-17
+
+The owner selected one Android APK for the full product, with local operation while disconnected and eventual Supabase synchronization. The current Next.js architecture remains the implementation for all feature areas except the native widget and cached drawing viewer. Native parity requires a per-user local store, durable mutation queue, explicit conflict rules, private media cache and equivalent authorization at the Supabase/server boundary. The migration inventory and release gate are in [Android offline migration](docs/ANDROID_OFFLINE_MIGRATION.md). A Next.js build or WebView wrapper does not satisfy this target.
+
+### Android implementation update — 2026-09-17
+
+The Android client is now the target product. A source-implemented native drawing editor persists a local draft and queues PNGs under the signed-in user. Android network work retries each stable drawing ID using authenticated RLS-protected drawing rows and private Storage, checking pending/ready state after interrupted calls. This is the first offline mutation path, not a general sync engine. Other domains still need native screens, local relational data and conflict policies. The existing Next.js server remains a behavioral reference during migration; it is not the target UI.
+## Partner activity extension — 2026-09-17
+
+Database triggers emit fixed-copy recipient notification rows after shared mutations and ready-state transitions. The existing row remains the source for web push. Android reads recipient rows under RLS and marks them read through a security-invoker POST RPC. Native cache is scoped to the signed-in account and cleared at sign-out; the encrypted store and prompt background transport remain Android parity work.
+
+## Per-account section locks — 2026-09-17
+
+Privacy lock configuration and bcrypt hashes live in private Postgres tables. A session-ID-scoped five-minute unlock record is checked by restrictive SELECT policies on content tables and private Storage objects. The existing tenant RLS policies remain in force. Authenticated public RPC wrappers delegate to private functions after server-side Zod validation. Next layouts render an unlock panel for selected sections. Browser WebAuthn PRF, when available with required user verification, wraps the privacy code using AES-GCM in local browser storage; the server still verifies that code on every unlock. Local Android caches, existing downloaded files and previously minted signed URLs cannot be revoked retroactively.
+
+### PIN flow update
+
+`privacy_pin_flow` stores the length of new PINs and adds a current-PIN-verified change RPC. Existing 6–12 digit hashes remain valid for migration. The React heart keypad accepts keyboard, paste and pointer input. Only matching confirmation is sent to setup/change RPCs. A successful change rehashes the new PIN and revokes every section unlock; the browser discards its locally wrapped prior PIN.

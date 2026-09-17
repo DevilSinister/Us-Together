@@ -180,3 +180,14 @@ Use OpenStreetMap-based APIs/services wherever location functionality is mention
 - `GET /api/drawing-notes/{id}/image` validates a UUID and returns a ready image only when the cookie session may read its row and Storage object. It uses private no-store and nosniff headers. The Android client instead uses its own Supabase session against the RLS-protected row and Storage APIs.
 - `GET /api/drawing-notes/push-status` reports only whether server push credentials are present; it reveals no credential values. A successful send attempts a content-free FCM `{type: "drawing"}` event for the recipient's registered devices. Push failure does not change send success.
 - The Android client registers/deletes only its own `drawing_devices` token through RLS. Its widget opens `/drawings/{id}` in the web app, which still requires web sign-in.
+## Partner updates — 2026-09-17
+
+Recipient-owned `notifications` rows are the cross-client event source. Android reads at most 30 recent rows through authenticated PostgREST, retains a per-account generic-envelope cache for offline viewing, and calls `mark_notification_read(notification_id)` through authenticated POST. The function updates only the current recipient's unread row under RLS and returns whether a row changed. Web inbox and push clicks resolve bucket list, bucket idea, wishlist and drawing targets. User-authored content remains absent from envelopes and push payloads.
+
+## Privacy lock RPCs — 2026-09-17
+
+Authenticated `app_lock_status()` returns `{configured,areas}`. `app_lock_open(area)` returns access for the current JWT session. `app_lock_configure(code,areas)` sets the initial code or verifies the existing code before replacing the selected area list; `app_lock_verify(code)` checks setup eligibility; `app_lock_unlock(code,area)` creates a five-minute server unlock; `app_lock_lock(area)` revokes it. The public functions use security-invoker wrappers and never accept a user or session ID from the client. Invalid or blocked code returns false. Server Actions in `src/app/actions/privacy.ts` validate all inputs with Zod and require an authenticated user. The browser device unlock decrypts a locally wrapped code, then calls the same server unlock path.
+
+### PIN flow update
+
+`app_lock_status()` also returns `pin_length` (4, 6 or null for a legacy code). New setup accepts a 4- or 6-digit PIN. Existing codes of 6–12 digits remain valid for unlock and configuration until changed. Authenticated `app_lock_change_code(current_code,new_code)` verifies the current code and accepts only a new 4- or 6-digit PIN; success revokes all current unlocks. The server action `changePrivacyPin` validates both inputs. Setup and change screens require local confirmation before making the mutation.

@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.view.View;
 import android.widget.RemoteViews;
 import java.io.File;
@@ -39,10 +38,8 @@ public final class DrawingWidget extends AppWidgetProvider {
             views.setViewVisibility(R.id.drawing_image, available ? View.VISIBLE : View.GONE);
             views.setViewVisibility(R.id.drawing_empty, available ? View.GONE : View.VISIBLE);
             if (available) views.setImageViewBitmap(R.id.drawing_image, display);
-            Intent tap;
-            if (available && BuildConfig.WEB_BASE_URL.startsWith("https://")) {
-                tap = new Intent(Intent.ACTION_VIEW, Uri.parse(BuildConfig.WEB_BASE_URL.replaceAll("/+$", "") + "/drawings/" + noteId));
-            } else tap = new Intent(context, MainActivity.class);
+            Intent tap = new Intent(context, MainActivity.class);
+            if (available) tap.putExtra(MainActivity.EXTRA_OPEN_DRAWING, true);
             PendingIntent pending = PendingIntent.getActivity(context, id, tap,
                 PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
             views.setOnClickPendingIntent(R.id.drawing_image, pending);

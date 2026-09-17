@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import { z } from "npm:zod@4.5.4";
 
-import { inspectMedia, validateUpload, mediaTypes } from "../../../src/lib/memories/media.ts";
+import { checkImageSize, inspectMedia, isImage, validateUpload, mediaTypes } from "../../../src/lib/memories/media.ts";
 
 const requestSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("prepare"), kind: z.enum(["memory","moment"]).default("memory"), memoryId: z.uuid(), filename: z.string().min(1).max(240), mime: z.enum(mediaTypes), size: z.number().int().positive(), caption: z.string().trim().max(240).default("") }),
@@ -37,7 +37,7 @@ Deno.serve(async (request: Request) => {
   if (input.operation === "prepare") {
     try { validateUpload(input.filename, input.mime, input.size); } catch (error) { return response({ error: (error as Error).message }, 400); }
     const id = crypto.randomUUID(), path = memory.couple_id + "/" + memory.id + "/" + id + "/original";
-    const { error } = await admin.from(mediaTable).insert({ id, [parentColumn]: memory.id, created_by: user.id, storage_path: path, media_type: input.mime.startsWith("image/") ? "image" : "video", mime_type: input.mime, size_bytes: input.size, caption: input.caption });
+    const { error } = await admin.from(mediaTable).insert({ id, [parentColumn]: memory.id, created_by: user.id, storage_path: path, media_type: isImage(input.mime) ? "image" : "video", mime_type: input.mime, size_bytes: input.size, caption: input.caption });
     if (error) return response({ error: "Could not start upload. Each memory allows 30 files and 300 MB in total." }, 409);
     return response({ id, path, expiresAt: new Date(Date.now() + 3600000).toISOString() });
   }
@@ -67,9 +67,12 @@ Deno.serve(async (request: Request) => {
   try {
     const { data: file, error } = await bucket.download(media.storage_path);
     if (error || !file) throw new Error("Upload has not finished. Resume it or try again.");
-    if (file.size !== media.size_bytes || file.type !== media.mime_type) throw new Error("The uploaded file does not match its declared type or size.");
+    // Storage reports a generic type when the client sent none; only a positive
+    // disagreement about the type is treated as a mismatch.
+    if (file.size !== media.size_bytes || (file.type && file.type !== "application/octet-stream" && file.type !== media.mime_type)) throw new Error("The uploaded file does not match its declared type or size.");
     const bytes = new Uint8Array(await file.arrayBuffer());
     const info = inspectMedia(bytes, media.mime_type);
+    let { width, height } = info;
     let derivative: string | null = null;
     if (media.media_type === "image") {
       const { ImageMagick, initializeImageMagick, MagickFormat } = await import("npm:@imagemagick/magick-wasm@0.0.43");
@@ -85,7 +88,11 @@ Deno.serve(async (request: Request) => {
       if (hash !== "5a4ed1017eda113144c86ae839c22c610afebcfebfa22b1da18e00e98d78b0f7") throw new Error("Could not create the photo preview. Decoder integrity check failed.");
       await initializeImageMagick(wasmBytes);
       const jpg = ImageMagick.read(bytes, (decoded) => {
-        if (decoded.width !== info.width || decoded.height !== info.height) throw new Error("Invalid image dimensions.");
+        // The decoder is the authority on what the file really contains. The
+        // structural parse above is a cheap gate; requiring the two to agree
+        // exactly rejected valid photos whose container states size differently.
+        const measured = checkImageSize(decoded.width, decoded.height);
+        width = measured.width; height = measured.height;
         decoded.autoOrient();
         const scale = Math.min(1, 960 / Math.max(decoded.width, decoded.height));
         decoded.resize(Math.max(1, Math.round(decoded.width * scale)), Math.max(1, Math.round(decoded.height * scale)));
@@ -101,12 +108,12 @@ Deno.serve(async (request: Request) => {
     }
     const { data: stillAllowed } = await userClient.from(parentTable).select("id").eq("id", memory.id).maybeSingle();
     if (!stillAllowed) throw new Error("Your access changed. The upload was not published.");
-    const { data: published, error: publishError } = await admin.from(mediaTable).update({ state: "ready", width: info.width, height: info.height, duration_seconds: info.duration, derivative_path: derivative, processing_token: null, error_code: null }).eq("id", media.id).eq("processing_token", token).select("id").maybeSingle();
+    const { data: published, error: publishError } = await admin.from(mediaTable).update({ state: "ready", width, height, duration_seconds: info.duration, derivative_path: derivative, processing_token: null, error_code: null }).eq("id", media.id).eq("processing_token", token).select("id").maybeSingle();
     if (publishError || !published) throw new Error("Processing changed. Refresh and try again.");
     return response({ ok: true });
   } catch (error) {
     await admin.from(mediaTable).update({ state: "failed", error_code: "processing_failed", processing_token: null }).eq("id", media.id).eq("processing_token", token);
-    const safe = error instanceof Error && /^(Choose|The (photo|video|upload)|Upload has|Could not create|Your access)/.test(error.message) ? error.message : "Could not process this file. Retry or remove it and choose another.";
+    const safe = error instanceof Error && /^(Choose|Photos|Videos|Video must|This file|The (photo|video|upload)|Upload has|Could not create|Your access)/.test(error.message) ? error.message : "Could not process this file. Retry or remove it and choose another.";
     return response({ error: safe }, 422);
   }
 });

@@ -23,7 +23,7 @@ type Delivery = {
   targetId: string | null;
 };
 
-const paths: Record<string, string> = { plan: "/plans", memory: "/memories", milestone: "/milestones", note: "/notes" };
+const paths: Record<string, string> = { plan: "/plans", memory: "/memories", milestone: "/milestones", note: "/notes", bucket: "/bucket", bucket_list: "/bucket/lists", wishlist: "/wishlist", drawing: "/drawings" };
 
 /** Mirrors the inbox's own link rule so a tapped push lands where the row points. */
 function targetPath(delivery: Delivery) {

@@ -29,8 +29,10 @@ public final class DrawingRefreshJob extends JobService {
     }
     @Override public boolean onStartJob(JobParameters params) {
         new Thread(() -> {
-            try { if (SessionStore.load(this) != null) DrawingApi.refreshLatest(this); }
-            catch (Exception ignored) { /* Keep the last authorized cached drawing while offline. */ }
+            if (SessionStore.load(this) != null) {
+                try { PendingDrawings.sync(this); } catch (Exception ignored) { /* Keep queued drawings for retry. */ }
+                try { DrawingApi.refreshLatest(this); } catch (Exception ignored) { /* Keep the last authorized cached drawing while offline. */ }
+            }
             jobFinished(params, false);
         }, "drawing-refresh").start();
         return true;
