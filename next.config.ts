@@ -10,6 +10,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1"],
   poweredByHeader: false,
+  serverExternalPackages: ["imagescript"],
   experimental: { serverActions: { bodySizeLimit: "3mb" } },
   reactStrictMode: true,
   async headers() {

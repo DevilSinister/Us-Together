@@ -26,3 +26,5 @@ Updated: 2026-09-05. Deferred work is recorded here rather than presented as the
 Phase 7 is implemented and owner-manually-tested. Account creation, linking and sync have owner-reported manual verification. Existing leave/empty-delete, memory media, bucket flows, plan calendar/checklist/reminders and private gift plans must not be re-listed as missing features.
 
 The repository overview/status contradictions are corrected in this documentation update. Historical verification reports retain their original results with dated superseding notes. The graph remains a partial historical map until R2-15; use source files to verify its answers.
+
+R2-17 — **Schema applied; release gates open.** Hand-drawn immutable notes and the latest-received Android widget now have their hosted migrations and advisor checks. Real-account send/read and RLS evidence, a configured APK, and device push/resize/sign-out checks remain. See [verification](../DRAWING_NOTES_VERIFICATION.md).

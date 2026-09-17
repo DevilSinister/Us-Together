@@ -765,6 +765,46 @@ export type Database = {
           },
         ]
       }
+      drawing_devices: {
+        Row: { token: string; user_id: string; created_at: string; last_seen_at: string }
+        Insert: { token: string; user_id?: string; created_at?: string; last_seen_at?: string }
+        Update: { token?: string; user_id?: string; created_at?: string; last_seen_at?: string }
+        Relationships: []
+      }
+
+      drawing_notes: {
+        Row: {
+          id: string
+          couple_id: string
+          author_id: string
+          recipient_id: string
+          object_path: string
+          status: string
+          created_at: string
+          sent_at: string | null
+        }
+        Insert: {
+          id?: string
+          couple_id: string
+          author_id?: string
+          recipient_id: string
+          object_path: string
+          status?: string
+          created_at?: string
+          sent_at?: string | null
+        }
+        Update: {
+          id?: string
+          couple_id?: string
+          author_id?: string
+          recipient_id?: string
+          object_path?: string
+          status?: string
+          created_at?: string
+          sent_at?: string | null
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           author_id: string

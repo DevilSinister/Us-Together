@@ -24,3 +24,7 @@ The repository is canonical. The Us Together section of the Obsidian Agents vaul
 ## Working rules
 
 Choose a bounded release item before implementation. Read its source contracts, inspect current code and apply the required skills. Preserve current working flows and unrelated changes. Record implementation, manual evidence, automated evidence and deferral separately. Existing phase/security gates still apply to future changes; this register does not claim all historical release gates passed.
+
+## Owner-directed drawing notes — 2026-09-16
+
+The owner explicitly authorized a drawing-note extension and Android home-screen widget. This overrides the earlier "no Release 2 implementation authorized" statement for this item only. Web and Android source has been added alongside existing text notes; both database migrations are applied, while push credentials plus real-device acceptance remain release gates. See [Drawing Notes Verification](../DRAWING_NOTES_VERIFICATION.md).

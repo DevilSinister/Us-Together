@@ -115,3 +115,7 @@ A source requirement is covered only when its canonical specification contains b
 | Current gallery | Preserve; no active repair | Owner believes prior issue probably fixed; no new device result claimed |
 | Implementation and verification carryovers | Deferred to Release 2 | [Backlog](release-2/BACKLOG.md) |
 | Every location-bearing feature | OpenStreetMap-based services; reuse Photon | [Location policy](release-2/LOCATION_POLICY.md) |
+
+## User-directed drawing note extension — 2026-09-16
+
+The new owner request extends row 24 (notes) and row 39 (push). Source routes `/drawings`, `/drawings/new`, `/drawings/[id]`, the drawing APIs, private Storage migration and `android-widget/` implement the approved fixed-card editor and latest-received Android widget. Unit/type/lint/build evidence and applied hosted migrations and outstanding RLS, browser and device gates are recorded in [Drawing Notes Verification](DRAWING_NOTES_VERIFICATION.md). Existing editable text notes remain Phase 7 behavior.

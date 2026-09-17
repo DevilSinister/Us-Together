@@ -246,3 +246,11 @@ Because there is no preview store, these two surfaces cannot be exercised by the
 **Decision:** Use OpenStreetMap-based services for every location-bearing feature. Reuse authenticated Photon search/nearby lookup, editable place labels and explicit geolocation permission. Follow [location policy](release-2/LOCATION_POLICY.md). Do not introduce Google Places or a paid proprietary default. Google Calendar remains independent of location lookup.
 
 **Consequences:** Future map/routing capabilities choose a suitable OpenStreetMap-based service with policy/attribution review before implementation. No endpoints, coordinates, existing map links or schema are changed by this documentation update.
+
+## ADR-026 — Finished drawings and a minimal Android widget
+
+**Status:** Accepted by the owner, 2026-09-16; source implemented, release gates open.
+
+**Decision:** Keep existing editable shared/private text notes unchanged. Add a distinct immutable drawing-note table and private PNG bucket. The web editor keeps local drafts, previews before send and publishes only after validated upload. Android reads the latest received drawing with its own Supabase session, keeps one app-private image cache and opens the web detail on tap. Use content-free normal-priority FCM data messages for prompt refresh, with app-open, reconnection and periodic refresh as backups. Android is first and the first package is a private APK.
+
+**Consequences:** A fixed delivery deadline cannot be promised under Android background limits. A home-screen drawing is visible to anyone viewing that phone. Server and Firebase credentials are required for push but not for sending or manual refresh. Database migration and device testing precede release; text-note edit/privacy behavior remains intact.

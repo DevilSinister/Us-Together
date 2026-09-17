@@ -19,7 +19,7 @@ export default async function NotesPage() {
         eyebrow="Words worth keeping"
         title="Notes between you."
         lede="Write something to share, or something only you will ever read."
-        actions={view.paired ? <Button asChild><Link href="/notes/new">Write a note</Link></Button> : null}
+        actions={view.paired ? <div className="flex flex-wrap gap-2"><Button asChild><Link href="/notes/new">Write a note</Link></Button><Button asChild variant="outline"><Link href="/drawings">Draw a note</Link></Button></div> : null}
       />
 
       {view.error ? <p role="alert" className="status-message status-error mt-8">{view.error}</p> : null}

@@ -126,3 +126,9 @@ The Home gallery reads the security-invoker shared_gallery view, joining ready m
 ## Project-wide location rule — 2026-09-05
 
 Use OpenStreetMap-based APIs/services wherever location functionality is mentioned. Reuse existing Photon lookup and follow the [location policy](docs/release-2/LOCATION_POLICY.md). Google Calendar integration does not select a geocoding provider. This documentation update adds no API, schema or runtime behavior.
+
+## Drawing notes and Android companion — 2026-09-16
+
+Finished drawings are a separate domain from editable text notes. A Next.js route validates and re-encodes a fixed 640×480 PNG, inserts a pending drawing row from the authenticated couple context, uploads to a private Storage bucket, and transitions the row to ready. RLS hides pending rows from recipients and restricts ready rows and objects to active partners; a trigger forbids revisions and publication without an uploaded object. A read route serves only a ready, authorized image with no-store headers. History uses a keyset cursor.
+
+The Android companion signs into Supabase independently with email/password and keeps tokens in Android Keystore-encrypted preferences. It queries the newest received ready row and downloads the object through the same RLS policies; its home-screen widget renders an app-private cached copy. FCM carries only a drawing-change signal. The web server reads recipient device tokens with a server-only Supabase secret after send and calls FCM when credentials are configured. Missing push credentials leave sending intact and are shown as unavailable in the companion. No iOS client or phone-side drawing editor is included.

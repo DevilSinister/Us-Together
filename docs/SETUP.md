@@ -136,3 +136,7 @@ Use Node.js 22 or newer. Keep the pinned cross-platform supabase package; its pl
 ## Project-wide location rule — 2026-09-05
 
 Use OpenStreetMap-based APIs/services wherever location functionality is mentioned. Reuse existing Photon lookup and follow the [location policy](release-2/LOCATION_POLICY.md). Google Calendar integration does not select a geocoding provider. This documentation update adds no API, schema or runtime behavior.
+
+## Drawing notes and Android widget setup
+
+The hosted project already has `20260917013807_drawing_notes.sql` and `20260917014059_drawing_notes_author_index.sql` applied. Confirm both entries in the migration ledger before deploying dependent web code. The private Android project is in `android-widget/`; see its README for public build variables and debug APK steps. On the web server, `SUPABASE_SECRET_KEY` and `FIREBASE_SERVICE_ACCOUNT_JSON` are optional server-only values for FCM delivery. Keep them out of `NEXT_PUBLIC_*`, the APK, examples and logs. Without them, drawings can be sent and viewed, and the Android app reports that push delivery is unavailable while manual and scheduled refresh remain available. Real-account RLS and Storage tests are required before release.

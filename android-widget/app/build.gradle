@@ -1,0 +1,27 @@
+plugins { id 'com.android.application' }
+
+def setting = { String name -> (System.getenv(name) ?: '').replace('\\', '\\\\').replace('"', '\\"') }
+android {
+    namespace 'app.ustogether.widget'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'app.ustogether.widget'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '0.1.0'
+        buildConfigField 'String', 'SUPABASE_URL', '"' + setting('WIDGET_SUPABASE_URL') + '"'
+        buildConfigField 'String', 'SUPABASE_KEY', '"' + setting('WIDGET_SUPABASE_PUBLISHABLE_KEY') + '"'
+        buildConfigField 'String', 'WEB_BASE_URL', '"' + setting('WIDGET_WEB_BASE_URL') + '"'
+        buildConfigField 'String', 'FIREBASE_APP_ID', '"' + setting('WIDGET_FIREBASE_APP_ID') + '"'
+        buildConfigField 'String', 'FIREBASE_SENDER_ID', '"' + setting('WIDGET_FIREBASE_SENDER_ID') + '"'
+        buildConfigField 'String', 'FIREBASE_API_KEY', '"' + setting('WIDGET_FIREBASE_API_KEY') + '"'
+        buildConfigField 'String', 'FIREBASE_PROJECT_ID', '"' + setting('WIDGET_FIREBASE_PROJECT_ID') + '"'
+    }
+    buildFeatures { buildConfig true }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+dependencies {
+    implementation platform('com.google.firebase:firebase-bom:34.19.0')
+    implementation 'com.google.firebase:firebase-messaging'
+}

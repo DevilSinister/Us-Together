@@ -232,3 +232,7 @@ shared_gallery is a security-invoker UNION ALL view over ready memory_media/mile
 
 ## Bucket list limit trigger repair
 
+
+### Drawing notes extension — 2026-09-16
+
+`drawing_notes` is separate from editable `notes`. It records an immutable couple, author, other active recipient and exact author/id PNG path. A pending row is visible only to its author; a ready row is visible to the author and recipient while each remains an active member. The transition checks that the Storage object exists and stamps `sent_at`; ready rows cannot update or delete. The private `drawing-notes` bucket accepts only PNG files up to 2 MB. Storage policies authorize pending uploads by author and reads by active row visibility. `drawing_devices` stores FCM tokens under owner-only RLS; it contains no note content. The server-only sender reads recipient tokens with a secret key after an authorized send. Latest-recipient and history indexes support bounded queries. Hosted migrations: `20260917013807_drawing_notes.sql` and `20260917014059_drawing_notes_author_index.sql`. Both are applied; the author index covers its foreign key.

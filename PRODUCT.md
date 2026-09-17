@@ -94,3 +94,7 @@ Home and navigation expose a shared Calendar with plans, memories and moments. M
 Phase 7 wishlists/private gift plans and shared/private notes are implemented. The owner confirms manual testing of Phase 7 changes, account creation, linking and sync. This is user-reported manual evidence, separate from automated release checks. Keep current gallery changes; do not reopen the previous issue without a new report or instruction. Account lifecycle completion is on hold. [Release 2](docs/release-2/README.md) owns future features and implementation/verification carryovers.
 
 Use OpenStreetMap-based APIs wherever location is mentioned, reusing Photon for search/nearby lookup. Follow the project-wide [location policy](docs/release-2/LOCATION_POLICY.md), including attribution, explicit geolocation permission and editable-place fallback.
+
+## Drawing notes extension — 2026-09-16
+
+The owner approved hand-drawn notes in the existing web app and an Android home-screen widget. Drawings use a fixed note card, review-before-send, immutable delivery and private history. The Android widget shows the newest drawing received from the partner; tapping opens the web note. Android is the first native target, initially distributed as a private APK. The source is implemented and the database migrations are applied; deployment credentials and real-device acceptance remain release gates.

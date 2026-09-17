@@ -173,3 +173,10 @@ Reminder controls choose offsets relative to plan start. Cancel/complete stops p
 ## Project-wide location rule — 2026-09-05
 
 Use OpenStreetMap-based APIs/services wherever location functionality is mentioned. Reuse existing Photon lookup and follow the [location policy](release-2/LOCATION_POLICY.md). Google Calendar integration does not select a geocoding provider. This documentation update adds no API, schema or runtime behavior.
+
+### Drawing notes extension — 2026-09-16
+
+- `POST /api/drawing-notes` accepts same-origin multipart `image`, a PNG no larger than 2 MB whose decoded size is exactly 640×480. It derives author, couple and active recipient from the server session, re-encodes the bitmap, uploads it to private Storage, then publishes an immutable row. Success returns `201 { id }`; failure returns a generic error and does not publish a partial note.
+- `GET /api/drawing-notes/{id}/image` validates a UUID and returns a ready image only when the cookie session may read its row and Storage object. It uses private no-store and nosniff headers. The Android client instead uses its own Supabase session against the RLS-protected row and Storage APIs.
+- `GET /api/drawing-notes/push-status` reports only whether server push credentials are present; it reveals no credential values. A successful send attempts a content-free FCM `{type: "drawing"}` event for the recipient's registered devices. Push failure does not change send success.
+- The Android client registers/deletes only its own `drawing_devices` token through RLS. Its widget opens `/drawings/{id}` in the web app, which still requires web sign-in.
