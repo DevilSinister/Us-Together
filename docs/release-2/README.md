@@ -27,4 +27,4 @@ Choose a bounded release item before implementation. Read its source contracts, 
 
 ## Owner-directed drawing notes — 2026-09-16
 
-The owner explicitly authorized a drawing-note extension and Android home-screen widget. This overrides the earlier "no Release 2 implementation authorized" statement for this item only. Web and Android source has been added alongside existing text notes; both database migrations are applied, while push credentials plus real-device acceptance remain release gates. See [Drawing Notes Verification](../DRAWING_NOTES_VERIFICATION.md).
+The owner explicitly authorized a drawing-note extension and Android home-screen widget. This overrides the earlier "no Release 2 implementation authorized" statement for this item only. Web source is deployed alongside existing text notes; both database migrations are applied and two fictional accounts completed a real paired send/read. The configured Android APK awaits owner device acceptance; prompt background updates still need Firebase. See [Drawing Notes Verification](../DRAWING_NOTES_VERIFICATION.md).

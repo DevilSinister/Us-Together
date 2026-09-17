@@ -27,4 +27,4 @@ Phase 7 is implemented and owner-manually-tested. Account creation, linking and 
 
 The repository overview/status contradictions are corrected in this documentation update. Historical verification reports retain their original results with dated superseding notes. The graph remains a partial historical map until R2-15; use source files to verify its answers.
 
-R2-17 — **Schema applied; release gates open.** Hand-drawn immutable notes and the latest-received Android widget now have their hosted migrations and advisor checks. Real-account send/read and RLS evidence, a configured APK, and device push/resize/sign-out checks remain. See [verification](../DRAWING_NOTES_VERIFICATION.md).
+R2-17 — **Web deployed and paired send/read verified; native acceptance open.** Hosted migrations and advisors passed; two fictional linked accounts sent and received an immutable drawing through the deployed app. Transactional negative RLS evidence, physical widget states and Firebase-backed prompt updates remain. See [verification](../DRAWING_NOTES_VERIFICATION.md).

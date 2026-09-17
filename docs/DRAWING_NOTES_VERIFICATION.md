@@ -1,6 +1,6 @@
 # Drawing notes and Android widget verification — updated 2026-09-17
 
-Status: web and Android source implemented; both drawing migrations applied to the confirmed hosted Us-Together project. Release is still open because the hosted web app does not serve the drawing routes, Firebase push is unconfigured, and no real paired-account or device round trip has run.
+Status: drawing web source is deployed and live between two fictional paired accounts; both hosted drawing migrations are applied. The Android debug APK is built for the live HTTPS origin. Physical Android acceptance remains with the owner, and Firebase-free refresh cannot meet the seconds-level background target.
 
 ## Source and behavior
 
@@ -28,16 +28,22 @@ The drawing editor uses a 640×480 fixed white card with pencil, marker, highlig
 
 ## Configured APK and hosted web — 2026-09-17
 
-The owner supplied an HTTPS Vercel origin. It answered HTTP 200 for sign-in, while `/drawings` and `/drawings/new` answered HTTP 404: the current web deployment has not picked up this source. A clean Android debug assembly used that origin and the existing public Supabase URL/publishable key. Generated BuildConfig readback confirmed the intended web origin, Supabase host and deliberately empty Firebase app ID without printing the key. The APK is installable for private testing, but tap-through to a drawing will fail until the web code is deployed. No device or emulator was connected or configured on this machine.
+The owner supplied an HTTPS Vercel origin. Before the GitHub push it answered 404 for drawing routes. Feature commit `b60d220` was pushed to `main`; afterwards `/drawings` and `/drawings/new` redirected unauthenticated visitors to sign-in and the new push-status route answered 200. A clean Android debug assembly used that origin and the existing public Supabase URL/publishable key. Generated BuildConfig readback confirmed the intended web origin, Supabase host and deliberately empty Firebase app ID without printing the key. No device or emulator was connected or configured on this machine.
 
 Supabase handles independent auth, private data and image reads. Without Firebase credentials, Android cannot receive an OS background push from Supabase Realtime alone. This package shows push as unavailable and refreshes on app open, reconnection, manual request and a 15-minute periodic Android job; Android may defer the job. The seconds-level update target is therefore unmet in this Firebase-free build.
+
+## Live paired-account and visual acceptance — 2026-09-17
+
+Two synthetic, auto-confirmed accounts completed the real web onboarding, joined the same couple through a six-digit invitation, and remain paired for owner testing. One account drew and sent a PNG through the deployed editor. The author reached its immutable detail page; the recipient's history rendered the 640×480 image and linked to that detail. An anonymous image request returned 404. The Android-style direct REST query with the recipient's own session returned the newest received ready row, and its private Storage download returned HTTP 200 `image/png` (3,189 bytes). An author update attempt returned zero affected rows; deletion returned zero rows; the ready row and send timestamp remained intact.
+
+Desktop and 390 px mobile Chromium screenshots were inspected. The recipient card and navigation rendered correctly, the PNG loaded, and the mobile document had no horizontal overflow. This verifies the web surface, not the native widget. The synthetic test credentials are kept in a local temporary file outside the repository and vault; no test credentials or drawing content were committed.
 
 ## Open gates before release
 
 - Run the negative RLS suite `0010_drawing_notes_rls.test.sql` in a resettable writable test database, plus a real Storage binary round trip. These are not inferred from policy readback.
-- Test with two real linked accounts: send, recipient read, author history, former/foreign denial and immutable ready row. Run the negative SQL suite in a resettable non-production database.
-- Deploy the new web routes to the owner-supplied Vercel app, then verify `/drawings` is reachable after sign-in. Install the configured private APK on a device and check sign-in, no-note state, offline cached note, resizing, tap-through and sign-out. Firebase config is absent, so push delay/duplication and token rotation remain future acceptance gates if prompt background updates are required.
-- Direct in-app browser and real-device visual/keyboard/reduced-motion checks remain open. The temporary Chromium harness covers editor controls and mocked send failure, but not an authenticated send or Android home screen.
+- The two-account send/read/immutable path passed. Former-member and foreign-couple denial still require a resettable non-production database or additional isolated fixtures. Run the negative SQL suite there.
+- Install the configured private APK on a device and check sign-in, no-note state, offline cached note, resizing, tap-through and sign-out. Firebase config is absent, so push delay/duplication and token rotation remain future acceptance gates if prompt background updates are required.
+- Direct in-app browser and physical-device keyboard/reduced-motion checks remain open. Desktop/mobile Chromium now covers the authenticated send and recipient render; it does not verify an Android home screen.
 - Refresh Graphify after resolving the pre-existing untracked `graphify-out/` work; the graph was queried first but left untouched to preserve owner files.
 
-Deploy sequence: hosted migration is complete; RLS and binary evidence precede web deployment, then installed private APK and device acceptance. Firebase setup is required for prompt background updates.
+Deploy sequence: hosted migration and web deployment are complete. Owner installation and native widget acceptance remain; Firebase setup is required for prompt background updates. The transactional negative RLS suite remains a separate test-environment gate.
