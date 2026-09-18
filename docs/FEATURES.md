@@ -221,3 +221,7 @@ Calendar is accessible from Home, desktop navigation, and mobile navigation. Mon
 Memory and moment creation forms expose a multiple-file picker and individual captions before save. After the story is saved, files upload sequentially; the saved story survives file failures. Detail pages show the first six uploaded photos as small previews, an Open full gallery button for all photos/videos, uploads, caption editing and shared comments. Moment detail uses /milestones/[id]. Each entry accepts at most 30 files / 300 MiB, with the existing per-file limits. Captions and file comments appear in the shared viewer. Existing story comments remain on the memory/moment. Home links to /gallery, with memory/moment and date grouping plus source, media-type and date filters. Memories and moments do not offer reminders; plans retain them.
 
 Reminders currently arrive in the in-app Notifications inbox. Push, email and SMS are not implemented. Preview includes a ten-second reminder test and real local photo storage, scoped to its browser session.
+
+### Memories index presentation — 2026-09-17
+
+The Memories destination groups entries by their saved calendar date, newest first. Each row shows only the memory title and opens `/memories/[id]`; that detail page contains the story, place, tags, photos/videos and comments. Existing tag/favorite filters and pagination remain available on the index. This is a web presentation change; it does not alter storage or the Android parity backlog.

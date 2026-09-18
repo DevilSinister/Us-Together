@@ -27,7 +27,16 @@ test("memories preserve stories through editing, tags, filters and deletion",asy
  await page.getByRole("button",{name:"Apply filters"}).click();await expect(page.locator("main").getByRole("alert")).toContainText("Check your connection");
  await expect(page.getByLabel("Find a tag")).toHaveValue("travel");
  await page.getByRole("button",{name:"Apply filters"}).click();
- await expect(page.getByRole("heading",{name:"An evening at the harbour"})).toBeVisible();
+ await expect(page.getByRole("region",{name:"Memories by date"}).getByRole("heading",{name:"August 20, 2026"})).toBeVisible();
+ await expect(page.getByRole("region",{name:"Memories by date"}).getByRole("link",{name:"An evening at the harbour"})).toHaveAttribute("href",/\/memories\/[0-9a-f-]+$/);
+ await expect(page.getByText("The last light on the harbour, and nowhere else to be.")).toHaveCount(0);
+ await expect(page.getByText("The old harbour")).toHaveCount(0);
+ await expect(page.getByText("travel",{exact:true})).toHaveCount(0);
+ await page.getByRole("region",{name:"Memories by date"}).getByRole("link",{name:"An evening at the harbour"}).click();
+ await expect(page).toHaveURL(detail);
+ await expect(page.getByText("The last light on the harbour, and nowhere else to be.")).toBeVisible();
+ await expect(page.getByRole("heading",{name:"What you remember"})).toBeVisible();
+ await page.goto("/memories");
  await page.screenshot({path:"test-results/memories-gallery-"+testInfo.project.name+".png",fullPage:true});
  await page.getByLabel("Find a tag").fill("other");await page.getByRole("button",{name:"Apply filters"}).click();await expect(page.getByText("No memories match just yet.")).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)).toBe(false);

@@ -157,3 +157,9 @@ The owner replaced the webapp target with a native Android APK covering every ex
 | Current PIN, new PIN, confirmation to change | `changePrivacyPin`, `app_lock_change_code` | Hosted RPC grants/ledger checked; negative SQL test authored but not run locally |
 
 Local `npm run test:rls` exited before assertions because Postgres at 127.0.0.1:54322 refused the connection; the isolated negative suite remains open.
+
+## Memories index refinement — 2026-09-17
+
+| Requirement | Implementation | Verification |
+| --- | --- | --- |
+| Date-categorized title-only Memories list; open full memory for media and comments | `/memories` uses grouped rows in `src/components/memories/gallery.tsx`; each row links to `/memories/[id]` where the existing detail view renders media and comments | Typecheck, lint, 95 unit tests and production build passed. Focused desktop/mobile Playwright journey was attempted but timed out at the pre-existing paired-preview sign-in control before reaching the list. Schema/RLS and Android gates do not apply to this presentation-only change. |

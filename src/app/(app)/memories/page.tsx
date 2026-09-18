@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { readDeveloperState } from "@/lib/auth/dev-session";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/app/page-header";
 import { PairingNotice } from "@/components/app/states";
@@ -21,7 +20,7 @@ export default async function MemoriesPage() {
         actions={data.paired ? <Button asChild><Link href="/memories/new">Add a memory</Link></Button> : null}
       />
       {data.paired ? (
-        <MemoryGallery initial={data} previewSession={data.preview ? (await readDeveloperState()).bucketSessionId : undefined} />
+        <MemoryGallery initial={data} />
       ) : (
         <PairingNotice
           title="Memories live inside your shared space."
