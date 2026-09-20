@@ -79,7 +79,7 @@ Defect found and fixed: `note_reads` was written with an upsert that needed an U
 | `npm run test` | Passed: 126 tests in 22 files (exit 0); new suites for cursors, relative time, notes/drawings loaders, assetlinks, manifest |
 | `npm run build` | Passed (exit 0); route list includes `/drawings`, `/drawings/[id]`, `/drawings/new`, `/notes/*`, `/api/drawing-notes`, `/api/drawing-notes/[id]/image`; no push-status route |
 | Android `assembleDebug lintDebug testDebugUnitTest` (JDK 17, Gradle 8.14) | Passed (`BUILD SUCCESSFUL`, `GRADLE_EXIT=0`) on the second run; first run failed lint with 3 errors (`AppLinkUrlError` on the placeholder host, `UseAppTint` ×2), fixed with a `tools:ignore` and by dropping redundant tints. Lint 0 errors / 32 warnings. JUnit: `PushEnvelopeTest` 4/4, `PendingDrawingsSyncTest` 2/2. Debug APK written; built without `WIDGET_*` values, so it proves compilation only |
-| Hosted migrations `20260920100000`, `20260920100500` | **Not applied.** Owner approval required; apply in that order, then advisors, then regenerate types |
+| Hosted migrations `20260920195724`, `20260920195802` | **Not applied.** Owner approval required; apply in that order, then advisors, then regenerate types |
 | `fcm-dispatch` deploy, Edge secrets, Vault `fcm_endpoint_url` | **Not done.** Owner-gated; depends on the Firebase service account |
 | pgTAP `0012_drawing_reads_rls`, `0013_fcm_deliveries` | **Not run.** No Docker/Podman; hosted SQL connector cannot run fixture transactions |
 | Playwright `tests/e2e/notes-drawings.spec.ts` | **Not run.** Browsers absent on this machine; preview-lane journeys written, two-account lane marked fixme |
@@ -89,3 +89,13 @@ Defect found and fixed: `note_reads` was written with an upsert that needed an U
 | Secret scan | New files carry no credentials; `.env.example` lists variable names only; Firebase service account is documented as an Edge secret only |
 
 Rollout order still to run: owner Firebase + keystore → apply migrations with advisors → deploy `fcm-dispatch` + secrets + Vault → fill `assetlinks.json` and push web → `assembleRelease` → install on both phones → device script in `android-widget/README.md` and the plan.
+
+### Hosted application — 2026-09-21
+
+- Target confirmed by name (**Us-Together**, `ACTIVE_HEALTHY`) from the repository's `NEXT_PUBLIC_SUPABASE_URL`; the connector's project listing was not used. Pre-apply readback showed neither table, no Vault secrets, and the live defect: `has_table_privilege('authenticated','note_reads','UPDATE') = false` with zero `note_reads` rows.
+- Applied `drawing_reads_and_note_paging` then `fcm_deliveries`; the hosted ledger stamped `20260920195724` and `20260920195802` and the local filenames were renamed to match.
+- Security advisor: one new INFO, `fcm_deliveries` has RLS enabled with no policy, which is the same deliberate worker-bookkeeping shape as `push_deliveries`; pre-existing findings (`pg_net` in `public`, leaked-password protection, two other RLS-no-policy tables) unchanged. Performance advisor: only unused-index notices on the new tables, expected with no traffic; the pre-existing duplicate `memories` index is unchanged.
+- Readback: `drawing_reads` 3 policies, INSERT granted, UPDATE not granted; `fcm_deliveries` no SELECT for `authenticated`; `settle_fcm_deliveries` executable by `service_role` only (not `anon`, not `authenticated`); `notifications_enqueue_fcm` trigger present; `notes_couple_updated_idx` present; cron `us-together-fcm-dispatch` active every minute. The connector's role cannot execute `private.dispatch_due_fcm`, which is the intended revoke.
+- PostgREST cache: anonymous `GET /rest/v1/drawing_reads?select=drawing_id&limit=1` returned 401 (fresh schema), not 400.
+- `fcm-dispatch` deployed as version 1 with `verify_jwt = false`; POST without the header returned 404, and with the header also 404 because the function's `PUSH_DISPATCH_SECRET` is not set yet.
+- **Not done by the connector, owner steps remain:** `vault.create_secret` is denied to the connector role, so the two Vault statements (`push_dispatch_secret`, `fcm_endpoint_url`) must run in the SQL editor; the Edge Function secrets `PUSH_DISPATCH_SECRET` and `FIREBASE_SERVICE_ACCOUNT_JSON` must be set in the dashboard; `assetlinks.json` still has no fingerprint; web deploy and signed APK build follow.

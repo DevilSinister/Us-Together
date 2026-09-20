@@ -96,7 +96,7 @@ The Android transport reuses this file's shape and ships disabled the same way.
 
 One-time configuration, in order:
 
-1. Apply `20260920100500_fcm_deliveries.sql` and run the security and performance advisors.
+1. Apply `20260920195802_fcm_deliveries.sql` and run the security and performance advisors.
 2. Deploy the `fcm-dispatch` Edge Function (`verify_jwt = false` in `config.toml`; it authenticates with `x-dispatch-secret`).
 3. Set its secrets in the dashboard: `FIREBASE_SERVICE_ACCOUNT_JSON` (the full service-account JSON from Firebase → Project settings → Service accounts → Generate new private key) and `PUSH_DISPATCH_SECRET` (the same value as the Vault secret below). `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.
 4. Store the endpoint in Vault: `select vault.create_secret('https://<project-ref>.supabase.co/functions/v1/fcm-dispatch', 'fcm_endpoint_url');` and, if Web Push never created it, `select vault.create_secret('<long random secret>', 'push_dispatch_secret');`.

@@ -5,7 +5,7 @@ One APK, package `app.ustogether`, that both partners sideload. It has two halve
 - **The app** is the deployed web app opened as a Trusted Web Activity. Chrome renders it full screen, shares its cookie jar, and hides the URL bar once `/.well-known/assetlinks.json` on the web origin names this package and the release signing key. Sign in there exactly as on the web.
 - **The native side** holds its own Supabase session so the phone can show the latest received drawing on a home-screen widget, keep an offline drawing outbox, and ring for partner updates through Firebase Cloud Messaging. Reach it by long-pressing the launcher icon and choosing **Widget & notifications**, or from the widget itself. You sign in there once, separately from the app; the two sessions are not bridged on purpose.
 
-Push is dispatched by the database (`fcm_deliveries`, migration `20260920100500`) through the `fcm-dispatch` Edge Function, so a drawing sent from the web or from the native editor rings the other phone the same way. The device token in `drawing_devices` is the opt-in; signing out deletes it.
+Push is dispatched by the database (`fcm_deliveries`, migration `20260920195802`) through the `fcm-dispatch` Edge Function, so a drawing sent from the web or from the native editor rings the other phone the same way. The device token in `drawing_devices` is the opt-in; signing out deletes it.
 
 ## Build variables
 
