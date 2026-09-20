@@ -1,15 +1,20 @@
 plugins { id 'com.android.application' }
 
+// Public build settings come from the shell, never from a file in the repository.
 def setting = { String name -> (System.getenv(name) ?: '').replace('\\', '\\\\').replace('"', '\\"') }
+def webBase = (System.getenv('WIDGET_WEB_BASE_URL') ?: '').replaceAll('/+$', '')
+def webHost = webBase ? new URI(webBase).host : 'localhost'
+def keystorePath = System.getenv('WIDGET_KEYSTORE_PATH') ?: ''
+
 android {
-    namespace 'app.ustogether.widget'
+    namespace 'app.ustogether'
     compileSdk 36
     defaultConfig {
-        applicationId 'app.ustogether.widget'
+        applicationId 'app.ustogether'
         minSdk 26
         targetSdk 36
-        versionCode 1
-        versionName '0.1.0'
+        versionCode 2
+        versionName '0.2.0'
         buildConfigField 'String', 'SUPABASE_URL', '"' + setting('WIDGET_SUPABASE_URL') + '"'
         buildConfigField 'String', 'SUPABASE_KEY', '"' + setting('WIDGET_SUPABASE_PUBLISHABLE_KEY') + '"'
         buildConfigField 'String', 'WEB_BASE_URL', '"' + setting('WIDGET_WEB_BASE_URL') + '"'
@@ -17,11 +22,45 @@ android {
         buildConfigField 'String', 'FIREBASE_SENDER_ID', '"' + setting('WIDGET_FIREBASE_SENDER_ID') + '"'
         buildConfigField 'String', 'FIREBASE_API_KEY', '"' + setting('WIDGET_FIREBASE_API_KEY') + '"'
         buildConfigField 'String', 'FIREBASE_PROJECT_ID', '"' + setting('WIDGET_FIREBASE_PROJECT_ID') + '"'
+        // Trusted Web Activity: the launcher opens the deployed web app full screen once
+        // /.well-known/assetlinks.json on that origin names this package and signing key.
+        manifestPlaceholders = [twaHost: webHost]
+        resValue 'string', 'twa_default_url', (webBase ? webBase + '/home?source=twa' : 'https://localhost/home')
+        resValue 'string', 'asset_statements',
+            '[{\\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], ' +
+            '\\"target\\": {\\"namespace\\": \\"web\\", \\"site\\": \\"' + webBase + '\\"}}]'
+    }
+    signingConfigs {
+        release {
+            if (keystorePath) {
+                storeFile file(keystorePath)
+                storePassword System.getenv('WIDGET_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('WIDGET_KEY_ALIAS')
+                keyPassword System.getenv('WIDGET_KEY_PASSWORD')
+            }
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            if (keystorePath) signingConfig signingConfigs.release
+        }
     }
     buildFeatures { buildConfig true }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
+
+// A release shell with no https origin would open nothing; refuse before compiling.
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(':app:assembleRelease') && !webBase.startsWith('https://')) {
+        throw new GradleException('WIDGET_WEB_BASE_URL must be the https origin of the deployed web app for a release build.')
+    }
+}
+
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:34.19.0')
     implementation 'com.google.firebase:firebase-messaging'
+    implementation 'androidx.browser:browser:1.9.0'
+    implementation 'com.google.androidbrowserhelper:androidbrowserhelper:2.7.3'
+    testImplementation 'junit:junit:4.13.2'
 }

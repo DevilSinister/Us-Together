@@ -1,12 +1,13 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { z } from "zod";
-import { ArrowLeft, Lock, Users } from "lucide-react";
+import { ArrowLeft, Brush, Lock, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InlineLink } from "@/components/ui/inline-link";
 import { PageHeader } from "@/components/app/page-header";
 import { DeleteNote } from "@/components/notes/delete-note";
 import { loadNote } from "@/lib/notes/data";
+import { absoluteTime, relativeTime } from "@/lib/time/relative";
 
 export const metadata = { title: "Note" };
 
@@ -18,12 +19,12 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
 
   const shared = note.type === "shared";
   const Icon = shared ? Users : Lock;
-  const formatter = new Intl.DateTimeFormat("en", { dateStyle: "long", timeStyle: "short" });
+  const partner = note.partner ?? "your partner";
 
   return (
     <div className="mx-auto max-w-2xl reveal-on-load">
       <PageHeader
-        eyebrow={note.mine ? "You wrote this" : "From your partner"}
+        eyebrow={note.mine ? "You wrote this" : "From " + partner}
         title={note.title}
         back={<InlineLink href="/notes"><ArrowLeft className="size-4" aria-hidden="true" />Back to notes</InlineLink>}
         actions={note.mine ? <Button asChild variant="outline"><Link href={"/notes/" + note.id + "/edit"}>Edit note</Link></Button> : null}
@@ -31,11 +32,17 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
 
       <p className="mt-6 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
         <Icon className="size-4 text-primary" aria-hidden="true" />
-        {shared ? "Shared with your partner" : "Private to you"} · {formatter.format(new Date(note.updated_at))}
+        {shared ? "Shared with " + (note.mine ? partner : "you") : "Private to you"} · <time dateTime={note.updated_at} title={absoluteTime(note.updated_at)}>{relativeTime(note.updated_at)}</time>
       </p>
 
       {/* Plain text, rendered as plain text. Nothing here is parsed as markup. */}
       <p className="mt-8 whitespace-pre-wrap break-words text-lg leading-8">{note.body}</p>
+
+      {!note.mine && shared ? (
+        <div className="mt-8 border-t pt-6">
+          <InlineLink href="/drawings/new"><Brush className="size-4" aria-hidden="true" />Reply with a drawing</InlineLink>
+        </div>
+      ) : null}
 
       {note.mine ? <DeleteNote id={note.id} shared={shared} /> : null}
     </div>

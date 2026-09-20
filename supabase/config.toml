@@ -420,3 +420,8 @@ verify_jwt = true
 # 404 to anything without it.
 [functions.push-dispatch]
 verify_jwt = false
+
+# Same contract for the Android (FCM) transport: invoked by pg_net with the shared
+# x-dispatch-secret, never by a device.
+[functions.fcm-dispatch]
+verify_jwt = false

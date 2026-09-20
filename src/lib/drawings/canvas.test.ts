@@ -13,4 +13,13 @@ describe("drawing fill", () => {
     expect(Array.from(data.slice(8, 12))).toEqual([255, 255, 255, 255]);
     expect(fillPixels(image, -1, 0, hexRgb("#ffffff"))).toBe(false);
   });
+  it("is a no-op that reports false when the target already has the fill colour", () => {
+    const data = new Uint8ClampedArray(2 * 2 * 4);
+    for (let i = 0; i < data.length; i += 4) { data[i] = 111; data[i + 1] = 23; data[i + 2] = 48; data[i + 3] = 255; }
+    const before = Array.from(data);
+    const image = { width: 2, height: 2, data } as ImageData;
+    // The editor skips its undo snapshot on false, so the buffer must be untouched.
+    expect(fillPixels(image, 1, 1, hexRgb("#6f1730"))).toBe(false);
+    expect(Array.from(data)).toEqual(before);
+  });
 });

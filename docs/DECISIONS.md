@@ -265,7 +265,7 @@ Because there is no preview store, these two surfaces cannot be exercised by the
 
 ## ADR-028 — Full offline Android product target
 
-**Status:** Owner-directed target, 2026-09-17; implementation incomplete.
+**Status:** Superseded by ADR-032 on 2026-09-20. Retained for history.
 
 **Decision:** Deliver every current Us Together feature through one Android APK. Existing Supabase Auth, database and private Storage remain the synchronization service; the Android UI and prior authorized data must work offline. The Next.js app remains the functional baseline until native parity is verified. The widget opens a native cached drawing screen instead of a web route.
 
@@ -273,7 +273,7 @@ Because there is no preview store, these two surfaces cannot be exercised by the
 
 ## ADR-029 — Android is the product target
 
-**Status:** Owner-directed, 2026-09-17; migration in progress.
+**Status:** Superseded by ADR-032 on 2026-09-20. Retained for history.
 
 **Decision:** Build Us Together as a native Android app, not a webapp or hosted WebView. Use the existing Next.js implementation only as a behavior and data-contract reference while native parity is built. Keep Supabase as the shared synchronization backend. The first native offline mutation is a drawing: it is saved locally with a stable ID, then published through existing RLS-protected tables and private Storage when connected.
 
@@ -297,3 +297,19 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 **Decision:** Use a numeric PIN screen with heart-shaped digit buttons for selected web sections. New PINs have four or six digits. Setup proceeds through length, create and confirm; change proceeds through current PIN, new length, create and confirm. The server rechecks the current PIN in the final change transaction and revokes active unlocks.
 
 **Consequences:** Four-digit PINs rely on the existing five-attempt cooldown. Existing longer codes continue working until changed. Device unlock on the current browser is removed after a PIN change; other browsers retain encrypted wrappers of the old PIN but server verification rejects them. The separate Vault specification remains unimplemented.
+
+## ADR-032 — One Android APK: web app in a Trusted Web Activity, native widget, FCM
+
+**Status:** Owner-directed, 2026-09-20; source implemented, device acceptance open. Supersedes ADR-028 and ADR-029.
+
+**Decision:** The Android deliverable is a single release-signed APK, package `app.ustogether`, that both partners sideload. Its launcher opens the deployed web app as a Trusted Web Activity, so every feature is the web feature and the web session is the app session. A native side, reached by long-pressing the icon or from the widget, holds its own Supabase session for the home-screen drawing widget, the offline drawing outbox and Firebase Cloud Messaging. The two sessions are not bridged; each is signed into once. Android push rides the database exactly as Web Push does: every `notifications` row fans out to the recipient's registered devices through `fcm_deliveries`, a per-minute worker posts content-free envelopes to the `fcm-dispatch` Edge Function, and settlement retires dead tokens. A registered token is the opt-in; sign-out deletes it. Drawings are sent at high priority so Doze wakes the widget; other categories are normal priority. Web Push is hidden inside the shell so one event never rings twice.
+
+**Consequences:** No native feature parity work remains; the full offline product in ADR-028/029 is abandoned and `docs/ANDROID_OFFLINE_MIGRATION.md` is history. ADR-026's immutable drawings and private Storage and ADR-013's content-minimal payloads are unchanged. Asset links require a stable release keystore that only the owner holds. A drawing sent from the native editor now reaches the partner's widget through the same path as a web send; the former web-route FCM call is deleted. Delivery latency is bounded by the cron minute. The debug APK proves compilation only; Trusted Web Activity verification, delivery and widget behaviour are owner device gates.
+
+## ADR-033 — Per-user drawing read rows
+
+**Status:** Owner-approved plan, 2026-09-20; migration and source implemented.
+
+**Decision:** Record that a recipient opened a drawing in `drawing_reads` (primary key drawing, user), mirroring `note_reads`, rather than reusing `notifications.read_at`. Rows are insert-only under RLS: no UPDATE grant is issued and the application writes `ON CONFLICT DO NOTHING`. The author never writes a row. Lists look up read state only for the drawings on the current page.
+
+**Consequences:** A "New" pill works even when the recipient has turned the drawing notification category off, and opening a drawing does not silently mark an inbox row read. The same change fixed `note_reads`: the previous upsert needed an UPDATE privilege the grant never gave, so every read mark failed with 42501 and the notes pill never cleared. Any future read-state table must be written insert-only for the same reason.

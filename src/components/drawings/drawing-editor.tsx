@@ -1,23 +1,29 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Circle, Eraser, Highlighter, PaintBucket, PenLine, Pencil, Pipette, Redo2, Send, SprayCan, Square, Trash2, Undo2, type LucideIcon } from "lucide-react";
+import { ArrowRight, Circle, Download, Eraser, Highlighter, PaintBucket, PenLine, Pencil, Pipette, Redo2, Send, SprayCan, Square, Trash2, Undo2, X, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fillPixels, HEIGHT, hexRgb, SWATCHES, WIDTH } from "@/lib/drawings/canvas";
 
 type Tool = "pencil" | "marker" | "highlighter" | "airbrush" | "fill" | "rectangle" | "ellipse" | "dropper" | "eraser";
-const TOOLS: { id: Tool; label: string; icon: LucideIcon }[] = [
-  { id: "pencil", label: "Pencil", icon: Pencil },
-  { id: "marker", label: "Marker", icon: PenLine },
-  { id: "highlighter", label: "Highlighter", icon: Highlighter },
-  { id: "airbrush", label: "Airbrush", icon: SprayCan },
-  { id: "fill", label: "Paint bucket", icon: PaintBucket },
-  { id: "rectangle", label: "Filled rectangle", icon: Square },
-  { id: "ellipse", label: "Filled ellipse", icon: Circle },
-  { id: "dropper", label: "Eyedropper", icon: Pipette },
-  { id: "eraser", label: "Eraser", icon: Eraser },
+const TOOLS: { id: Tool; label: string; short: string; icon: LucideIcon }[] = [
+  { id: "pencil", label: "Pencil", short: "Pencil", icon: Pencil },
+  { id: "marker", label: "Marker", short: "Marker", icon: PenLine },
+  { id: "highlighter", label: "Highlighter", short: "Highlight", icon: Highlighter },
+  { id: "airbrush", label: "Airbrush", short: "Airbrush", icon: SprayCan },
+  { id: "fill", label: "Paint bucket", short: "Fill", icon: PaintBucket },
+  { id: "rectangle", label: "Filled rectangle", short: "Rectangle", icon: Square },
+  { id: "ellipse", label: "Filled ellipse", short: "Ellipse", icon: Circle },
+  { id: "dropper", label: "Eyedropper", short: "Pick", icon: Pipette },
+  { id: "eraser", label: "Eraser", short: "Eraser", icon: Eraser },
 ];
 const COLOR_NAMES = ["Ink", "Wine", "Pink", "Coral", "Orange", "Yellow", "Leaf", "Sage", "Sky", "Violet", "White"] as const;
+const DRAFT_KEY = "us-together-drawing-draft-v1";
+/** Snapshots kept for undo and redo together. Each is a full 640×480 ImageData (~1.2 MB). */
+const HISTORY_LIMIT = 16;
+const MAX_BYTES = 2 * 1024 * 1024;
+const SEND_TIMEOUT = 20_000;
+
 function brushWidth(tool: Tool, size: number) {
   if (tool === "pencil") return Math.max(1, size * 0.65);
   if (tool === "marker") return size * 3;
@@ -40,8 +46,6 @@ function spray(context: CanvasRenderingContext2D, x: number, y: number, radius: 
   }
   context.restore();
 }
-const DRAFT_KEY = "us-together-drawing-draft-v1";
-const HISTORY_LIMIT = 20;
 function point(canvas: HTMLCanvasElement, clientX: number, clientY: number) {
   const rect = canvas.getBoundingClientRect();
   return { x: Math.max(0, Math.min(WIDTH - 1, (clientX - rect.left) * WIDTH / rect.width)),
@@ -51,26 +55,58 @@ function colorAt(ctx: CanvasRenderingContext2D, x: number, y: number) {
   const p = ctx.getImageData(Math.floor(x), Math.floor(y), 1, 1).data;
   return "#" + [p[0], p[1], p[2]].map((n) => n.toString(16).padStart(2, "0")).join("");
 }
+function toBlob(canvas: HTMLCanvasElement) {
+  return new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png"));
+}
+function download(blob: Blob, name: string) {
+  const url = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url; anchor.download = name; anchor.click();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 
-export function DrawingEditor() {
+type DraftState = "saved" | "pending" | "unavailable";
+
+export function DrawingEditor({ partnerName, canSend }: { partnerName: string | null; canSend: boolean }) {
   const router = useRouter();
+  const partner = partnerName ?? "your partner";
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
   const stroke = useRef<{ x: number; y: number; base?: ImageData } | null>(null);
-  const pausedReview = useRef<string | null>(null);
-  const undo = useRef<ImageData[]>([]);
-  const redo = useRef<ImageData[]>([]);
+  // One array holds undo and redo: frames[0..cursor] are states behind us, frames[cursor+1..] ahead.
+  const frames = useRef<ImageData[]>([]);
+  const cursor = useRef(-1);
   const keyboardPoint = useRef({ x: WIDTH / 2, y: HEIGHT / 2 });
+  const reviewBlob = useRef<Blob | null>(null);
+  const abort = useRef<AbortController | null>(null);
   const [tool, setTool] = useState<Tool>("pencil");
   const [color, setColor] = useState<string>(SWATCHES[1]);
   const [brushSize, setBrushSize] = useState(4);
   const [revision, setRevision] = useState(0);
-  const [history, setHistory] = useState({ undo: 0, redo: 0 });
+  const [history, setHistory] = useState({ undo: false, redo: false });
   const [keyboardCursor, setKeyboardCursor] = useState<{ x: number; y: number } | null>(null);
+  const [shapeAnchor, setShapeAnchor] = useState(false);
   const [review, setReview] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [draftState, setDraftState] = useState<DraftState>("saved");
   const [message, setMessage] = useState("");
   const ctx = () => canvasRef.current?.getContext("2d", { willReadFrequently: true }) ?? null;
-  const changed = useCallback(() => { setRevision((n) => n + 1); setHistory({ undo: undo.current.length, redo: redo.current.length }); }, []);
+  const changed = useCallback(() => {
+    setRevision((n) => n + 1);
+    setHistory({ undo: cursor.current >= 0, redo: cursor.current < frames.current.length - 1 });
+    setDraftState((state) => (state === "unavailable" ? state : "pending"));
+  }, []);
+
+  const persistDraft = useCallback(() => {
+    if (!canvasRef.current) return;
+    try {
+      localStorage.setItem(DRAFT_KEY, canvasRef.current.toDataURL("image/png"));
+      setDraftState("saved");
+    } catch {
+      setDraftState("unavailable");
+    }
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current, context = canvas?.getContext("2d");
@@ -80,38 +116,45 @@ export function DrawingEditor() {
     try { saved = localStorage.getItem(DRAFT_KEY); } catch { saved = null; }
     if (saved) {
       const image = new Image();
-      image.onload = () => { context.drawImage(image, 0, 0, WIDTH, HEIGHT); changed(); };
+      image.onload = () => { context.drawImage(image, 0, 0, WIDTH, HEIGHT); setRevision((n) => n + 1); };
       image.src = saved;
     }
-  }, [changed]);
-  useEffect(() => {
-    if (review !== null || !pausedReview.current || !canvasRef.current) return;
-    const saved = pausedReview.current;
-    pausedReview.current = null;
-    const image = new Image();
-    image.onload = () => {
-      const context = canvasRef.current?.getContext("2d");
-      if (!context) return;
-      context.fillStyle = "#ffffff";
-      context.fillRect(0, 0, WIDTH, HEIGHT);
-      context.drawImage(image, 0, 0, WIDTH, HEIGHT);
-      changed();
-    };
-    image.src = saved;
-  }, [review, changed]);
+  }, []);
+  // The 500 ms timer dies with the tab on a phone app-switch, so a leaving page saves at once.
   useEffect(() => {
     if (!revision || review) return;
-    const timer = window.setTimeout(() => {
-      try { if (canvasRef.current) localStorage.setItem(DRAFT_KEY, canvasRef.current.toDataURL("image/png")); }
-      catch { setMessage("This browser cannot keep a local draft. Keep the tab open until you send."); }
-    }, 500);
-    return () => window.clearTimeout(timer);
-  }, [revision, review]);
+    const timer = window.setTimeout(persistDraft, 500);
+    const flush = () => { if (document.visibilityState === "hidden") persistDraft(); };
+    window.addEventListener("pagehide", persistDraft);
+    document.addEventListener("visibilitychange", flush);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pagehide", persistDraft);
+      document.removeEventListener("visibilitychange", flush);
+    };
+  }, [revision, review, persistDraft]);
+  useEffect(() => () => { abort.current?.abort(); if (review) URL.revokeObjectURL(review); }, [review]);
 
   function remember(context: CanvasRenderingContext2D) {
-    undo.current.push(context.getImageData(0, 0, WIDTH, HEIGHT));
-    if (undo.current.length > HISTORY_LIMIT) undo.current.shift();
-    redo.current = [];
+    frames.current.splice(cursor.current + 1);
+    frames.current.push(context.getImageData(0, 0, WIDTH, HEIGHT));
+    if (frames.current.length > HISTORY_LIMIT) frames.current.shift();
+    cursor.current = frames.current.length - 1;
+  }
+  function undo() {
+    const context = ctx(); if (!context || cursor.current < 0) return;
+    const current = context.getImageData(0, 0, WIDTH, HEIGHT);
+    context.putImageData(frames.current[cursor.current], 0, 0);
+    frames.current[cursor.current] = current;
+    cursor.current -= 1;
+    changed();
+  }
+  function redo() {
+    const context = ctx(); if (!context || cursor.current >= frames.current.length - 1) return;
+    cursor.current += 1;
+    const current = context.getImageData(0, 0, WIDTH, HEIGHT);
+    context.putImageData(frames.current[cursor.current], 0, 0);
+    frames.current[cursor.current] = current;
     changed();
   }
   function paintShape(context: CanvasRenderingContext2D, from: { x: number; y: number }, to: { x: number; y: number }, base: ImageData) {
@@ -160,69 +203,133 @@ export function DrawingEditor() {
     changed();
   }
   function end() { stroke.current = null; const context = ctx(); if (context) context.globalAlpha = 1; }
-  function restore(source: React.RefObject<ImageData[]>, target: React.RefObject<ImageData[]>) {
-    const context = ctx(), previous = source.current.pop();
-    if (!context || !previous) return;
-    target.current.push(context.getImageData(0, 0, WIDTH, HEIGHT));
-    context.putImageData(previous, 0, 0); changed();
+  /** Keyboard shapes are two presses: anchor a corner, move, press again. Escape abandons. */
+  function cancelShape() {
+    const context = ctx(), start = stroke.current;
+    if (!context || !start?.base) return;
+    context.putImageData(start.base, 0, 0);
+    frames.current.pop();
+    cursor.current = frames.current.length - 1;
+    stroke.current = null;
+    setShapeAnchor(false);
+    changed();
+  }
+  function clearPage() {
+    const context = ctx(); if (!context) return;
+    remember(context); context.fillStyle = "#ffffff"; context.globalAlpha = 1; context.fillRect(0, 0, WIDTH, HEIGHT); changed();
+  }
+  function discardDraft() {
+    const context = ctx(); if (!context) return;
+    context.fillStyle = "#ffffff"; context.globalAlpha = 1; context.fillRect(0, 0, WIDTH, HEIGHT);
+    frames.current = []; cursor.current = -1;
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* nothing to remove */ }
+    setConfirmDiscard(false);
+    setHistory({ undo: false, redo: false });
+    setDraftState("saved");
+    setMessage("");
+    canvasRef.current?.focus();
+  }
+  async function saveCopy() {
+    if (!canvasRef.current) return;
+    const blob = await toBlob(canvasRef.current);
+    if (blob) download(blob, "drawing-draft.png");
+  }
+  async function openReview() {
+    if (!canvasRef.current) return;
+    const blob = await toBlob(canvasRef.current);
+    if (!blob) { setMessage("Could not prepare the preview. Try again."); return; }
+    reviewBlob.current = blob;
+    setMessage("");
+    setReview(URL.createObjectURL(blob));
+    window.requestAnimationFrame(() => reviewHeading.current?.focus());
+  }
+  function closeReview() {
+    setReview(null);
+    reviewBlob.current = null;
+    window.requestAnimationFrame(() => canvasRef.current?.focus());
   }
   async function send() {
-    if (!review || pending) return;
+    const blob = reviewBlob.current;
+    if (!blob || !canSend || pending) return;
+    if (blob.size > MAX_BYTES) { setMessage("This page is too detailed to send (over 2 MB). Undo a few strokes and try again."); return; }
     setPending(true); setMessage("");
+    const controller = new AbortController();
+    abort.current = controller;
+    const timer = window.setTimeout(() => controller.abort(new DOMException("Timed out", "TimeoutError")), SEND_TIMEOUT);
     try {
-      const blob = await (await fetch(review)).blob();
       const form = new FormData(); form.set("image", blob, "drawing.png");
-      const response = await fetch("/api/drawing-notes", { method: "POST", body: form });
-      const result = await response.json();
+      const response = await fetch("/api/drawing-notes", { method: "POST", body: form, signal: controller.signal });
+      let result: { id?: string; error?: string } = {};
+      try { result = await response.json(); } catch { result = {}; }
       if (!response.ok || !result.id) throw new Error(result.error ?? "Could not send. Try again.");
-      localStorage.removeItem(DRAFT_KEY);
-      router.push("/drawings/" + result.id); router.refresh();
-    } catch (error) { setMessage(error instanceof Error ? error.message : "Could not send. Try again."); }
-    finally { setPending(false); }
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* the server has it now */ }
+      router.push("/drawings/" + result.id + "?sent=1"); router.refresh();
+    } catch (error) {
+      const name = error instanceof DOMException ? error.name : "";
+      setMessage(name === "AbortError" || name === "TimeoutError"
+        ? "Could not reach Us Together. Your drawing is still here. Try again."
+        : error instanceof Error ? error.message : "Could not send. Try again.");
+    } finally { window.clearTimeout(timer); abort.current = null; setPending(false); }
   }
+
   const selectedTool = TOOLS.find((item) => item.id === tool)?.label ?? "Pencil";
   const hasSize = tool === "pencil" || tool === "marker" || tool === "highlighter" || tool === "airbrush" || tool === "eraser";
-  return <section className="mt-6 space-y-4" aria-label="Drawing workspace">
-    {!review ? <>
+  const isShape = tool === "rectangle" || tool === "ellipse";
+  const iconButton = "grid size-11 place-items-center rounded-xl bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-primary motion-reduce:transition-none";
+
+  return <section className="mt-4 space-y-4 sm:mt-6" aria-label="Drawing workspace">
+    <div hidden={review !== null} aria-hidden={review !== null} className="space-y-4">
       <div className="rounded-[1.5rem] bg-[#f5dfe2] p-3 dark:bg-[#4b303a] sm:p-5">
         <div className="mb-3 flex items-center justify-between gap-3 px-1 text-xs font-bold uppercase tracking-[0.12em] text-[#713143] dark:text-[#f5c9d3]">
-          <span>For your partner</span><span>Private draft</span>
+          <span>For {partner}</span>
+          <span aria-live="polite">{draftState === "unavailable" ? "Draft not saved on this device" : draftState === "pending" ? "Saving draft…" : "Private draft"}</span>
         </div>
-        <div className="relative overflow-hidden rounded-[1rem] bg-white p-1.5 shadow-paper sm:p-2">
-          <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} tabIndex={0} role="img"
-            aria-label="Drawing canvas. Use a pointer to draw. With keyboard, arrow keys move the cursor; Space draws a mark; Enter uses fill or eyedropper."
-            className="block aspect-[4/3] w-full rounded-[0.7rem] bg-white touch-none outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-primary"
-            onFocus={() => setKeyboardCursor({ ...keyboardPoint.current })}
-            onBlur={() => setKeyboardCursor(null)}
-            onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); const p = point(event.currentTarget, event.clientX, event.clientY); begin(p.x, p.y); }}
-            onPointerMove={(event) => { if (!event.currentTarget.hasPointerCapture(event.pointerId)) return; const p = point(event.currentTarget, event.clientX, event.clientY); move(p.x, p.y); }}
-            onPointerUp={end} onPointerCancel={end}
-            onKeyDown={(event) => {
-              const cursor = keyboardPoint.current;
-              const step = event.shiftKey ? 20 : 5;
-              if (event.key === "ArrowLeft") cursor.x = Math.max(0, cursor.x - step);
-              else if (event.key === "ArrowRight") cursor.x = Math.min(WIDTH - 1, cursor.x + step);
-              else if (event.key === "ArrowUp") cursor.y = Math.max(0, cursor.y - step);
-              else if (event.key === "ArrowDown") cursor.y = Math.min(HEIGHT - 1, cursor.y + step);
-              else if (event.key === " " || event.key === "Enter") { begin(cursor.x, cursor.y); if (tool === "rectangle" || tool === "ellipse") move(Math.min(WIDTH - 1, cursor.x + 40), Math.min(HEIGHT - 1, cursor.y + 30)); end(); }
-              else return;
-              setKeyboardCursor({ ...cursor });
-              event.preventDefault();
-            }} />
-          {keyboardCursor ? <span aria-hidden="true" className="pointer-events-none absolute size-3 rounded-full border-2 border-primary bg-white shadow-sm" style={{ left: (keyboardCursor.x / WIDTH * 100) + "%", top: (keyboardCursor.y / HEIGHT * 100) + "%", transform: "translate(-50%, -50%)" }} /> : null}
+        <div className="rounded-[1rem] bg-white p-1.5 shadow-paper sm:p-2">
+          <div className="relative mx-auto w-fit">
+            <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} tabIndex={0} role="img"
+              aria-label={"Drawing canvas. Use a pointer to draw. With keyboard, arrow keys move the cursor; Space draws a mark; Enter uses fill or eyedropper." + (isShape ? " For shapes, press Space once to set a corner, move with the arrows, then press Space again. Escape cancels." : "")}
+              className="block aspect-[4/3] h-auto max-h-[min(56dvh,30rem)] w-auto max-w-full rounded-[0.7rem] bg-white touch-none outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-primary"
+              onFocus={() => setKeyboardCursor({ ...keyboardPoint.current })}
+              onBlur={() => { setKeyboardCursor(null); if (shapeAnchor) cancelShape(); }}
+              onPointerDown={(event) => { if (shapeAnchor) cancelShape(); event.currentTarget.setPointerCapture(event.pointerId); const p = point(event.currentTarget, event.clientX, event.clientY); begin(p.x, p.y); }}
+              onPointerMove={(event) => { if (!event.currentTarget.hasPointerCapture(event.pointerId)) return; const p = point(event.currentTarget, event.clientX, event.clientY); move(p.x, p.y); }}
+              onPointerUp={end} onPointerCancel={end}
+              onKeyDown={(event) => {
+                const cursorPoint = keyboardPoint.current;
+                const step = event.shiftKey ? 20 : 5;
+                if (event.key === "Escape") { if (!shapeAnchor) return; cancelShape(); }
+                else if (event.key === "ArrowLeft") cursorPoint.x = Math.max(0, cursorPoint.x - step);
+                else if (event.key === "ArrowRight") cursorPoint.x = Math.min(WIDTH - 1, cursorPoint.x + step);
+                else if (event.key === "ArrowUp") cursorPoint.y = Math.max(0, cursorPoint.y - step);
+                else if (event.key === "ArrowDown") cursorPoint.y = Math.min(HEIGHT - 1, cursorPoint.y + step);
+                else if (event.key === " " || event.key === "Enter") {
+                  if (isShape) {
+                    if (shapeAnchor) { move(cursorPoint.x, cursorPoint.y); end(); setShapeAnchor(false); }
+                    else { begin(cursorPoint.x, cursorPoint.y); setShapeAnchor(true); }
+                  } else { begin(cursorPoint.x, cursorPoint.y); end(); }
+                }
+                else return;
+                if (shapeAnchor && event.key.startsWith("Arrow")) move(cursorPoint.x, cursorPoint.y);
+                setKeyboardCursor({ ...cursorPoint });
+                event.preventDefault();
+              }} />
+            {keyboardCursor ? <span aria-hidden="true" className="pointer-events-none absolute size-3 rounded-full border-2 border-primary bg-white shadow-sm" style={{ left: (keyboardCursor.x / WIDTH * 100) + "%", top: (keyboardCursor.y / HEIGHT * 100) + "%", transform: "translate(-50%, -50%)" }} /> : null}
+          </div>
         </div>
+        <p className="sr-only" aria-live="polite">{shapeAnchor ? "Corner set. Move with the arrows, then press Space to finish. Escape cancels." : ""}</p>
       </div>
       <div className="rounded-[1.25rem] border bg-card p-3 sm:p-4">
         <div className="mb-3 flex items-baseline justify-between gap-3 px-1">
           <h2 className="text-sm font-bold text-foreground">Your tools</h2>
           <span className="text-xs text-muted-foreground" aria-live="polite">{selectedTool}</span>
         </div>
-        <div role="toolbar" aria-label="Drawing tools" className="grid grid-cols-3 gap-2 sm:grid-cols-9">
+        <div role="toolbar" aria-label="Drawing tools" className="grid grid-cols-5 gap-2 sm:grid-cols-9">
           {TOOLS.map((item) => { const Icon = item.icon; return <button key={item.id} type="button" title={item.label} aria-label={item.label} aria-pressed={tool === item.id}
-            onClick={() => setTool(item.id)}
-            className={"grid min-h-12 place-items-center rounded-xl border-2 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary " +
+            onClick={() => { if (shapeAnchor) cancelShape(); setTool(item.id); }}
+            className={"grid min-h-12 place-items-center gap-1 rounded-xl border-2 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none " +
               (tool === item.id ? "border-primary bg-primary text-primary-foreground" : "border-transparent bg-secondary/70 text-foreground hover:border-border hover:bg-secondary")}>
             <Icon className="size-5" aria-hidden="true" />
+            <span aria-hidden="true" className="hidden text-[11px] font-semibold leading-none sm:block">{item.short}</span>
           </button>; })}
         </div>
         <div className="mt-4 border-t pt-4">
@@ -231,7 +338,7 @@ export function DrawingEditor() {
             {SWATCHES.map((swatch, index) => <button key={swatch} type="button" title={COLOR_NAMES[index]}
               aria-label={COLOR_NAMES[index] + " color"} aria-pressed={color === swatch}
               onClick={() => setColor(swatch)} style={{ backgroundColor: swatch }}
-              className={"size-10 rounded-full border-2 shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary " +
+              className={"size-10 rounded-full border-2 shadow-sm transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none " +
                 (color === swatch ? "border-white ring-2 ring-primary ring-offset-2 ring-offset-card" : "border-black/10 dark:border-white/20")} />)}
           </div>
         </div>
@@ -244,37 +351,46 @@ export function DrawingEditor() {
             <span className="grid size-8 place-items-center rounded-full bg-secondary" aria-hidden="true"><span className="rounded-full bg-primary" style={{ width: Math.min(24, Math.max(3, brushWidth(tool, brushSize))), height: Math.min(24, Math.max(3, brushWidth(tool, brushSize))) }} /></span>
             <output className="min-w-4 tabular-nums">{brushSize}</output>
           </label>
-          <div className="flex items-center gap-2" aria-label="Edit drawing">
-            <button type="button" title="Undo" aria-label="Undo" disabled={!history.undo} onClick={() => restore(undo, redo)} className="grid size-11 place-items-center rounded-xl bg-secondary text-foreground disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-primary"><Undo2 className="size-5" aria-hidden="true" /></button>
-            <button type="button" title="Redo" aria-label="Redo" disabled={!history.redo} onClick={() => restore(redo, undo)} className="grid size-11 place-items-center rounded-xl bg-secondary text-foreground disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-primary"><Redo2 className="size-5" aria-hidden="true" /></button>
-            <button type="button" title="Clear page" aria-label="Clear page" onClick={() => {
-              const context = ctx(); if (!context) return;
-              remember(context); context.fillStyle = "#ffffff"; context.globalAlpha = 1; context.fillRect(0, 0, WIDTH, HEIGHT); changed();
-            }} className="grid size-11 place-items-center rounded-xl bg-secondary text-foreground focus-visible:outline-2 focus-visible:outline-primary"><Trash2 className="size-5" aria-hidden="true" /></button>
+          <div className="flex items-center gap-2" role="group" aria-label="Edit drawing">
+            <button type="button" title="Undo" aria-label="Undo" disabled={!history.undo} onClick={undo} className={iconButton}><Undo2 className="size-5" aria-hidden="true" /></button>
+            <button type="button" title="Redo" aria-label="Redo" disabled={!history.redo} onClick={redo} className={iconButton}><Redo2 className="size-5" aria-hidden="true" /></button>
+            <button type="button" title="Clear page" aria-label="Clear page" onClick={clearPage} className={iconButton}><Trash2 className="size-5" aria-hidden="true" /></button>
           </div>
         </div>
       </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-xs leading-5 text-muted-foreground">Saved on this device until you send. Sent drawings stay as they are.</p>
-        <Button type="button" className="min-h-12 shrink-0 gap-2 rounded-xl" onClick={() => {
-          const preview = canvasRef.current?.toDataURL("image/png") ?? null;
-          pausedReview.current = preview;
-          setReview(preview); setMessage("");
-        }}>Review drawing <ArrowRight className="size-4" aria-hidden="true" /></Button>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs leading-5 text-muted-foreground">
+          <p>{draftState === "unavailable" ? "This browser cannot keep a draft. Keep the tab open until you send." : "Saved on this device until you send. Sent drawings stay as they are."}</p>
+          {draftState === "unavailable" ? <button type="button" onClick={saveCopy} className="inline-flex min-h-8 items-center gap-1 font-semibold text-primary underline underline-offset-4"><Download className="size-3.5" aria-hidden="true" />Save a copy</button> : null}
+          {confirmDiscard ? <span role="group" aria-label="Discard this page?" className="inline-flex items-center gap-2">
+            <span className="font-semibold text-foreground">Discard this page?</span>
+            <Button type="button" size="sm" variant="outline" className="border-danger text-danger hover:bg-danger/10" onClick={discardDraft}>Discard</Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmDiscard(false)}>Keep</Button>
+          </span> : <button type="button" onClick={() => setConfirmDiscard(true)} className="inline-flex min-h-8 items-center gap-1 font-semibold text-primary underline underline-offset-4"><X className="size-3.5" aria-hidden="true" />Discard draft</button>}
+        </div>
+        <Button type="button" className="min-h-12 shrink-0 gap-2 rounded-xl" onClick={openReview}>Review drawing <ArrowRight className="size-4" aria-hidden="true" /></Button>
       </div>
-    </> : <div className="space-y-5">
-      <div className="text-center"><p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">One last look</p><h2 className="mt-2 font-display text-3xl">Ready for your partner?</h2></div>
+    </div>
+    <div hidden={review === null} className="space-y-5">
+      <div className="text-center">
+        <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">One last look</p>
+        <h2 ref={reviewHeading} tabIndex={-1} className="mt-2 font-display text-3xl outline-none">Ready for {partner}?</h2>
+      </div>
       <div className="rounded-[1.5rem] bg-[#f5dfe2] p-3 dark:bg-[#4b303a] sm:p-5">
         <div className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.12em] text-[#713143] dark:text-[#f5c9d3]">Your finished drawing</div>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={review} alt="Preview of the finished drawing" className="aspect-[4/3] w-full rounded-[1rem] bg-white object-contain shadow-paper" />
+        {review ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={review} alt="Preview of the finished drawing" className="aspect-[4/3] w-full rounded-[1rem] bg-white object-contain shadow-paper" />
+        ) : null}
       </div>
-      <p className="text-center text-sm text-muted-foreground">Sending adds this page to your shared history and your partner&apos;s widget. It cannot be revised.</p>
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-center">
-        <Button type="button" variant="outline" className="min-h-12 rounded-xl" disabled={pending} onClick={() => setReview(null)}>Keep drawing</Button>
-        <Button type="button" className="min-h-12 gap-2 rounded-xl" disabled={pending} onClick={send}>{pending ? "Sending..." : "Send drawing"}<Send className="size-4" aria-hidden="true" /></Button>
+      <p className="text-center text-sm text-muted-foreground">
+        {canSend ? `Sending adds this page to your shared history and ${partner}'s widget. It cannot be revised.` : "Sending opens with a connected account. Your draft stays on this device."}
+      </p>
+      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-center" aria-busy={pending}>
+        <Button type="button" variant="outline" className="min-h-12 rounded-xl" disabled={pending} onClick={closeReview}>Keep drawing</Button>
+        <Button type="button" className="min-h-12 gap-2 rounded-xl" disabled={pending || !canSend} onClick={send}>{pending ? "Sending…" : `Send to ${partner}`}<Send className="size-4" aria-hidden="true" /></Button>
       </div>
-    </div>}
+    </div>
     {message ? <p role="alert" className="status-message status-error">{message}</p> : null}
   </section>;
 }

@@ -158,11 +158,25 @@ MVP types are `shared` and `private`.
 - Private notes are visible only to the author, even if they name the partner as recipient.
 - Notes support title, plain/rich-safe content, optional attachments, and read state where applicable.
 - Rendering sanitizes content; MVP must not introduce unsafe arbitrary HTML.
+- The list pages 25 notes at a time by last update with an "Older notes" link, names the author, shows a relative time, and marks unread shared partner notes "New" until opened (read state is recorded insert-only). The form counts characters against the 160/20,000 limits and warns before leaving with unsaved words.
 
 Acceptance:
 
 - The partner cannot query the author's private note.
 - Activity, notifications, search, and counts respect the same visibility.
+
+### Drawings ("Note it")
+
+Hand-drawn 640×480 notes sent partner to partner, immutable once sent (ADR-026/027/033).
+
+- A web editor with nine tools, preset swatches, bounded undo/redo, an autosaved local draft, keyboard drawing, a review step and a partner-named send; sending is disabled with an explanation in the developer preview.
+- A newest-first history of 25 per page with a "New" pill for unopened received drawings, a detail page with Download/Share and Newer/Older links, a Home card for the latest drawing, and a PWA shortcut.
+- Both partners' Android phones run one APK (ADR-032): the web app in a Trusted Web Activity, a home-screen widget showing the latest received drawing, a native editor with an offline outbox, and content-free push notifications for partner updates dispatched from the database.
+
+Acceptance:
+
+- A recipient's read row cannot be written by the author or a foreign user; a pending drawing cannot be marked read.
+- A drawing sent from either the web or the native editor produces exactly one notification row and one FCM delivery per registered device of the recipient, carrying no content.
 
 ### Milestones and notifications
 

@@ -1,11 +1,15 @@
-package app.ustogether.widget;
+package app.ustogether;
 
 import android.app.Application;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 
 public final class WidgetApplication extends Application {
+    static final String CHANNEL_PARTNER_UPDATES = "partner_updates";
     private boolean pushConfigured;
+
     @Override public void onCreate() {
         super.onCreate();
         pushConfigured = !BuildConfig.FIREBASE_APP_ID.isEmpty() &&
@@ -18,6 +22,12 @@ public final class WidgetApplication extends Application {
                 .setApiKey(BuildConfig.FIREBASE_API_KEY).setProjectId(BuildConfig.FIREBASE_PROJECT_ID).build();
             FirebaseApp.initializeApp(this, options);
         }
+        // Creating an existing channel is a no-op, so this is safe on every start.
+        NotificationChannel channel = new NotificationChannel(CHANNEL_PARTNER_UPDATES,
+            getString(R.string.channel_partner_updates), NotificationManager.IMPORTANCE_DEFAULT);
+        channel.setDescription(getString(R.string.channel_partner_updates_description));
+        getSystemService(NotificationManager.class).createNotificationChannel(channel);
     }
+
     boolean pushConfigured() { return pushConfigured; }
 }

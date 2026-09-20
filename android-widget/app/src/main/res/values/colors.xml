@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="brand">#FF6F1730</color>
+    <color name="paper">#FFFBF7F3</color>
+    <color name="cream">#FFFFF9F6</color>
+    <color name="ink">#FF2F2527</color>
+    <color name="plum">#FF542B34</color>
+    <color name="blush">#FFDF879A</color>
+    <color name="ic_launcher_background">#FF6F1730</color>
+</resources>

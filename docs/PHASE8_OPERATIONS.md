@@ -90,6 +90,31 @@ therefore no push. Do not add a body, a name or an item title to the payload; do
 so would move content into a third-party push service and past the recipient's lock
 screen.
 
+## Android push (FCM) — 2026-09-20
+
+The Android transport reuses this file's shape and ships disabled the same way.
+
+One-time configuration, in order:
+
+1. Apply `20260920100500_fcm_deliveries.sql` and run the security and performance advisors.
+2. Deploy the `fcm-dispatch` Edge Function (`verify_jwt = false` in `config.toml`; it authenticates with `x-dispatch-secret`).
+3. Set its secrets in the dashboard: `FIREBASE_SERVICE_ACCOUNT_JSON` (the full service-account JSON from Firebase → Project settings → Service accounts → Generate new private key) and `PUSH_DISPATCH_SECRET` (the same value as the Vault secret below). `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.
+4. Store the endpoint in Vault: `select vault.create_secret('https://<project-ref>.supabase.co/functions/v1/fcm-dispatch', 'fcm_endpoint_url');` and, if Web Push never created it, `select vault.create_secret('<long random secret>', 'push_dispatch_secret');`.
+
+The worker `private.dispatch_due_fcm(50)` runs every minute as `us-together-fcm-dispatch` and returns 0 until both Vault secrets exist.
+
+Safe inspection (no content is present in any of these tables):
+
+```sql
+select state, count(*) from public.fcm_deliveries group by state;
+select count(*) as devices, count(distinct user_id) as users from public.drawing_devices;
+select jobname, schedule, active from cron.job where jobname like 'us-together-%';
+```
+
+Disabling: `select cron.unschedule('us-together-fcm-dispatch');` stops dispatch; deleting the `fcm_endpoint_url` Vault secret makes the worker a no-op without touching the schedule. Registered tokens stay until the phone signs out.
+
+What FCM may never carry is the same list as Web Push: the generic stored title, category, target type and id, notification id and a tag. The phone renders a fixed body and opens the app at the target path.
+
 ## Known finding: pg_net is executable by anon and authenticated
 
 Enabling pg_net granted `EXECUTE` on `net.http_post`, `net.http_get` and

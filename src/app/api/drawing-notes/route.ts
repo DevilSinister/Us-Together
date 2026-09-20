@@ -1,5 +1,4 @@
 import { Image } from "imagescript";
-import { notifyDrawingRecipient } from "@/lib/drawings/push";
 import { coupleContext } from "@/lib/couple/context";
 import { inspectMedia } from "@/lib/memories/media";
 
@@ -52,6 +51,5 @@ export async function POST(request: Request) {
     await context.db.from("drawing_notes").delete().eq("id", id).eq("status", "pending");
     return failure("Could not send the drawing. Try again.", 500);
   }
-  await notifyDrawingRecipient(partner.user_id);
   return Response.json({ id }, { status: 201 });
 }

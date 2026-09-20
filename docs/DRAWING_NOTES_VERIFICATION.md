@@ -65,3 +65,27 @@ Final source gates for this change: lint passed; typecheck passed after fixing a
 ## Native drawing editor source — 2026-09-17
 
 After the Android-only direction, the app gained a native 640×480 editor with nine tools, local draft, undo/redo, review, a per-account offline PNG queue and retry of the same immutable drawing ID after connectivity returns. Widget taps continue to open the native cached image viewer. Android `assembleDebug` and `lintDebug` passed after fixing gesture-back handling, API-26 encoding and UI-thread PNG work. `testDebugUnitTest` reported NO-SOURCE: there are no Android unit tests yet. No physical device, emulator, or paired native send/read test ran, so offline queue correctness and visual behavior are unverified. The web feature gates from the earlier revision remain historical evidence, not proof of the native flow. The rest of the product has not been ported.
+
+## Note it polish, one-APK shell and database FCM — 2026-09-20/21
+
+Owner decisions: polish drawings and text notes; Android as one release-signed APK (web app in a Trusted Web Activity + native widget, outbox and FCM, ADR-032); owner creates the Firebase project. Package renamed `app.ustogether`. See ADR-032/033, `docs/API_CONTRACTS.md`, `docs/DATABASE.md`, `docs/PHASE8_OPERATIONS.md`, `android-widget/README.md`.
+
+Defect found and fixed: `note_reads` was written with an upsert that needed an UPDATE grant the table never had, so every read mark failed with 42501 silently and the notes "New" pill never cleared. Both `note_reads` and the new `drawing_reads` are now insert-only writes.
+
+| Gate | Final result |
+| --- | --- |
+| `npm run typecheck` | Passed (exit 0) after deleting stale `.next/dev/types` files that still named the removed push-status route |
+| `npm run lint` | Passed (exit 0) after moving a ref read out of render in `note-form.tsx` |
+| `npm run test` | Passed: 126 tests in 22 files (exit 0); new suites for cursors, relative time, notes/drawings loaders, assetlinks, manifest |
+| `npm run build` | Passed (exit 0); route list includes `/drawings`, `/drawings/[id]`, `/drawings/new`, `/notes/*`, `/api/drawing-notes`, `/api/drawing-notes/[id]/image`; no push-status route |
+| Android `assembleDebug lintDebug testDebugUnitTest` (JDK 17, Gradle 8.14) | Passed (`BUILD SUCCESSFUL`, `GRADLE_EXIT=0`) on the second run; first run failed lint with 3 errors (`AppLinkUrlError` on the placeholder host, `UseAppTint` ×2), fixed with a `tools:ignore` and by dropping redundant tints. Lint 0 errors / 32 warnings. JUnit: `PushEnvelopeTest` 4/4, `PendingDrawingsSyncTest` 2/2. Debug APK written; built without `WIDGET_*` values, so it proves compilation only |
+| Hosted migrations `20260920100000`, `20260920100500` | **Not applied.** Owner approval required; apply in that order, then advisors, then regenerate types |
+| `fcm-dispatch` deploy, Edge secrets, Vault `fcm_endpoint_url` | **Not done.** Owner-gated; depends on the Firebase service account |
+| pgTAP `0012_drawing_reads_rls`, `0013_fcm_deliveries` | **Not run.** No Docker/Podman; hosted SQL connector cannot run fixture transactions |
+| Playwright `tests/e2e/notes-drawings.spec.ts` | **Not run.** Browsers absent on this machine; preview-lane journeys written, two-account lane marked fixme |
+| In-app browser lanes (preview editor, two-account read pills, Home card, 390 px fit) | **Not run this session.** Owed |
+| Impeccable detector on drawings/notes surfaces | **Not run this session.** Surface contracts added under `.impeccable/surfaces/` |
+| Trusted Web Activity verification, FCM end-to-end, widget rendering, Doze, offline, sign-out clears token | **Owner device gates.** Release keystore and `assetlinks.json` fingerprints still empty |
+| Secret scan | New files carry no credentials; `.env.example` lists variable names only; Firebase service account is documented as an Edge secret only |
+
+Rollout order still to run: owner Firebase + keystore → apply migrations with advisors → deploy `fcm-dispatch` + secrets + Vault → fill `assetlinks.json` and push web → `assembleRelease` → install on both phones → device script in `android-widget/README.md` and the plan.

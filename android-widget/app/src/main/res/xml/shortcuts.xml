@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Long-press the launcher icon: the native setup screen has no other chrome to hang from. -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut android:shortcutId="draw" android:enabled="true" android:icon="@drawable/ic_widget_reply"
+        android:shortcutShortLabel="@string/shortcut_draw_short" android:shortcutLongLabel="@string/shortcut_draw_long">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="app.ustogether" android:targetClass="app.ustogether.MainActivity">
+            <extra android:name="action" android:value="draw"/>
+        </intent>
+    </shortcut>
+    <shortcut android:shortcutId="setup" android:enabled="true" android:icon="@drawable/ic_widget_refresh"
+        android:shortcutShortLabel="@string/shortcut_setup_short" android:shortcutLongLabel="@string/shortcut_setup_long">
+        <intent android:action="android.intent.action.VIEW" android:targetPackage="app.ustogether" android:targetClass="app.ustogether.MainActivity"/>
+    </shortcut>
+</shortcuts>

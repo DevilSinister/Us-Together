@@ -1,5 +1,6 @@
 import "server-only";
-import { coupleContext } from "@/lib/couple/context";
+import { coupleContext, partnerName } from "@/lib/couple/context";
+import { decodeCursor, encodeCursor, keysetFilter, keysetFilterAfter } from "@/lib/pagination/cursor";
 
 export type DrawingNote = {
   id: string;
@@ -7,41 +8,97 @@ export type DrawingNote = {
   recipient_id: string;
   sent_at: string | null;
   mine: boolean;
+  /** True for the author, and for a recipient who has opened the drawing. */
+  read: boolean;
 };
 
-function decodeCursor(input: string | undefined) {
-  if (!input || input.length > 200) return null;
-  try {
-    const [time, id] = Buffer.from(input, "base64url").toString("utf8").split("|");
-    if (!/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d{1,6}(?:Z|\+00:00)$/.test(time) ||
-        !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) ||
-        Number.isNaN(Date.parse(time))) return null;
-    return { time, id };
-  } catch { return null; }
-}
+export type DrawingsView = {
+  paired: boolean;
+  notes: DrawingNote[];
+  next: string | null;
+  partner: string | null;
+  error?: string;
+};
 
-export async function loadDrawings(after?: string) {
+export type DrawingDetail = DrawingNote & {
+  partner: string | null;
+  older: string | null;
+  newer: string | null;
+};
+
+const PAGE = 25;
+const columns = "id,author_id,recipient_id,sent_at" as const;
+const unpaired: DrawingsView = { paired: false, notes: [], next: null, partner: null };
+
+/**
+ * Row level security decides what comes back: a drawing is visible to its author and,
+ * once ready, to its recipient. Read state is a separate recipient-owned row, looked up
+ * only for the drawings on this page.
+ */
+export async function loadDrawings(after?: string): Promise<DrawingsView> {
   const context = await coupleContext();
-  if (context.kind === "preview" || !context.coupleId) return { paired: false, notes: [] as DrawingNote[], next: null as string | null };
-  let query = context.db.from("drawing_notes")
-    .select("id,author_id,recipient_id,sent_at")
+  if (context.kind === "preview" || !context.coupleId) return unpaired;
+  let query = context.db.from("drawing_notes").select(columns)
     .eq("couple_id", context.coupleId).eq("status", "ready")
-    .order("sent_at", { ascending: false }).order("id", { ascending: false }).limit(25);
+    .order("sent_at", { ascending: false }).order("id", { ascending: false }).limit(PAGE + 1);
   const cursor = decodeCursor(after);
-  if (cursor) query = query.or("sent_at.lt." + cursor.time + ",and(sent_at.eq." + cursor.time + ",id.lt." + cursor.id + ")");
-  const { data, error } = await query;
-  if (error) return { paired: true, notes: [] as DrawingNote[], next: null, error: "Could not load drawings. Try again." };
-  const page = (data ?? []).slice(0, 24);
+  if (cursor) query = query.or(keysetFilter("sent_at", cursor));
+  const [{ data, error }, partner] = await Promise.all([query, partnerName(context)]);
+  if (error) return { paired: true, notes: [], next: null, partner, error: "Could not load drawings. Try again." };
+
+  const rows = data ?? [];
+  const page = rows.slice(0, PAGE);
   const last = page.at(-1);
-  const next = (data?.length ?? 0) > 24 && last?.sent_at
-    ? Buffer.from(last.sent_at + "|" + last.id).toString("base64url") : null;
-  return { paired: true, notes: page.map((row) => ({ ...row, mine: row.author_id === context.userId })), next };
+  const next = rows.length > PAGE && last?.sent_at ? encodeCursor(last.sent_at, last.id) : null;
+
+  const received = page.filter((row) => row.author_id !== context.userId).map((row) => row.id);
+  const opened = new Set<string>();
+  if (received.length) {
+    const { data: reads } = await context.db.from("drawing_reads").select("drawing_id")
+      .eq("user_id", context.userId).in("drawing_id", received);
+    for (const row of reads ?? []) opened.add(row.drawing_id);
+  }
+  return {
+    paired: true, next, partner,
+    notes: page.map((row) => {
+      const mine = row.author_id === context.userId;
+      return { ...row, mine, read: mine || opened.has(row.id) };
+    }),
+  };
 }
 
-export async function loadDrawing(id: string) {
+export async function loadDrawing(id: string): Promise<DrawingDetail | null> {
   const context = await coupleContext();
   if (context.kind === "preview" || !context.coupleId) return null;
-  const { data } = await context.db.from("drawing_notes")
-    .select("id,author_id,recipient_id,sent_at").eq("id", id).eq("status", "ready").maybeSingle();
-  return data ? { ...data, mine: data.author_id === context.userId } : null;
+  const { data } = await context.db.from("drawing_notes").select(columns)
+    .eq("id", id).eq("status", "ready").maybeSingle();
+  if (!data) return null;
+  const mine = data.author_id === context.userId;
+
+  // Opening a received drawing records read state once. The table has no UPDATE grant,
+  // so this must stay an insert-or-ignore; an upsert that updated would fail with 42501.
+  if (!mine) {
+    const { error } = await context.db.from("drawing_reads")
+      .upsert({ drawing_id: id, user_id: context.userId }, { onConflict: "drawing_id,user_id", ignoreDuplicates: true });
+    if (error) console.error("drawing_reads insert failed", { code: error.code });
+  }
+
+  const neighbours = data.sent_at
+    ? await Promise.all([
+      context.db.from("drawing_notes").select("id").eq("couple_id", context.coupleId).eq("status", "ready")
+        .or(keysetFilter("sent_at", { time: data.sent_at, id })).order("sent_at", { ascending: false }).order("id", { ascending: false }).limit(1).maybeSingle(),
+      context.db.from("drawing_notes").select("id").eq("couple_id", context.coupleId).eq("status", "ready")
+        .or(keysetFilterAfter("sent_at", { time: data.sent_at, id })).order("sent_at", { ascending: true }).order("id", { ascending: true }).limit(1).maybeSingle(),
+    ])
+    : [{ data: null }, { data: null }];
+  const partner = await partnerName(context);
+  return { ...data, mine, read: true, partner, older: neighbours[0].data?.id ?? null, newer: neighbours[1].data?.id ?? null };
+}
+
+/** What the editor page needs: whether sending is possible here, and who receives it. */
+export async function loadDrawingWorkspace(): Promise<{ state: "preview" | "unpaired" | "paired"; partner: string | null }> {
+  const context = await coupleContext();
+  if (context.kind === "preview") return { state: "preview", partner: null };
+  if (!context.coupleId) return { state: "unpaired", partner: null };
+  return { state: "paired", partner: await partnerName(context) };
 }

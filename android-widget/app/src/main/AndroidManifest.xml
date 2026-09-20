@@ -1,14 +1,38 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <application android:name=".WidgetApplication" android:allowBackup="false" android:label="Us Together" android:usesCleartextTraffic="false"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <application android:name=".WidgetApplication" android:allowBackup="false" android:label="@string/app_name"
+        android:icon="@mipmap/ic_launcher" android:usesCleartextTraffic="false" android:theme="@style/Theme.UsTogether">
+        <meta-data android:name="asset_statements" android:resource="@string/asset_statements"/>
+
+        <!-- The launcher is the deployed web app in a Trusted Web Activity. -->
+        <activity android:name="com.google.androidbrowserhelper.trusted.LauncherActivity"
+            android:exported="true" android:label="@string/app_name" android:theme="@style/Theme.UsTogether.Launcher">
+            <meta-data android:name="android.support.customtabs.trusted.DEFAULT_URL" android:value="@string/twa_default_url"/>
+            <meta-data android:name="android.support.customtabs.trusted.STATUS_BAR_COLOR" android:resource="@color/brand"/>
+            <meta-data android:name="android.support.customtabs.trusted.NAVIGATION_BAR_COLOR" android:resource="@color/paper"/>
+            <meta-data android:name="android.support.customtabs.trusted.FALLBACK_STRATEGY" android:value="customtabs"/>
+            <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts"/>
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+            <!-- The host is a manifest placeholder filled from WIDGET_WEB_BASE_URL at build time. -->
+            <intent-filter android:autoVerify="true" tools:ignore="AppLinkUrlError">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="${twaHost}"/>
+            </intent-filter>
+        </activity>
+
+        <!-- Native side: widget and notification setup, offline drawing viewer, editor, inbox. -->
+        <activity android:name=".MainActivity" android:exported="true" android:launchMode="singleTask" android:label="@string/setup_title"/>
         <activity android:name=".NotificationActivity" android:exported="false"/>
         <activity android:name=".DrawingEditorActivity" android:exported="false"/>
-        <activity android:name=".MainActivity" android:exported="true">
-            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
-        </activity>
         <receiver android:name=".DrawingWidget" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/drawing_widget"/>

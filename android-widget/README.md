@@ -1,15 +1,52 @@
-# Android drawing widget
+# Us Together for Android
 
-This is the native Android migration project. It currently includes Supabase sign-in, the latest-received drawing widget/viewer, and a native drawing editor with pencil, marker, highlighter, airbrush, fill, shapes, eyedropper, eraser, local drafts and offline queued sending. Android retries queued PNGs through the RLS-protected drawing table and private Storage when connected. A widget tap opens the native viewer. Other Us Together features have not been ported, so this APK is not yet the complete app. See [Android offline migration](../docs/ANDROID_OFFLINE_MIGRATION.md).
+One APK, package `app.ustogether`, that both partners sideload. It has two halves:
 
-## Configure
+- **The app** is the deployed web app opened as a Trusted Web Activity. Chrome renders it full screen, shares its cookie jar, and hides the URL bar once `/.well-known/assetlinks.json` on the web origin names this package and the release signing key. Sign in there exactly as on the web.
+- **The native side** holds its own Supabase session so the phone can show the latest received drawing on a home-screen widget, keep an offline drawing outbox, and ring for partner updates through Firebase Cloud Messaging. Reach it by long-pressing the launcher icon and choosing **Widget & notifications**, or from the widget itself. You sign in there once, separately from the app; the two sessions are not bridged on purpose.
 
-Use Android Studio or JDK 17 and the included Gradle 8.14 wrapper. Set these build environment variables before building:
+Push is dispatched by the database (`fcm_deliveries`, migration `20260920100500`) through the `fcm-dispatch` Edge Function, so a drawing sent from the web or from the native editor rings the other phone the same way. The device token in `drawing_devices` is the opt-in; signing out deletes it.
 
-- WIDGET_SUPABASE_URL and WIDGET_SUPABASE_PUBLISHABLE_KEY: public Supabase client config for the existing shared backend.
-- WIDGET_WEB_BASE_URL: optional HTTPS origin used only to check server push status. Android sign-in, widget refresh and native drawing view do not require it.
-- WIDGET_FIREBASE_APP_ID, WIDGET_FIREBASE_SENDER_ID, WIDGET_FIREBASE_API_KEY, WIDGET_FIREBASE_PROJECT_ID: public Firebase Android app config. Omit all four to build a companion without background push; the app shows that push is unavailable and still refreshes on app open, reconnection, manual request and an Android-managed periodic job.
+## Build variables
 
-Do not commit service-account JSON, a signing key, or a private hosted URL. Build with `.\\gradlew.bat :app:assembleDebug` from this directory; install the generated debug APK directly on a test device. The debug APK is for private testing, not Play distribution. Set `FIREBASE_SERVICE_ACCOUNT_JSON` and `SUPABASE_SECRET_KEY` only on the web server for content-free FCM wakeups. The device token stays in the RLS-protected `drawing_devices` table.
+Everything comes from the shell at Gradle configure time. Nothing here goes into git.
 
-The app uses Supabase email/password sign-in. A first sign-in needs connectivity; after sign-in, the cached received drawing and local drawing draft work offline. Queued drawings sync after reconnection. The native send path still needs a device and two-account acceptance test. Sign-out unregisters the FCM token before clearing its encrypted session and cached image. If the unregister call fails, sign-out reports the failure so the user can retry. Android may delay normal-priority data messages in Doze; the widget also refreshes at app open and through a network-constrained periodic job. Without Firebase, the periodic minimum is 15 minutes and Android may defer it further; Supabase Realtime by itself cannot wake a stopped app to update a home-screen widget.
+| Variable | Purpose |
+| --- | --- |
+| `WIDGET_SUPABASE_URL`, `WIDGET_SUPABASE_PUBLISHABLE_KEY` | Public Supabase client settings for the native session, widget and outbox. |
+| `WIDGET_WEB_BASE_URL` | The https origin of the deployed web app. It is the Trusted Web Activity launch origin, the notification deep-link base and the asset-statement site. Required for a release build. |
+| `WIDGET_FIREBASE_APP_ID`, `WIDGET_FIREBASE_SENDER_ID`, `WIDGET_FIREBASE_API_KEY`, `WIDGET_FIREBASE_PROJECT_ID` | Public Firebase Android app values, read from `google-services.json` (`client[0].client_info.mobilesdk_app_id`, `project_info.project_number`, `client[0].api_key[0].current_key`, `project_info.project_id`). Omit all four for a build without push; the widget then refreshes on open, reconnection and a 15-minute job. |
+| `WIDGET_KEYSTORE_PATH`, `WIDGET_KEYSTORE_PASSWORD`, `WIDGET_KEY_ALIAS`, `WIDGET_KEY_PASSWORD` | Release signing. Debug builds use the default debug key and will not verify asset links. |
+
+The service-account JSON for FCM is **never** a build variable: it is the `FIREBASE_SERVICE_ACCOUNT_JSON` secret of the `fcm-dispatch` Edge Function, next to `PUSH_DISPATCH_SECRET`. The Vault secret `fcm_endpoint_url` turns the database worker on.
+
+## Building
+
+Use JDK 17 and the bundled Gradle 8.14 wrapper. From this directory:
+
+```
+.\gradlew.bat :app:assembleDebug :app:lintDebug :app:testDebugUnitTest
+.\gradlew.bat :app:assembleRelease
+```
+
+Debug output: `app/build/outputs/apk/debug/app-debug.apk`. Release output: `app/build/outputs/apk/release/app-release.apk`. Install either directly on a phone; neither is a Play release.
+
+### Release keystore and asset links
+
+```
+keytool -genkeypair -v -storetype PKCS12 -keystore C:\keys\us-together-release.jks -alias ustogether -keyalg RSA -keysize 2048 -validity 10000
+keytool -list -v -storetype PKCS12 -keystore C:\keys\us-together-release.jks -alias ustogether
+```
+
+Copy the `SHA256:` fingerprint into `public/.well-known/assetlinks.json` in the web project and deploy it. On the phone, `adb shell pm get-app-links app.ustogether` should report `verified`. Back the keystore up; losing it means re-signing and republishing the asset links.
+
+## What the native side does
+
+- Widget: latest received drawing, "From your partner · 2 h ago" caption (never a display name), a **Draw back** button that opens the native editor, a **Refresh** button, and a tap that opens the cached drawing offline. It scales to the cell the launcher gives it and re-renders when resized.
+- Notifications: every partner-update row reaches every registered device as a content-free data message; the app shows the generic title and opens the app at the target page. Drawings are high priority so the widget refreshes even in Doze.
+- Editor and outbox: the nine-tool native editor saves a local draft and queues PNGs per account; a sync sends what it can, sets a permanently invalid file aside as `<id>.failed.png`, and leaves transient failures for the next attempt.
+- Sign-out unregisters the FCM token, then clears the session, the outbox, the cached drawing, the inbox cache and the widget.
+
+## Not verified on this machine
+
+No Android device or emulator is attached to the build machine. Compilation, lint and the JVM unit tests run here and in CI; installing, the Trusted Web Activity verification, end-to-end push delivery, widget rendering at real sizes and offline behaviour are checked on the owner's phones and recorded in `docs/DRAWING_NOTES_VERIFICATION.md`.

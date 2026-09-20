@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Us Together</string>
+    <string name="setup_title">Widget &amp; notifications</string>
+
+    <!-- Notifications -->
+    <string name="channel_partner_updates">Partner updates</string>
+    <string name="channel_partner_updates_description">A quiet line when your partner adds something shared. Never the content itself.</string>
+    <string name="notification_body_generic">Open Us Together to see it.</string>
+
+    <!-- Widget -->
+    <string name="widget_description">The latest drawing your partner sent, right on your home screen.</string>
+    <string name="widget_empty">No drawing yet.\nTap to set up Us Together on this phone.</string>
+    <string name="widget_image_description">Latest drawing from your partner</string>
+    <string name="widget_from_partner">From your partner</string>
+    <string name="widget_reply">Draw back</string>
+    <string name="widget_refresh">Check for a new drawing</string>
+
+    <!-- Launcher shortcuts -->
+    <string name="shortcut_draw_short">Draw</string>
+    <string name="shortcut_draw_long">Draw a note</string>
+    <string name="shortcut_setup_short">Widget</string>
+    <string name="shortcut_setup_long">Widget &amp; notifications</string>
+
+    <!-- Setup screen (MainActivity) -->
+    <string name="setup_heading">Widget &amp; notifications</string>
+    <string name="setup_intro">Sign in once here so this phone can show your partner\'s latest drawing on the home screen and ring when something shared arrives. The app itself signs you in separately.</string>
+    <string name="setup_email">Email</string>
+    <string name="setup_password">Password</string>
+    <string name="setup_sign_in">Sign in</string>
+    <string name="setup_make_drawing">Make a drawing</string>
+    <string name="setup_view_latest">View latest drawing</string>
+    <string name="setup_send_queued">Send queued drawings</string>
+    <string name="setup_send_queued_count">Send queued drawings (%1$d)</string>
+    <string name="setup_partner_updates">Partner updates</string>
+    <string name="setup_refresh">Refresh drawing</string>
+    <string name="setup_sign_out">Sign out and clear drawing</string>
+    <string name="setup_open_app">Open Us Together</string>
+    <string name="setup_notifications_on">Notifications: on</string>
+    <string name="setup_notifications_off">Notifications: off</string>
+    <string name="setup_notifications_settings">Open system settings</string>
+    <string name="setup_notifications_allow">Allow notifications</string>
+    <string name="setup_push_ready">Instant updates are on for this build.</string>
+    <string name="setup_push_unavailable">This build has no Firebase settings, so the widget refreshes on open, reconnection and about every 15 minutes.</string>
+    <string name="setup_not_configured">Widget setup is incomplete. Add the public Supabase settings to the Android build.</string>
+    <string name="setup_working">Working…</string>
+    <string name="setup_no_drawing">No drawing is stored yet. Refresh when connected.</string>
+    <string name="setup_signed_out">Signed out. Local drawings have been cleared.</string>
+    <string name="setup_no_queue">No drawings waiting to send.</string>
+    <string name="setup_sent_count">%1$d drawing(s) sent.</string>
+    <string name="setup_try_again">Try again when connected.</string>
+    <string name="setup_latest_heading">Latest drawing</string>
+    <string name="setup_back_home">Back</string>
+    <string name="setup_discard_message">%1$d drawing(s) are waiting to send%2$s. Signing out will discard them.</string>
+    <string name="setup_discard_draft_suffix">" and a draft is saved"</string>
+    <string name="setup_keep_drawings">Keep drawings</string>
+    <string name="setup_sign_out_discard">Sign out and discard</string>
+</resources>

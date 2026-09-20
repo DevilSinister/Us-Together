@@ -1,4 +1,4 @@
-package app.ustogether.widget;
+package app.ustogether;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -61,14 +61,6 @@ final class DrawingApi {
             }
             return new Reply(status, output.toByteArray());
         } finally { connection.disconnect(); }
-    }
-
-    static boolean pushServerConfigured() {
-        if (!BuildConfig.WEB_BASE_URL.startsWith("https://")) return false;
-        try {
-            Reply result = call("GET", BuildConfig.WEB_BASE_URL.replaceAll("/+$", "") + "/api/drawing-notes/push-status", null, null, null);
-            return result.status == 200 && new JSONObject(result.text()).optBoolean("configured", false);
-        } catch (Exception ignored) { return false; }
     }
 
     static SessionStore.Session signIn(Context context, String email, String password) throws Exception {
@@ -180,6 +172,7 @@ final class DrawingApi {
         }
         JSONObject row = rows.getJSONObject(0);
         String id = row.getString("id");
+        String sentAt = row.optString("sent_at", "");
         if (!id.equals(DrawingWidget.cachedId(context)) || !DrawingWidget.imageFile(context).exists()) {
             String path = row.getString("object_path");
             Reply image = call("GET", base() + "/storage/v1/object/authenticated/drawing-notes/" +
@@ -192,8 +185,8 @@ final class DrawingApi {
             File temp = new File(context.getFilesDir(), "latest.tmp");
             try (FileOutputStream output = new FileOutputStream(temp)) { output.write(image.body); output.getFD().sync(); }
             if (!temp.renameTo(DrawingWidget.imageFile(context))) throw new IllegalStateException("Could not cache the drawing.");
-            DrawingWidget.setCachedId(context, id);
         }
+        DrawingWidget.setCached(context, id, sentAt);
         DrawingWidget.renderAll(context);
         return "Latest drawing is ready on your home screen.";
     }
@@ -221,10 +214,11 @@ final class DrawingApi {
     }
 
     static void sendDrawing(Context context, String id, byte[] png) throws Exception {
-        if (!id.matches("[0-9a-fA-F-]{36}")) throw new IllegalArgumentException("Invalid drawing ID.");
+        // These two can never succeed on retry, so the outbox sets the file aside instead of blocking.
+        if (!id.matches("[0-9a-fA-F-]{36}")) throw new PendingDrawings.PermanentSendFailure("Invalid drawing ID.");
         Bitmap bitmap = BitmapFactory.decodeByteArray(png, 0, png.length);
         if (bitmap == null || bitmap.getWidth() != 640 || bitmap.getHeight() != 480)
-            throw new IllegalStateException("The drawing canvas is invalid.");
+            throw new PendingDrawings.PermanentSendFailure("The drawing canvas is invalid.");
         bitmap.recycle();
         SessionStore.Session current = session(context);
         String path = current.userId + "/" + id + ".png";

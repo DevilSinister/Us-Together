@@ -1,5 +1,7 @@
 # Offline Android migration
 
+> **Superseded on 2026-09-20 by ADR-032.** The Android deliverable is now the deployed web app in a Trusted Web Activity plus the native widget, outbox and FCM notifications in one APK; no native feature parity is planned. This document is kept as history of the direction it replaced. See `docs/DECISIONS.md` and `android-widget/README.md`.
+
 Owner direction, 2026-09-17: one Android APK must expose every current Us Together feature, work while offline, and synchronize with the existing Supabase service when connectivity returns. The installed experience must not depend on a deployed Next.js UI or a browser sign-in. Supabase remains the shared backend for two-device synchronization.
 
 ## Current source truth

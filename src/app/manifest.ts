@@ -33,6 +33,7 @@ export default function manifest(): MetadataRoute.Manifest {
     ],
     shortcuts: [
       { name: "Write a note", short_name: "Note", url: "/notes/new?source=pwa" },
+      { name: "Make a drawing", short_name: "Draw", url: "/drawings/new?source=pwa" },
       { name: "Make a plan", short_name: "Plan", url: "/plans/new?source=pwa" },
       { name: "Add a memory", short_name: "Memory", url: "/memories/new?source=pwa" },
     ],

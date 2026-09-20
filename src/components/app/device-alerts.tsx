@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import { BellRing, CircleAlert, CircleCheck, Download, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ANDROID_APP_REFERRER } from "@/lib/android/package";
 
 /**
  * Installing the app and turning on push are one decision on iOS, where Web Push
@@ -48,6 +49,11 @@ const isIosSafari = () => /iPhone|iPad|iPod/i.test(navigator.userAgent) && !/Cri
 
 const isPushCapable = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 
+// Inside the Android app the page is a Trusted Web Activity, and Chrome sets this
+// referrer on the first navigation. Alerts there come from the app's own FCM channel, so
+// offering Web Push as well would ring twice for one drawing.
+const isAndroidShell = () => document.referrer.startsWith(ANDROID_APP_REFERRER);
+
 /** The uncompressed P-256 point the push service expects as raw bytes. */
 function applicationServerKey(base64url: string) {
   const padded = base64url.replace(/-/g, "+").replace(/_/g, "/") + "=".repeat((4 - (base64url.length % 4)) % 4);
@@ -65,6 +71,7 @@ export function DeviceAlerts() {
   const installed = useSyncExternalStore(subscribeToDisplayMode, isInstalled, onServer);
   const iosSafari = useSyncExternalStore(neverChanges, isIosSafari, onServer);
   const supported = useSyncExternalStore(neverChanges, isPushCapable, onServer);
+  const androidShell = useSyncExternalStore(neverChanges, isAndroidShell, onServer);
 
   useEffect(() => {
     const capture = (event: Event) => { event.preventDefault(); setInstallEvent(event as InstallEvent); };
@@ -151,6 +158,18 @@ export function DeviceAlerts() {
 
   // iOS refuses push to a browser tab, so the toggle would fail every time.
   const pushReady = supported && Boolean(vapidKey) && (!iosSafari || installed);
+
+  if (androidShell) {
+    return (
+      <section className="space-y-3">
+        <h2 className="font-display text-2xl">This device</h2>
+        <p className="flex items-center gap-2 text-sm text-muted-foreground"><CircleCheck className="size-4 shrink-0 text-primary" aria-hidden="true" />You are using the Us Together app.</p>
+        <p className="text-sm leading-6 text-muted-foreground">
+          Notifications on Android come from the app itself. To turn them on or set up the home-screen widget, long-press the app icon and choose <strong className="font-semibold text-foreground">Widget &amp; notifications</strong>.
+        </p>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-5">

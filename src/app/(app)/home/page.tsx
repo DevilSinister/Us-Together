@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Bell, CalendarDays, CalendarHeart, Camera, CheckCircle2, Gift, Images, ListChecks, LockKeyhole, NotebookPen, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Bell, Brush, CalendarDays, CalendarHeart, Camera, CheckCircle2, Gift, Images, ListChecks, LockKeyhole, NotebookPen, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InlineLink } from "@/components/ui/inline-link";
 import { PageHeader } from "@/components/app/page-header";
@@ -19,6 +19,7 @@ type MemoryRow = { id: string; title: string; memory_date: string };
 type MilestoneRow = { id: string; title: string; milestone_date: string; is_featured: boolean };
 type NotificationRow = { id: string; title: string; read_at: string | null };
 type NoteRow = { id: string; title: string; type: string; mine: boolean };
+type DrawingRow = { id: string; mine: boolean; sent_at: string | null };
 
 export default async function HomePage() {
   const identity = await getCurrentIdentity();
@@ -34,6 +35,7 @@ export default async function HomePage() {
   let bucketCompleted = 0;
   let notifications: NotificationRow[] = [];
   let recentNote: NoteRow | null = null;
+  let recentDrawing: DrawingRow | null = null;
   let wishlistCount = 0;
 
   if (identity?.kind === "developer") {
@@ -70,7 +72,7 @@ export default async function HomePage() {
       const { count } = await supabase.from("couple_memberships").select("id", { count: "exact", head: true }).eq("couple_id", membership.couple_id).is("left_at", null);
       if (count === 2) {
         coupleStatus = "paired";
-        const [{ data: couple }, { data: plans }, { data: memories }, { data: milestones }, { count: totalIdeas }, { count: completedIdeas }, { data: notificationRows }, { data: noteRows }, { count: wishCount }] = await Promise.all([
+        const [{ data: couple }, { data: plans }, { data: memories }, { data: milestones }, { count: totalIdeas }, { count: completedIdeas }, { data: notificationRows }, { data: noteRows }, { count: wishCount }, { data: drawingRows }] = await Promise.all([
           supabase.from("couples").select("relationship_started_on").eq("id", membership.couple_id).maybeSingle(),
           supabase.from("plans").select("id,title,starts_at,location").eq("couple_id", membership.couple_id).eq("status", "planned").gte("starts_at", new Date().toISOString()).order("starts_at", { ascending: true }).limit(1),
           supabase.from("memories").select("id,title,memory_date").eq("couple_id", membership.couple_id).order("memory_date", { ascending: false }).order("id", { ascending: false }).limit(1),
@@ -81,6 +83,8 @@ export default async function HomePage() {
           // Row level security decides which notes are visible; a partner private note never arrives.
           supabase.from("notes").select("id,title,type,author_id").eq("couple_id", membership.couple_id).order("updated_at", { ascending: false }).limit(1),
           supabase.from("wishlist_items").select("id", { count: "exact", head: true }).eq("couple_id", membership.couple_id),
+          // Only ready drawings are visible to both partners; the image route re-authorizes on read.
+          supabase.from("drawing_notes").select("id,author_id,sent_at").eq("couple_id", membership.couple_id).eq("status", "ready").order("sent_at", { ascending: false }).order("id", { ascending: false }).limit(1),
         ]);
         relationshipStartedOn = couple?.relationship_started_on ?? relationshipStartedOn;
         upcomingPlan = (plans?.[0] ?? null) as PlanRow | null;
@@ -91,6 +95,8 @@ export default async function HomePage() {
         notifications = (notificationRows ?? []) as NotificationRow[];
         const note = noteRows?.[0];
         recentNote = note ? { id: note.id, title: note.title, type: note.type, mine: note.author_id === identity.userId } : null;
+        const drawing = drawingRows?.[0];
+        recentDrawing = drawing ? { id: drawing.id, mine: drawing.author_id === identity.userId, sent_at: drawing.sent_at } : null;
         wishlistCount = wishCount ?? 0;
       }
     }
@@ -199,6 +205,24 @@ export default async function HomePage() {
                 </article>
               ) : null}
 
+              {recentDrawing ? (
+                <article className="relative flex gap-5 py-5">
+                  <ThreadMarker icon={Brush} />
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-primary">{recentDrawing.mine ? "You sent a drawing" : "Your partner sent a drawing"}</p>
+                    <h3 className="mt-1 font-display text-3xl">A little something, drawn by hand.</h3>
+                    <Link href={`/drawings/${recentDrawing.id}`} className="mt-3 block w-56 overflow-hidden rounded-[0.8rem] bg-white shadow-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={`/api/drawing-notes/${recentDrawing.id}/image`} alt={recentDrawing.mine ? "The drawing you sent" : "The drawing your partner sent"} className="aspect-[4/3] w-full object-contain" />
+                    </Link>
+                    <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+                      <InlineLink href={`/drawings/${recentDrawing.id}`}>Open drawing <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
+                      <Button asChild variant="outline" size="sm"><Link href="/drawings/new"><Brush className="size-4" />{recentDrawing.mine ? "Draw another" : "Draw back"}</Link></Button>
+                    </div>
+                  </div>
+                </article>
+              ) : null}
+
               {bucketTotal ? (
                 <article className="relative flex gap-5 py-5">
                   <ThreadMarker icon={CheckCircle2} />
@@ -223,6 +247,7 @@ export default async function HomePage() {
                 <Button asChild variant="outline" className="justify-start"><Link href="/milestones/new"><CalendarHeart className="size-4" />Add a moment</Link></Button>
                 <Button asChild variant="outline" className="justify-start"><Link href="/bucket/new"><ListChecks className="size-4" />Keep an idea</Link></Button>
                 <Button asChild variant="outline" className="justify-start"><Link href="/notes/new"><NotebookPen className="size-4" />Write a note</Link></Button>
+                <Button asChild variant="outline" className="justify-start"><Link href="/drawings/new"><Brush className="size-4" />Make a drawing</Link></Button>
                 <Button asChild variant="outline" className="justify-start"><Link href="/wishlist/new"><Gift className="size-4" />Add a wish</Link></Button>
               </nav>
               <div className="mt-4 flex flex-wrap items-center gap-x-6">
@@ -235,7 +260,7 @@ export default async function HomePage() {
                 <LockKeyhole className="mt-1 size-5 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <h2 className="font-display text-2xl">Safe projections only.</h2>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">Home reads shared plans, memories, moments, bucket counts, wishes, and only the notes you are allowed to read. A partner private note and any gift plan are never counted, previewed, or copied into notifications.</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">Home reads shared plans, memories, moments, bucket counts, wishes, drawings both of you can already see, and only the notes you are allowed to read. A partner private note and any gift plan are never counted, previewed, or copied into notifications.</p>
                 </div>
               </div>
               <Button asChild variant="outline" className="mt-5 w-full"><Link href="/notifications">Notification settings</Link></Button>

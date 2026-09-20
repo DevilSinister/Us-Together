@@ -1,4 +1,4 @@
-package app.ustogether.widget;
+package app.ustogether;
 
 import android.content.Context;
 import android.graphics.Bitmap;

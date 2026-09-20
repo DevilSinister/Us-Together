@@ -771,6 +771,71 @@ export type Database = {
         Update: { token?: string; user_id?: string; created_at?: string; last_seen_at?: string }
         Relationships: []
       }
+      drawing_reads: {
+        Row: { drawing_id: string; user_id: string; read_at: string }
+        Insert: { drawing_id: string; user_id?: string; read_at?: string }
+        Update: { drawing_id?: string; user_id?: string; read_at?: string }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_reads_drawing_id_fkey"
+            columns: ["drawing_id"]
+            isOneToOne: false
+            referencedRelation: "drawing_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fcm_deliveries: {
+        Row: {
+          attempts: number
+          created_at: string
+          delivered_at: string | null
+          id: string
+          last_error_code: string | null
+          next_attempt_at: string
+          notification_id: string
+          state: string
+          token: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string
+          notification_id: string
+          state?: string
+          token: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string
+          notification_id?: string
+          state?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fcm_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fcm_deliveries_token_fkey"
+            columns: ["token"]
+            isOneToOne: false
+            referencedRelation: "drawing_devices"
+            referencedColumns: ["token"]
+          },
+        ]
+      }
 
       drawing_notes: {
         Row: {
@@ -1530,6 +1595,7 @@ export type Database = {
         Args: { due: string; memory: string; moment: string }
         Returns: string
       }
+      settle_fcm_deliveries: { Args: { input: Json }; Returns: undefined }
       settle_push_deliveries: { Args: { input: Json }; Returns: undefined }
       update_memory_details: { Args: { input: Json }; Returns: Json }
       update_plan_details: { Args: { input: Json }; Returns: Json }

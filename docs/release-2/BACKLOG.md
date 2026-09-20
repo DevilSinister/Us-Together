@@ -6,8 +6,8 @@ Updated: 2026-09-05. Deferred work is recorded here rather than presented as the
 | --- | --- | --- | --- |
 | R2-01 | On hold; explicit resume required | Account export/deletion and broader account/couple lifecycle completion | Agreed ownership/retention behavior, confirmations, session revocation, Storage-first cleanup and authorization tests |
 | R2-02 | Deferred | Complete settings, privacy controls, content-free audit events and operations hooks | Working controls with failure states, redacted logs, authorization and operational checks |
-| R2-03 | Suggested first | Paginate notes and wishlists beyond their current 200-item windows | Older entries reachable, stable cursors, no duplicates; each partner list remains reachable |
-| R2-04 | Suggested first | Scope note-read lookup to displayed notes rather than an independent 500-row window | Correct read indicators with more than 500 historical reads and pagination |
+| R2-03 | Notes closed 2026-09-20; wishlists open | Paginate notes and wishlists beyond their current 200-item windows | Notes: 25-row keyset pages with an "Older notes" link and shared cursor module (`src/lib/pagination/cursor.ts`, unit-tested). Wishlists still use the 200-item window |
+| R2-04 | Closed 2026-09-20 | Scope note-read lookup to displayed notes rather than an independent 500-row window | `loadNotes` looks up `note_reads` only for the partner notes on the page; the read write is insert-only, which also fixed the 42501 that had kept every note unread |
 | R2-05 | Proposed | Contextual Home next action instead of expanding the current six-action stack | Useful empty/populated/completed-plan states; no private-content or purchase-secret inference |
 | R2-06 | Deferred optional feature | Manual wishlist images and note attachments | Private upload boundary, quotas, binary checks, signed reads and cleanup; no third-party image hotlinking |
 | R2-07 | Deferred | Moment edit/delete UI and remaining Moments copy consistency | Authorized edits/deletes, media/linked-record consequences; notification titles use intended user-facing wording |
@@ -28,3 +28,5 @@ Phase 7 is implemented and owner-manually-tested. Account creation, linking and 
 The repository overview/status contradictions are corrected in this documentation update. Historical verification reports retain their original results with dated superseding notes. The graph remains a partial historical map until R2-15; use source files to verify its answers.
 
 R2-17 — **Web deployed and paired send/read verified; native acceptance open.** Hosted migrations and advisors passed; two fictional linked accounts sent and received an immutable drawing through the deployed app. Transactional negative RLS evidence, physical widget states and Firebase-backed prompt updates remain. See [verification](../DRAWING_NOTES_VERIFICATION.md).
+
+R2-17 update, 2026-09-20 — The Android deliverable became one APK (Trusted Web Activity + native widget + FCM, ADR-032). Source, migrations `drawing_reads_and_note_paging` and `fcm_deliveries`, the `fcm-dispatch` function and JVM/vitest coverage are in the repository. Still open: hosted apply of both migrations, Firebase project and release keystore (owner), asset-link deployment, and every device gate listed in the verification doc.

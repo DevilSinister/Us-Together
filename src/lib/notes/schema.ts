@@ -32,6 +32,10 @@ export type Note = {
 export type NotesView = {
   paired: boolean;
   notes: Note[];
+  /** Opaque cursor for the next (older) page, or null on the last page. */
+  next: string | null;
+  /** The partner's display name, for labels only. */
+  partner: string | null;
   error?: string;
 };
 
