@@ -8,6 +8,8 @@ $env:WIDGET_FIREBASE_APP_ID = "<client[0].client_info.mobilesdk_app_id>"
 $env:WIDGET_FIREBASE_API_KEY = "<client[0].api_key[0].current_key>"
 $env:WIDGET_KEYSTORE_PATH = "C:\keys\us-together-release.jks"
 $env:WIDGET_KEY_ALIAS = "ustogether"
-$env:WIDGET_KEYSTORE_PASSWORD = Read-Host -AsSecureString "Keystore password" | ConvertFrom-SecureString -AsPlainText
+$secure = Read-Host -AsSecureString "Keystore password"
+# Windows PowerShell 5.1 has no ConvertFrom-SecureString -AsPlainText; unwrap via BSTR instead.
+$env:WIDGET_KEYSTORE_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure))
 $env:WIDGET_KEY_PASSWORD = $env:WIDGET_KEYSTORE_PASSWORD
 $env:JAVA_HOME = "<path to a JDK 17>"
