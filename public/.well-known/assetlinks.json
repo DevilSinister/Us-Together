@@ -4,7 +4,9 @@
     "target": {
       "namespace": "android_app",
       "package_name": "app.ustogether",
-      "sha256_cert_fingerprints": []
+      "sha256_cert_fingerprints": [
+        "9B:8B:00:ED:19:13:DB:9C:14:CD:D3:31:84:40:9A:A8:FB:2F:DF:5C:91:3F:DD:3B:A7:30:6C:FC:FC:CA:96:18"
+      ]
     }
   }
 ]

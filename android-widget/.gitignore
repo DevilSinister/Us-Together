@@ -4,3 +4,4 @@ app/build/
 local.properties
 *.apk
 *.aab
+set-build-env.local.ps1
