@@ -72,4 +72,57 @@
     <string name="inbox_mark_read_failed">Could not mark this update as read. Try again when connected.</string>
     <string name="inbox_unread_count">%1$d unread</string>
     <string name="inbox_date_pattern">MMM d, h:mm a</string>
+    <!-- Drawing editor. These were hardcoded English literals in
+         DrawingEditorActivity.java. Each tool carries a full accessible name
+         and a short visible label, the way the web editor splits them. -->
+    <string name="editor_eyebrow">For your partner</string>
+    <string name="editor_title">Draw something</string>
+    <string name="editor_selection">%1$s · %2$s</string>
+    <string name="editor_size">Size</string>
+    <string name="editor_size_description">Brush size</string>
+    <string name="editor_undo">Undo</string>
+    <string name="editor_redo">Redo</string>
+    <string name="editor_clear">Clear</string>
+    <string name="editor_clear_confirm">Clear this drawing?</string>
+    <string name="editor_cancel">Cancel</string>
+    <string name="editor_preparing">Preparing preview…</string>
+    <string name="editor_too_large">Drawing is over 2 MB. Clear some detail and try again.</string>
+    <string name="editor_send">Review and queue drawing</string>
+    <string name="editor_back">Back to Home</string>
+    <string name="editor_preview_description">Preview of drawing to send</string>
+    <string name="editor_review_title">Ready for your partner?</string>
+    <string name="editor_keep_drawing">Keep drawing</string>
+    <string name="editor_queue">Queue to send</string>
+    <string name="editor_queue_failed">Could not queue drawing.</string>
+    <string name="editor_swatch_description">%1$s colour</string>
+    <string name="canvas_description">Drawing canvas</string>
+    <string name="tool_pencil">Pencil</string>
+    <string name="tool_marker">Marker</string>
+    <string name="tool_highlighter">Highlighter</string>
+    <string name="tool_airbrush">Airbrush</string>
+    <string name="tool_fill">Paint bucket</string>
+    <string name="tool_rectangle">Filled rectangle</string>
+    <string name="tool_ellipse">Filled ellipse</string>
+    <string name="tool_dropper">Eyedropper</string>
+    <string name="tool_eraser">Eraser</string>
+    <string name="tool_pencil_short">Pencil</string>
+    <string name="tool_marker_short">Marker</string>
+    <string name="tool_highlighter_short">Highlight</string>
+    <string name="tool_airbrush_short">Airbrush</string>
+    <string name="tool_fill_short">Fill</string>
+    <string name="tool_rectangle_short">Square</string>
+    <string name="tool_ellipse_short">Circle</string>
+    <string name="tool_dropper_short">Pick</string>
+    <string name="tool_eraser_short">Eraser</string>
+    <string name="swatch_ink">Ink</string>
+    <string name="swatch_wine">Wine</string>
+    <string name="swatch_pink">Pink</string>
+    <string name="swatch_coral">Coral</string>
+    <string name="swatch_orange">Orange</string>
+    <string name="swatch_yellow">Yellow</string>
+    <string name="swatch_leaf">Leaf</string>
+    <string name="swatch_sage">Sage</string>
+    <string name="swatch_sky">Sky</string>
+    <string name="swatch_violet">Violet</string>
+    <string name="swatch_white">White</string>
 </resources>
