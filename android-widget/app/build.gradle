@@ -26,6 +26,8 @@ android {
         // /.well-known/assetlinks.json on that origin names this package and signing key.
         manifestPlaceholders = [twaHost: webHost]
         resValue 'string', 'twa_default_url', (webBase ? webBase + '/home?source=twa' : 'https://localhost/home')
+        // ManageDataLauncherActivity opens this origin when the browser has no native manage-space flow.
+        resValue 'string', 'twa_manage_space_url', (webBase ?: 'https://localhost')
         resValue 'string', 'asset_statements',
             '[{\\"relation\\": [\\"delegate_permission/common.handle_all_urls\\"], ' +
             '\\"target\\": {\\"namespace\\": \\"web\\", \\"site\\": \\"' + webBase + '\\"}}]'
