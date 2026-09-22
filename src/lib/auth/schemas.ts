@@ -52,8 +52,20 @@ export const profileSchema = z.object({
   timezone: z.string().trim().min(1).max(64).refine(isValidTimeZone, "Choose a valid timezone."),
 });
 
+export const avatarStyleSchema = z.enum(["rose", "wine", "blush", "plum"]);
+
 export const onboardingProfileSchema = profileSchema.extend({
-  avatarStyle: z.enum(["rose", "wine", "blush", "plum"]),
+  avatarStyle: avatarStyleSchema,
+});
+
+/**
+ * How you choose to see your partner. Every field is optional in effect: the
+ * name can fall back to whatever they call themselves, and the picture to
+ * initials on the colour you picked.
+ */
+export const partnerPresentationSchema = z.object({
+  partnerName: z.string().trim().max(80, "Keep their name under 80 characters."),
+  partnerAvatarStyle: avatarStyleSchema,
 });
 
 export const relationshipSchema = z.object({

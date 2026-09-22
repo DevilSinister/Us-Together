@@ -2,22 +2,26 @@
 
 import { useActionState, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { CircleAlert, ImagePlus, Link2, UsersRound } from "lucide-react";
 import type { ActionState } from "@/lib/auth/types";
 import { initialActionState } from "@/lib/auth/types";
 import { createCoupleAction, joinCoupleAction, saveOnboardingProfileAction, saveRelationshipAction } from "@/app/actions/onboarding";
+import { savePartnerPresentationAction } from "@/app/actions/partner";
+import { avatarStyles as avatarStyleValues, avatarStyleClasses, avatarStyleLabels, initials } from "@/lib/avatar/styles";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { cn } from "@/lib/utils";
 
-const avatarStyles = [
-  { value: "rose", label: "Rose", className: "bg-[#efd5d9] text-[#6f1730]" },
-  { value: "wine", label: "Wine", className: "bg-[#6f1730] text-[#fff9f6]" },
-  { value: "blush", label: "Blush", className: "bg-[#f4e7e5] text-[#542b34]" },
-  { value: "plum", label: "Plum", className: "bg-[#3b2a34] text-[#fae8e7]" },
-];
+// The four colours moved to lib/avatar/styles so the Avatar, this picker and
+// the profile editor cannot drift, and so they finally carry dark-mode pairs.
+const avatarStyles = avatarStyleValues.map((value) => ({
+  value,
+  label: avatarStyleLabels[value],
+  className: avatarStyleClasses[value],
+}));
 
 function FormMessage({ state }: { state: ActionState }) {
   return state.message ? <div className="status-message status-error" role="alert"><CircleAlert className="size-5 shrink-0" aria-hidden="true" />{state.message}</div> : null;
@@ -108,5 +112,69 @@ export function ConnectStepForms() {
         </form>
       </section>
     </div>
+  );
+}
+
+/**
+ * Who you are doing this with.
+ *
+ * Its own step rather than part of Connect, because Connect is transactional:
+ * the pairing RPCs refuse for ordinary reasons - an invite cooldown, an attempt
+ * window, an expired code - and folding a file upload into a form that gets
+ * retried would orphan an object on every retry. This step only writes the
+ * caller's own row, is idempotent, and cannot fail for pairing reasons.
+ *
+ * It also works before the partner has an account, which is the point: you can
+ * name them while you are still waiting for them to join.
+ */
+export function PartnerStepForm({ partnerName, partnerAvatarStyle }: { partnerName: string; partnerAvatarStyle: string }) {
+  const [state, action] = useActionState(savePartnerPresentationAction, initialActionState);
+  const [name, setName] = useState(partnerName);
+  const [preview, setPreview] = useState<string | null>(null);
+  const initial = initials(name) || "?";
+
+  return (
+    <form action={action} className="space-y-6" noValidate>
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary font-display text-4xl text-primary">
+          {preview ? <Image src={preview} alt="Selected partner photo preview" width={96} height={96} unoptimized className="size-full object-cover" /> : initial}
+        </div>
+        <div className="min-w-0 flex-1">
+          <Label htmlFor="partnerAvatar">Their photo <span className="font-normal text-muted-foreground">(optional)</span></Label>
+          <label htmlFor="partnerAvatar" className="mt-2 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-control border bg-field px-4 text-sm font-semibold hover:bg-secondary focus-within:ring-2 focus-within:ring-ring">
+            <ImagePlus className="size-4" aria-hidden="true" />Choose a photo
+            <input id="partnerAvatar" name="partnerAvatar" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) return setPreview(null);
+              const reader = new FileReader();
+              reader.onload = () => setPreview(typeof reader.result === "string" ? reader.result : null);
+              reader.readAsDataURL(file);
+            }} />
+          </label>
+          <p className="mt-2 text-xs leading-5 text-muted-foreground">JPG, PNG, or WebP. Maximum 2 MB.</p>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="partnerName">What you call them <span className="font-normal text-muted-foreground">(optional)</span></Label>
+        <Input id="partnerName" name="partnerName" value={name} onChange={(event) => setName(event.target.value)} maxLength={80} autoComplete="off" aria-invalid={Boolean(state.fields?.partnerName)} />
+        {state.fields?.partnerName ? <p className="field-error">{state.fields.partnerName[0]}</p> : null}
+        <p className="text-xs leading-5 text-muted-foreground">Leave it blank and they will appear by the name they choose for themselves.</p>
+      </div>
+
+      <fieldset>
+        <legend className="text-sm font-semibold">Their colour</legend>
+        <div className="mt-3 flex gap-3">
+          {avatarStyles.map((style) => <label key={style.value} className="cursor-pointer"><input type="radio" name="partnerAvatarStyle" value={style.value} defaultChecked={partnerAvatarStyle === style.value} className="peer sr-only" /><span className={cn("grid size-11 place-items-center rounded-full text-sm font-bold ring-offset-2 peer-focus-visible:ring-2 peer-focus-visible:ring-ring peer-checked:ring-2 peer-checked:ring-primary", style.className)}>{initial}</span><span className="sr-only">{style.label}</span></label>)}
+        </div>
+      </fieldset>
+
+      <FormMessage state={state} />
+
+      <div className="flex flex-wrap items-center gap-4">
+        <SubmitButton>Save and continue</SubmitButton>
+        <Button asChild variant="ghost"><Link href="/onboarding?step=connect">I&rsquo;ll add this later</Link></Button>
+      </div>
+    </form>
   );
 }

@@ -3,6 +3,8 @@ import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useRef, useSt
 import { Clock, MoreHorizontal, SendHorizontal, Trash2 } from "lucide-react";
 
 import { usePartnerRefresh } from "@/components/providers/partner-sync";
+import { useIdentities } from "@/components/providers/identities";
+import { Avatar } from "@/components/app/avatar";
 import { entryComments, commentAction } from "@/app/actions/entries";
 import { loadMediaComments, mediaCommentAction } from "@/app/actions/gallery";
 import { previewComments, addPreviewComment, deletePreviewComment } from "@/lib/entries/preview-media";
@@ -65,7 +67,9 @@ export function CommentThread({ access, mediaId, variant = "page", partnerName, 
   const { kind, id, previewSession } = access;
 
   const zone = resolveTimeZone(timezone);
-  const partner = partnerName?.trim() || "Your partner";
+  // The name and face you chose for them; an explicit prop still wins.
+  const identities = useIdentities();
+  const partner = partnerName?.trim() || identities.partner.name;
 
   const reload = useCallback(async () => {
     try {
@@ -188,7 +192,7 @@ export function CommentThread({ access, mediaId, variant = "page", partnerName, 
           return <Fragment key={c.id}>
             <li className={cn("group flex items-end gap-2", c.mine ? "justify-end" : "justify-start")}>
               {!c.mine
-                ? <span aria-hidden="true" className="size-8 shrink-0 rounded-full border bg-secondary"/>
+                ? <Avatar name={identities.partner.name} src={identities.partner.src} style={identities.partner.style} size="sm"/>
                 : null}
 
               {c.mine && !sending ? <button
