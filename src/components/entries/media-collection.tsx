@@ -31,7 +31,7 @@ function summary(photos:number,videos:number){
  * bolted beneath it. Entry-level comments are a sibling of this section, not a
  * child of it.
  */
-export function MediaCollection({access,initial=[],onCount,separated=false,entryTitle="",entryDate="",previewOnly=false}:{previewOnly?:boolean;access:EntryAccess;initial?:QueuedPhoto[];onCount?:(n:number)=>void;separated?:boolean;entryTitle?:string;entryDate?:string}){
+export function MediaCollection({access,initial=[],onCount,separated=false,entryTitle="",entryDate="",previewOnly=false,leadTile=true}:{previewOnly?:boolean;access:EntryAccess;initial?:QueuedPhoto[];onCount?:(n:number)=>void;separated?:boolean;entryTitle?:string;entryDate?:string;leadTile?:boolean}){
  const [media,setMedia]=useState<EntryMedia[]>([]),[error,setError]=useState(""),[pending,setPending]=useState(false),[loading,setLoading]=useState(true),[selected,setSelected]=useState<string|null>(null);
  const [queue,setQueue]=useState<QueuedPhoto[]>(initial),[uploading,setUploading]=useState(false),[dropping,setDropping]=useState(false);
  const urls=useRef<string[]>([]),countCallback=useRef(onCount);const {kind,id,previewSession}=access;
@@ -46,7 +46,9 @@ export function MediaCollection({access,initial=[],onCount,separated=false,entry
  const ready:GalleryItem[]=media.filter(m=>m.state==="ready").map(m=>({...m,access,entryTitle,entryDate,sortKey:kind+":"+m.id}));
  const photos=ready.filter(m=>m.media_type==="image"),videos=ready.filter(m=>m.media_type==="video");
  const shown=(previewOnly?photos:[...photos,...videos]).slice(0,6),index=ready.findIndex(m=>m.id===selected);
- const lead=!previewOnly&&shown.length>2;
+ // The detail page may already be showing this entry's first photo as a hero,
+ // in which case promoting it again here would print it twice at two sizes.
+ const lead=leadTile&&!previewOnly&&shown.length>2;
  function accept(files:File[]){
   if(!editable||!files.length)return;
   try{setQueue(queueFiles(queue,files));setError("");}

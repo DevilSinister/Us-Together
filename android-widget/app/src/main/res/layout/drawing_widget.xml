@@ -4,7 +4,7 @@
     android:layout_width="match_parent" android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/widget_background"
-    android:padding="8dp">
+    android:padding="12dp">
     <FrameLayout
         android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
         android:background="@drawable/widget_card_background">
@@ -15,7 +15,7 @@
         <TextView android:id="@+id/drawing_empty"
             android:layout_width="match_parent" android:layout_height="match_parent"
             android:gravity="center" android:padding="12dp"
-            android:textColor="@color/plum" android:textSize="14sp"
+            android:textColor="@color/widget_caption" android:textSize="14sp"
             android:text="@string/widget_empty"/>
     </FrameLayout>
     <LinearLayout android:id="@+id/caption_bar"
@@ -24,15 +24,15 @@
         android:paddingTop="4dp">
         <TextView android:id="@+id/drawing_caption"
             android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
-            android:textColor="@color/plum" android:textSize="12sp" android:maxLines="1" android:ellipsize="end"
+            android:textColor="@color/widget_caption" android:textSize="12sp" android:maxLines="1" android:ellipsize="end"
             android:text="@string/widget_from_partner"/>
         <ImageButton android:id="@+id/widget_reply"
-            android:layout_width="40dp" android:layout_height="40dp"
+            android:layout_width="48dp" android:layout_height="48dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_widget_reply"
             android:contentDescription="@string/widget_reply"/>
         <ImageButton android:id="@+id/widget_refresh"
-            android:layout_width="40dp" android:layout_height="40dp"
+            android:layout_width="48dp" android:layout_height="48dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:src="@drawable/ic_widget_refresh"
             android:contentDescription="@string/widget_refresh"/>

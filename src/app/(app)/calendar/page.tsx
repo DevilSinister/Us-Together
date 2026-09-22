@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { InlineLink } from "@/components/ui/inline-link";
 import { PageHeader } from "@/components/app/page-header";
 import { PairingNotice } from "@/components/app/states";
 import { SharedCalendar } from "@/components/entries/calendar";
@@ -16,21 +15,18 @@ export default async function CalendarPage() {
 
   return (
     <div className="reveal-on-load">
+      {/* Compact, and no lede: on a phone the display scale plus a lede plus
+          four links filled the first screen before a single date was visible.
+          The creation links now live in the selected day's foot, where they can
+          act on the chosen date. */}
       <PageHeader
-        eyebrow="A date for every part of your story"
+        scale="compact"
+        eyebrow="Plans, memories, and moments"
         title="Your shared calendar."
-        lede="Plans ahead, memories kept, and moments worth marking, together in one place."
         actions={<Button asChild><Link href="/plans/new">New plan</Link></Button>}
       />
       {initial.paired ? (
-        <>
-          <div className="mt-4 flex flex-wrap items-center gap-x-6">
-            <InlineLink href="/memories/new">Add a memory</InlineLink>
-            <InlineLink href="/milestones/new">Add a moment</InlineLink>
-            <InlineLink href="/plans">Manage plans</InlineLink>
-          </div>
-          <SharedCalendar initial={initial} />
-        </>
+        <SharedCalendar initial={initial} />
       ) : (
         <PairingNotice
           title="Your calendar opens with your shared space."

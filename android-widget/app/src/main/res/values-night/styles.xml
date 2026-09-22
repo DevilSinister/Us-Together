@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Theme.UsTogether" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">@color/primary</item>
+        <item name="android:colorAccent">@color/primary</item>
+        <item name="android:colorControlActivated">@color/primary</item>
+        <item name="android:colorControlNormal">@color/muted_foreground</item>
+        <item name="android:textColorPrimary">@color/foreground</item>
+        <item name="android:textColorSecondary">@color/muted_foreground</item>
+        <item name="android:textColorHint">@color/muted_foreground</item>
+        <item name="android:windowBackground">@color/background</item>
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:navigationBarColor">@color/background</item>
+        <!-- We ship a real dark palette, so the platform must not auto-invert
+             the warm one it would otherwise mangle. -->
+        <item name="android:forceDarkAllowed" tools:targetApi="29">false</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+    </style>
+</resources>

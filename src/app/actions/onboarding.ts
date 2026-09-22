@@ -45,6 +45,9 @@ export async function saveOnboardingProfileAction(_previous: ActionState, formDa
     user_id: identity.userId,
     display_name: parsed.data.displayName,
     timezone: parsed.data.timezone,
+    // Collected since this form shipped and, until now, discarded for every
+    // real account: it was persisted only on the developer branch.
+    avatar_style: parsed.data.avatarStyle,
   };
   if (avatarPath) profileUpdate.avatar_path = avatarPath;
   const { error } = await supabase.from("profiles").upsert(profileUpdate);
@@ -66,7 +69,7 @@ export async function saveRelationshipAction(_previous: ActionState, formData: F
     const { error } = await supabase.from("profiles").update({ relationship_started_on: parsed.data.relationshipStartedOn || null }).eq("user_id", identity.userId);
     if (error) return { status: "error", message: "We couldn't save that date. Try again." };
   }
-  redirect("/onboarding?step=connect");
+  redirect("/onboarding?step=partner");
 }
 
 export async function createCoupleAction(_previous: ActionState, _formData: FormData): Promise<ActionState> {

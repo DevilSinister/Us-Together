@@ -18,3 +18,11 @@ related_targets: ["src/app/(app)/memories/new/page.tsx","src/app/(app)/memories/
 - **Preview:** Real selected files and comments work locally through IndexedDB. The interface states that preview photos remain in this browser for up to 24 hours and are not uploaded to the shared account. This replaces the former disabled preview uploader.
 - **Deletion:** Typed DELETE confirmation remains behind disclosure; all files and unfinished uploads must be removed first, and source plans/ideas remain.
 - **Evidence:** Listing previews use `.impeccable/qa/gallery-list-memory-{desktop,mobile}-chromium.png`. Current detail previews and viewer captures use `.impeccable/qa/gallery-preview-memory-{desktop,mobile}-chromium.png` and `gallery-viewer-{desktop,mobile}-chromium.png`. Earlier shared-memory and free-location captures retain their narrower evidence. Final visual/operational verification stays in the phase records.
+
+## Revision — 2026-09-22
+
+This contract described a gallery of cards with date, title, excerpt, location, tags and up to six image previews. That layout was replaced on 2026-09-17 by a date-grouped, title-only list and this file was never updated, so it has been describing a surface that did not exist for five days.
+
+Shipped now: memories are grouped under month headings, and each row is a link carrying a 64px (80px from `sm`) square thumbnail in `rounded-panel bg-secondary`, the serif title, a meta line of date and file count, and one `line-clamp-1` line of the story. A favourite is a filled `Heart` in `text-rose` with an `sr-only` label, never colour alone. The `ArrowUpRight` affordance is gone: with a thumbnail, a title, a date and a story line, the row is the target and its hover and focus states say so. The tag input, favourites checkbox, status line, empty states and cursor pagination are unchanged.
+
+The thumbnail is the memory's earliest photograph, falling back to its earliest video, chosen by ordering the embedded media on `media_type` then `created_at`.

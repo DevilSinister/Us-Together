@@ -5,11 +5,16 @@ import { InlineLink } from "@/components/ui/inline-link";
 import { PageHeader } from "@/components/app/page-header";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState } from "@/lib/auth/dev-session";
+import { z } from "zod";
 
 export const metadata: Metadata = { title: "New moment" };
 
-export default async function NewMilestonePage() {
+export default async function NewMilestonePage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const identity = await getCurrentIdentity();
+  const { date } = await searchParams;
+  // The calendar links here with the day you had selected. An unparseable date
+  // is ignored rather than refused; it only prefills a field.
+  const defaultDate = z.iso.date().safeParse(date).success ? date : undefined;
 
   return (
     <div className="mx-auto max-w-3xl reveal-on-load">
@@ -20,7 +25,7 @@ export default async function NewMilestonePage() {
         back={<InlineLink href="/milestones"><ArrowLeft className="size-4" aria-hidden="true" />Back to moments</InlineLink>}
       />
       <section className="mt-9">
-        <MilestoneForm previewSession={identity?.kind === "developer" ? (await readDeveloperState()).bucketSessionId : undefined} />
+        <MilestoneForm defaultDate={defaultDate} previewSession={identity?.kind === "developer" ? (await readDeveloperState()).bucketSessionId : undefined} />
       </section>
       <aside className="mt-8 flex gap-3 rounded-panel border p-4 text-sm leading-6 text-muted-foreground">
         <LockKeyhole className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />

@@ -274,6 +274,94 @@ export type Database = {
         }
         Relationships: []
       }
+      drawing_devices: {
+        Row: {
+          created_at: string
+          last_seen_at: string
+          token: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          last_seen_at?: string
+          token: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          last_seen_at?: string
+          token?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      drawing_notes: {
+        Row: {
+          author_id: string
+          couple_id: string
+          created_at: string
+          id: string
+          object_path: string
+          recipient_id: string
+          sent_at: string | null
+          status: string
+        }
+        Insert: {
+          author_id?: string
+          couple_id: string
+          created_at?: string
+          id?: string
+          object_path: string
+          recipient_id: string
+          sent_at?: string | null
+          status?: string
+        }
+        Update: {
+          author_id?: string
+          couple_id?: string
+          created_at?: string
+          id?: string
+          object_path?: string
+          recipient_id?: string
+          sent_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_notes_couple_id_fkey"
+            columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drawing_reads: {
+        Row: {
+          drawing_id: string
+          read_at: string
+          user_id: string
+        }
+        Insert: {
+          drawing_id: string
+          read_at?: string
+          user_id?: string
+        }
+        Update: {
+          drawing_id?: string
+          read_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drawing_reads_drawing_id_fkey"
+            columns: ["drawing_id"]
+            isOneToOne: false
+            referencedRelation: "drawing_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       entry_comments: {
         Row: {
           body: string
@@ -361,6 +449,57 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "milestones"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      fcm_deliveries: {
+        Row: {
+          attempts: number
+          created_at: string
+          delivered_at: string | null
+          id: string
+          last_error_code: string | null
+          next_attempt_at: string
+          notification_id: string
+          state: string
+          token: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string
+          notification_id: string
+          state?: string
+          token: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          delivered_at?: string | null
+          id?: string
+          last_error_code?: string | null
+          next_attempt_at?: string
+          notification_id?: string
+          state?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fcm_deliveries_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fcm_deliveries_token_fkey"
+            columns: ["token"]
+            isOneToOne: false
+            referencedRelation: "drawing_devices"
+            referencedColumns: ["token"]
           },
         ]
       }
@@ -765,111 +904,6 @@ export type Database = {
           },
         ]
       }
-      drawing_devices: {
-        Row: { token: string; user_id: string; created_at: string; last_seen_at: string }
-        Insert: { token: string; user_id?: string; created_at?: string; last_seen_at?: string }
-        Update: { token?: string; user_id?: string; created_at?: string; last_seen_at?: string }
-        Relationships: []
-      }
-      drawing_reads: {
-        Row: { drawing_id: string; user_id: string; read_at: string }
-        Insert: { drawing_id: string; user_id?: string; read_at?: string }
-        Update: { drawing_id?: string; user_id?: string; read_at?: string }
-        Relationships: [
-          {
-            foreignKeyName: "drawing_reads_drawing_id_fkey"
-            columns: ["drawing_id"]
-            isOneToOne: false
-            referencedRelation: "drawing_notes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      fcm_deliveries: {
-        Row: {
-          attempts: number
-          created_at: string
-          delivered_at: string | null
-          id: string
-          last_error_code: string | null
-          next_attempt_at: string
-          notification_id: string
-          state: string
-          token: string
-        }
-        Insert: {
-          attempts?: number
-          created_at?: string
-          delivered_at?: string | null
-          id?: string
-          last_error_code?: string | null
-          next_attempt_at?: string
-          notification_id: string
-          state?: string
-          token: string
-        }
-        Update: {
-          attempts?: number
-          created_at?: string
-          delivered_at?: string | null
-          id?: string
-          last_error_code?: string | null
-          next_attempt_at?: string
-          notification_id?: string
-          state?: string
-          token?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fcm_deliveries_notification_id_fkey"
-            columns: ["notification_id"]
-            isOneToOne: false
-            referencedRelation: "notifications"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fcm_deliveries_token_fkey"
-            columns: ["token"]
-            isOneToOne: false
-            referencedRelation: "drawing_devices"
-            referencedColumns: ["token"]
-          },
-        ]
-      }
-
-      drawing_notes: {
-        Row: {
-          id: string
-          couple_id: string
-          author_id: string
-          recipient_id: string
-          object_path: string
-          status: string
-          created_at: string
-          sent_at: string | null
-        }
-        Insert: {
-          id?: string
-          couple_id: string
-          author_id?: string
-          recipient_id: string
-          object_path: string
-          status?: string
-          created_at?: string
-          sent_at?: string | null
-        }
-        Update: {
-          id?: string
-          couple_id?: string
-          author_id?: string
-          recipient_id?: string
-          object_path?: string
-          status?: string
-          created_at?: string
-          sent_at?: string | null
-        }
-        Relationships: []
-      }
       notes: {
         Row: {
           author_id: string
@@ -916,8 +950,8 @@ export type Database = {
       }
       notification_preferences: {
         Row: {
-          created_at: string
           bucket_enabled: boolean
+          created_at: string
           drawings_enabled: boolean
           in_app_enabled: boolean
           memories_enabled: boolean
@@ -926,13 +960,13 @@ export type Database = {
           on_this_day_enabled: boolean
           plans_enabled: boolean
           push_enabled: boolean
-          wishlist_enabled: boolean
           updated_at: string
           user_id: string
+          wishlist_enabled: boolean
         }
         Insert: {
-          created_at?: string
           bucket_enabled?: boolean
+          created_at?: string
           drawings_enabled?: boolean
           in_app_enabled?: boolean
           memories_enabled?: boolean
@@ -941,13 +975,13 @@ export type Database = {
           on_this_day_enabled?: boolean
           plans_enabled?: boolean
           push_enabled?: boolean
-          wishlist_enabled?: boolean
           updated_at?: string
           user_id: string
+          wishlist_enabled?: boolean
         }
         Update: {
-          created_at?: string
           bucket_enabled?: boolean
+          created_at?: string
           drawings_enabled?: boolean
           in_app_enabled?: boolean
           memories_enabled?: boolean
@@ -956,9 +990,9 @@ export type Database = {
           on_this_day_enabled?: boolean
           plans_enabled?: boolean
           push_enabled?: boolean
-          wishlist_enabled?: boolean
           updated_at?: string
           user_id?: string
+          wishlist_enabled?: boolean
         }
         Relationships: []
       }
@@ -1003,6 +1037,44 @@ export type Database = {
           {
             foreignKeyName: "notifications_couple_id_fkey"
             columns: ["couple_id"]
+            isOneToOne: false
+            referencedRelation: "couples"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_presentations: {
+        Row: {
+          avatar_path: string | null
+          avatar_style: string
+          confirmed_couple_id: string | null
+          created_at: string
+          display_name: string | null
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_path?: string | null
+          avatar_style?: string
+          confirmed_couple_id?: string | null
+          created_at?: string
+          display_name?: string | null
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_path?: string | null
+          avatar_style?: string
+          confirmed_couple_id?: string | null
+          created_at?: string
+          display_name?: string | null
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_presentations_confirmed_couple_id_fkey"
+            columns: ["confirmed_couple_id"]
             isOneToOne: false
             referencedRelation: "couples"
             referencedColumns: ["id"]
@@ -1243,6 +1315,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_path: string | null
+          avatar_style: string
           created_at: string
           date_of_birth: string | null
           display_name: string | null
@@ -1254,6 +1327,7 @@ export type Database = {
         }
         Insert: {
           avatar_path?: string | null
+          avatar_style?: string
           created_at?: string
           date_of_birth?: string | null
           display_name?: string | null
@@ -1265,6 +1339,7 @@ export type Database = {
         }
         Update: {
           avatar_path?: string | null
+          avatar_style?: string
           created_at?: string
           date_of_birth?: string | null
           display_name?: string | null
@@ -1501,13 +1576,22 @@ export type Database = {
       }
     }
     Functions: {
-      app_lock_status: { Args: never; Returns: Json }
-      app_lock_open: { Args: { area: string }; Returns: boolean }
-      app_lock_configure: { Args: { code: string; areas: string[] }; Returns: boolean }
-      app_lock_change_code: { Args: { current_code: string; new_code: string }; Returns: boolean }
-      app_lock_verify: { Args: { code: string }; Returns: boolean }
-      app_lock_unlock: { Args: { code: string; area: string }; Returns: boolean }
+      app_lock_change_code: {
+        Args: { current_code: string; new_code: string }
+        Returns: boolean
+      }
+      app_lock_configure: {
+        Args: { areas: string[]; code: string }
+        Returns: boolean
+      }
       app_lock_lock: { Args: { area: string }; Returns: undefined }
+      app_lock_open: { Args: { area: string }; Returns: boolean }
+      app_lock_status: { Args: never; Returns: Json }
+      app_lock_unlock: {
+        Args: { area: string; code: string }
+        Returns: boolean
+      }
+      app_lock_verify: { Args: { code: string }; Returns: boolean }
       can_access_entry: {
         Args: { memory: string; moment: string }
         Returns: boolean
@@ -1576,6 +1660,10 @@ export type Database = {
         Returns: {
           id: string
         }[]
+      }
+      mark_notification_read: {
+        Args: { notification_id: string }
+        Returns: boolean
       }
       mutate_bucket_subtask: {
         Args: {

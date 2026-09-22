@@ -259,3 +259,13 @@ Hosted application status for both migrations is recorded in `docs/DRAWING_NOTES
 ### PIN flow migration
 
 `20260917163417_privacy_pin_flow.sql` is applied. New PIN hashes accept exactly four or six digits and record `pin_length`; earlier hashes have a null length and remain checkable during migration. `app_lock_change_code(current_code,new_code)` verifies the current code with the existing cooldown, hashes the new PIN with bcrypt, updates length and revokes all unlock rows atomically. `app_lock_status()` now returns `pin_length`. The public change RPC is security-invoker, authenticated only.
+
+## `partner_presentations` (2026-09-22)
+
+One owner-scoped row per account, holding the name, picture and colour that account chose **for** its partner. `owner_id` is the primary key and references `auth.users`; `display_name` is capped at 80 characters; `avatar_path` is constrained to `owner_id::text || '/%'` so a recorded path can only name an object inside its owner's own folder; `avatar_style` is one of `rose`, `wine`, `blush`, `plum`; `confirmed_couple_id` references `couples` with `on delete set null`.
+
+RLS is enabled **and forced**, all privileges are revoked from `anon`, and `authenticated` receives SELECT/INSERT/UPDATE/DELETE gated by four own-row policies — the UPDATE policy carrying both `USING` and `WITH CHECK`. There is no security-definer function. Deliberately there is **no** foreign key to a partner user id: the row must be able to exist before the partner has an account, and binding it to a user would make it a record about them.
+
+`profiles` gains `avatar_style` (`not null default 'rose'`, same four values) and the check constraint `profiles_avatar_path_own_folder`, added `NOT VALID` and validated separately so the live table is not scanned under an exclusive lock.
+
+The `avatars` bucket is unchanged and keeps its four own-folder-only policies. See ADR-034 for why the presentation cannot live on `profiles`.

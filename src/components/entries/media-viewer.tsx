@@ -4,13 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import {ImageOff, X} from "lucide-react";
 import type {GalleryItem} from "@/lib/entries/gallery";
+import {mediaHref,type MediaVariant} from "@/lib/entries/media-url";
 import {memoryMediaAction} from "@/app/actions/memories";
 import {changePreviewMedia} from "@/lib/entries/preview-media";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {CommentThread} from "./comment-thread";
-export function mediaSource(item:GalleryItem,variant="original"){return (variant==="preview"?item.previewUrl:item.url)??"/api/memory-media/"+item.id+"?kind="+item.access.kind+"&variant="+variant;}
+// Preview mode holds blob URLs on the item itself; everything else is addressed
+// by the shared route builder so no two surfaces can drift on the query shape.
+export function mediaSource(item:GalleryItem,variant:MediaVariant="original"){return (variant==="preview"?item.previewUrl:item.url)??mediaHref(item.id,item.access.kind,variant);}
 export function MediaViewer({items,index,onIndex,onClose,onChange}:{items:GalleryItem[];index:number;onIndex:(i:number)=>void;onClose:()=>void;onChange:()=>Promise<void>}){
  const dialog=useRef<HTMLDialogElement>(null),item=items[index],touch=useRef<{x:number;y:number}|null>(null);
  useEffect(()=>{dialog.current?.showModal();},[]);
@@ -21,7 +24,7 @@ export function MediaViewer({items,index,onIndex,onClose,onChange}:{items:Galler
  <div className="min-w-0"><Link href={(item.access.kind==="memory"?"/memories/":"/milestones/")+item.access.id} className="inline-flex min-h-11 items-center break-words font-display text-2xl text-primary hover:underline">{item.entryTitle||"Open "+item.access.kind}</Link>{item.entryDate?<p className="mt-1 text-sm text-muted-foreground">{new Intl.DateTimeFormat("en",{dateStyle:"long",timeZone:"UTC"}).format(new Date(item.entryDate+"T00:00:00Z"))}</p>:null}
  <p className="mt-4 whitespace-pre-wrap break-words leading-7">{item.caption||"No caption yet."}</p>
  <FileOptions key={item.access.kind+item.id} item={item} onChange={onChange} onRemove={onClose}/>
- <CommentThread key={item.access.kind+item.id+"comments"} access={item.access} mediaId={item.id}/></div></div>:null}</dialog>;
+ <CommentThread key={item.access.kind+item.id+"comments"} access={item.access} mediaId={item.id} variant="panel"/></div></div>:null}</dialog>;
 }
 function FullImage({item}:{item:GalleryItem}){
  const [status,setStatus]=useState<"loading"|"ready"|"error">("loading");

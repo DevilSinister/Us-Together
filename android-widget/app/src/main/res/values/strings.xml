@@ -55,4 +55,21 @@
     <string name="setup_discard_draft_suffix">" and a draft is saved"</string>
     <string name="setup_keep_drawings">Keep drawings</string>
     <string name="setup_sign_out_discard">Sign out and discard</string>
+    <string name="setup_eyebrow">This phone</string>
+    <string name="setup_latest_eyebrow">From your partner</string>
+    <!-- Partner updates. These were hardcoded English literals inside
+         NotificationActivity.java, where no translation could reach them. -->
+    <string name="inbox_eyebrow">Quiet updates</string>
+    <string name="inbox_heading">Partner updates</string>
+    <string name="inbox_lede">Shared activity appears here without copying private details.</string>
+    <string name="inbox_refresh">Refresh updates</string>
+    <string name="inbox_checking">Checking for updates…</string>
+    <string name="inbox_up_to_date">Up to date</string>
+    <string name="inbox_offline">Offline or unable to refresh. Showing saved updates.</string>
+    <string name="inbox_empty">All quiet here. Anything your partner shares will arrive on this page.</string>
+    <string name="inbox_untitled">Shared activity</string>
+    <string name="inbox_mark_read">Mark read</string>
+    <string name="inbox_mark_read_failed">Could not mark this update as read. Try again when connected.</string>
+    <string name="inbox_unread_count">%1$d unread</string>
+    <string name="inbox_date_pattern">MMM d, h:mm a</string>
 </resources>
