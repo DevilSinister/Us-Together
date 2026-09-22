@@ -24,7 +24,7 @@ export function MediaViewer({items,index,onIndex,onClose,onChange}:{items:Galler
  <div className="min-w-0"><Link href={(item.access.kind==="memory"?"/memories/":"/milestones/")+item.access.id} className="inline-flex min-h-11 items-center break-words font-display text-2xl text-primary hover:underline">{item.entryTitle||"Open "+item.access.kind}</Link>{item.entryDate?<p className="mt-1 text-sm text-muted-foreground">{new Intl.DateTimeFormat("en",{dateStyle:"long",timeZone:"UTC"}).format(new Date(item.entryDate+"T00:00:00Z"))}</p>:null}
  <p className="mt-4 whitespace-pre-wrap break-words leading-7">{item.caption||"No caption yet."}</p>
  <FileOptions key={item.access.kind+item.id} item={item} onChange={onChange} onRemove={onClose}/>
- <CommentThread key={item.access.kind+item.id+"comments"} access={item.access} mediaId={item.id}/></div></div>:null}</dialog>;
+ <CommentThread key={item.access.kind+item.id+"comments"} access={item.access} mediaId={item.id} variant="panel"/></div></div>:null}</dialog>;
 }
 function FullImage({item}:{item:GalleryItem}){
  const [status,setStatus]=useState<"loading"|"ready"|"error">("loading");

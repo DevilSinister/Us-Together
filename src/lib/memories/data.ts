@@ -48,7 +48,7 @@ export async function loadMemory(id: string): Promise<MemoryDetail | null> {
   if(!c.paired)return null;
   if(c.kind==="preview"){
     const memory=previewMemories(c.state).find(m=>m.id===id);
-    return memory?{memory,preview:true,previewSession:c.state.bucketSessionId,planTitle:c.state.plans.find(p=>p.id===memory.source_plan_id)?.title??null}:null;
+    return memory?{memory,preview:true,previewSession:c.state.bucketSessionId,planTitle:c.state.plans.find(p=>p.id===memory.source_plan_id)?.title??null,timezone:c.timezone}:null;
   }
   const {data,error}=await c.db.from("memories").select(galleryColumns).eq("id",id).order("created_at",{referencedTable:"memory_media",ascending:true}).limit(30,{referencedTable:"memory_media"}).maybeSingle();
   if(error)throw new Error("Could not open this memory.");
@@ -56,5 +56,5 @@ export async function loadMemory(id: string): Promise<MemoryDetail | null> {
   const memory=pageFromRows([data]).memories[0];
   let planTitle: string|null=null;
   if(memory.source_plan_id){const {data:p}=await c.db.from("plans").select("title").eq("id",memory.source_plan_id).maybeSingle();planTitle=p?.title??null;}
-  return {memory,preview:false,planTitle};
+  return {memory,preview:false,planTitle,timezone:c.timezone};
 }

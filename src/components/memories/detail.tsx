@@ -61,7 +61,7 @@ export function MemoryDetailView({data}:{data:MemoryDetail}){
 
   <MediaCollection access={access} entryTitle={m.title} entryDate={m.memory_date} onCount={setFileCount} separated/>
 
-  <CommentThread access={access}/>
+  <CommentThread access={access} timezone={data.timezone}/>
 
   <div className="mt-12 flex flex-wrap items-center gap-x-5 gap-y-3 border-t pt-8">
    <Button asChild><Link href={"/memories/"+m.id+"/edit"}><Pencil className="size-4" aria-hidden="true"/>Edit memory</Link></Button>
