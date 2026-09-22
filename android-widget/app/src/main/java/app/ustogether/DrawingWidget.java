@@ -28,7 +28,7 @@ public final class DrawingWidget extends AppWidgetProvider {
     static final String ACTION_REFRESH = "app.ustogether.widget.REFRESH";
     /** 4:3, and under the ~1 MB RemoteViews bitmap budget (560×420 ARGB ≈ 940 KB). */
     private static final int MAX_WIDTH = 560, MAX_HEIGHT = 420;
-    private static final int PADDING_DP = 16, CAPTION_DP = 44;
+    private static final int PADDING_DP = 16, CAPTION_DP = 52;
 
     private static SharedPreferences prefs(Context context) { return context.getSharedPreferences(PREF, Context.MODE_PRIVATE); }
     static File imageFile(Context context) { return new File(context.getFilesDir(), "latest.png"); }

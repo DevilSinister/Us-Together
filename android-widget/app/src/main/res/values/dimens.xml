@@ -1,5 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Existing widget corners, unchanged; values-v31 still overrides them. -->
     <dimen name="widget_corner">16dp</dimen>
     <dimen name="widget_inner_corner">12dp</dimen>
+
+    <!-- The web's 0.5/0.75/1/1.25/1.5/2rem rhythm at 1rem = 16dp. Every
+         padding in the Java screens was a raw pixel int, so on a 3x density
+         phone a "28" read as about 9dp and the whole app sat cramped. -->
+    <dimen name="space_1">4dp</dimen>
+    <dimen name="space_2">8dp</dimen>
+    <dimen name="space_3">12dp</dimen>
+    <dimen name="space_4">16dp</dimen>
+    <dimen name="space_5">20dp</dimen>
+    <dimen name="space_6">24dp</dimen>
+    <dimen name="space_8">32dp</dimen>
+    <dimen name="space_10">40dp</dimen>
+    <dimen name="gutter_page">20dp</dimen>
+
+    <!-- Radius follows scale. -->
+    <dimen name="radius_control">8dp</dimen>
+    <dimen name="radius_navigation">14dp</dimen>
+    <dimen name="radius_panel">16dp</dimen>
+    <dimen name="radius_surface">20dp</dimen>
+
+    <!-- Android's floor is 48dp; the web's 44px minimum is the weaker rule. -->
+    <dimen name="touch_min">48dp</dimen>
+    <dimen name="control_height">48dp</dimen>
+    <dimen name="field_height">52dp</dimen>
+    <dimen name="icon_size">24dp</dimen>
+    <dimen name="icon_small">20dp</dimen>
+    <dimen name="stroke_hairline">1dp</dimen>
+    <dimen name="stroke_selected">2dp</dimen>
+    <dimen name="swatch_size">40dp</dimen>
 </resources>

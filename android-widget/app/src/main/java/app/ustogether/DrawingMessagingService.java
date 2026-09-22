@@ -28,7 +28,7 @@ public final class DrawingMessagingService extends FirebaseMessagingService {
         if (manager == null || !manager.areNotificationsEnabled()) return;
         Notification notification = new Notification.Builder(this, WidgetApplication.CHANNEL_PARTNER_UPDATES)
             .setSmallIcon(R.drawable.ic_notification)
-            .setColor(getColor(R.color.brand))
+            .setColor(getColor(R.color.notification_accent))
             .setContentTitle(envelope.title)
             .setContentText(getString(R.string.notification_body_generic))
             .setAutoCancel(true)

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Warm plum, explicitly not blue-black: the .dark block of globals.css.
+
+  Dark mode did not exist in this module at all before. With minSdk 26 a
+  user-toggleable system dark theme only arrives with Android 10, so this
+  applies from API 29 up and degrades to light below, which is correct.
+
+  Note what is absent: brand, paper, cream, ink, blush and
+  ic_launcher_background have no night variant on purpose. See the light file.
+-->
+<resources>
+    <color name="background">#FF211A20</color>
+    <color name="foreground">#FFF8EFEA</color>
+    <color name="card">#FF2A2127</color>
+    <color name="field">#FF2B2229</color>
+    <color name="primary">#FFDF879A</color>
+    <color name="primary_strong">#FFEDA0AF</color>
+    <!-- NOT warm white. #fff9f6 on blush measures 2.49:1 and fails; this is
+         6.62:1. Any primary button that hardcodes cream is unreadable at night. -->
+    <color name="on_primary">#FF27161D</color>
+    <color name="secondary">#FF3B2A34</color>
+    <color name="on_secondary">#FFFAE8E7</color>
+    <color name="muted">#FF30272D</color>
+    <color name="muted_foreground">#FFC2B2B6</color>
+    <color name="border">#FF59434E</color>
+    <color name="ring">#FFE090A1</color>
+    <color name="rose">#FFDF879A</color>
+    <color name="danger">#FFFF9C9F</color>
+    <color name="success">#FF8FD0AA</color>
+
+    <color name="canvas_paper">#FFFFFFFF</color>
+    <color name="canvas_mat">#FF3B2A34</color>
+
+    <!-- Wine on a dark card measures 1.37:1 - the widget's icons would be
+         invisible - so the widget accent has to flip. -->
+    <color name="widget_background">#FF2A2127</color>
+    <color name="widget_caption">#FFC2B2B6</color>
+    <color name="widget_accent">#FFDF879A</color>
+    <color name="notification_accent">#FFDF879A</color>
+    <color name="splash_background">#FF211A20</color>
+
+    <color name="ripple_on_primary">#3327161D</color>
+    <color name="ripple_on_surface">#33DF879A</color>
+</resources>

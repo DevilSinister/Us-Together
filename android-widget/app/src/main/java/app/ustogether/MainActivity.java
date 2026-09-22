@@ -50,46 +50,90 @@ public final class MainActivity extends Activity {
     private ConnectivityManager.NetworkCallback networkCallback;
     private boolean pushConfigured;
 
-    private TextView label(int resource, int size, int color) { return label(getString(resource), size, color); }
-    private TextView label(String text, int size, int color) {
-        TextView view = new TextView(this);
-        view.setText(text); view.setTextSize(size); view.setTextColor(color);
-        view.setPadding(0, 8, 0, 8); return view;
-    }
-    private Button button(int resource) { Button view = new Button(this); view.setText(resource); return view; }
+    private TextView label(int styleRes, int stringRes) { return Ui.text(this, styleRes, stringRes); }
+    private TextView label(int styleRes) { return Ui.text(this, styleRes, ""); }
+    private Button button(int styleRes, int stringRes) { return Ui.button(this, styleRes, stringRes); }
 
     @Override public void onCreate(Bundle state) {
         super.onCreate(state);
-        int brand = getColor(R.color.brand), ink = getColor(R.color.ink), plum = getColor(R.color.plum);
         ScrollView scroll = new ScrollView(this);
         LinearLayout page = new LinearLayout(this);
-        page.setOrientation(LinearLayout.VERTICAL); page.setPadding(28, 40, 28, 28);
-        page.setBackgroundColor(getColor(R.color.paper));
-        page.addView(label(R.string.app_name, 30, brand));
+        page.setOrientation(LinearLayout.VERTICAL);
+        int gutter = Ui.dp(this, R.dimen.gutter_page);
+        page.setPadding(gutter, Ui.dp(this, R.dimen.space_10), gutter, Ui.dp(this, R.dimen.space_8));
+        page.setBackgroundColor(getColor(R.color.background));
+
+        // An eyebrow over a serif headline, the way every page on the web opens.
+        page.addView(label(R.style.Text_Eyebrow, R.string.setup_eyebrow));
+        page.addView(Ui.spaced(this, label(R.style.Text_Display, R.string.setup_heading), R.dimen.space_2));
+
         homePanel = new LinearLayout(this); homePanel.setOrientation(LinearLayout.VERTICAL);
         drawingPanel = new LinearLayout(this); drawingPanel.setOrientation(LinearLayout.VERTICAL);
-        homePanel.addView(label(R.string.setup_heading, 22, ink));
-        homePanel.addView(label(R.string.setup_intro, 16, plum));
-        email = new EditText(this); email.setHint(R.string.setup_email); email.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
-        password = new EditText(this); password.setHint(R.string.setup_password); password.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        homePanel.addView(email); homePanel.addView(password);
-        signIn = button(R.string.setup_sign_in); homePanel.addView(signIn);
-        notificationStatus = label("", 15, plum); homePanel.addView(notificationStatus);
-        notificationAction = button(R.string.setup_notifications_allow); homePanel.addView(notificationAction);
-        makeDrawing = button(R.string.setup_make_drawing); homePanel.addView(makeDrawing);
-        openDrawing = button(R.string.setup_view_latest); homePanel.addView(openDrawing);
-        sendQueued = button(R.string.setup_send_queued); homePanel.addView(sendQueued);
-        notifications = button(R.string.setup_partner_updates); homePanel.addView(notifications);
-        refresh = button(R.string.setup_refresh); homePanel.addView(refresh);
-        openApp = button(R.string.setup_open_app); homePanel.addView(openApp);
-        signOut = button(R.string.setup_sign_out); homePanel.addView(signOut);
-        status = label("", 15, plum); status.setGravity(Gravity.START); status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE); homePanel.addView(status);
-        pushStatus = label("", 14, plum); homePanel.addView(pushStatus);
-        drawingPanel.addView(label(R.string.setup_latest_heading, 22, ink));
+
+        homePanel.addView(Ui.spaced(this, label(R.style.Text_Lede, R.string.setup_intro), R.dimen.space_4));
+
+        email = Ui.field(this, R.string.setup_email, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        password = Ui.field(this, R.string.setup_password, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        homePanel.addView(Ui.spaced(this, email, R.dimen.space_5));
+        homePanel.addView(Ui.spaced(this, password, R.dimen.space_3));
+
+        signIn = button(R.style.Widget_UsTogether_Button_Primary, R.string.setup_sign_in);
+        homePanel.addView(Ui.spaced(this, signIn, R.dimen.space_4));
+
+        // One dominant next step rather than nine controls of equal weight.
+        makeDrawing = button(R.style.Widget_UsTogether_Button_Primary, R.string.setup_make_drawing);
+        homePanel.addView(Ui.spaced(this, makeDrawing, R.dimen.space_5));
+        openDrawing = button(R.style.Widget_UsTogether_Button_Outline, R.string.setup_view_latest);
+        homePanel.addView(Ui.spaced(this, openDrawing, R.dimen.space_2));
+        refresh = button(R.style.Widget_UsTogether_Button_Outline, R.string.setup_refresh);
+        homePanel.addView(Ui.spaced(this, refresh, R.dimen.space_2));
+
+        // Partner updates reads as a destination, so it takes the quiet blush
+        // navigation treatment the web sidebar uses for an active section.
+        notifications = button(R.style.Widget_UsTogether_Button_Ghost, R.string.setup_partner_updates);
+        notifications.setBackgroundResource(R.drawable.bg_nav_row);
+        notifications.setGravity(Gravity.CENTER_VERTICAL);
+        homePanel.addView(Ui.spaced(this, notifications, R.dimen.space_5));
+
+        // The outbox: shown as its own line so a count is legible, rather than
+        // living inside a button label that sits there reading "(0)".
+        sendQueued = button(R.style.Widget_UsTogether_Button_Outline, R.string.setup_send_queued);
+        homePanel.addView(Ui.spaced(this, sendQueued, R.dimen.space_2));
+
+        LinearLayout notificationGroup = Ui.panel(this);
+        notificationStatus = label(R.style.Text_Body);
+        notificationStatus.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        notificationGroup.addView(notificationStatus);
+        notificationAction = button(R.style.Widget_UsTogether_Button_Ghost, R.string.setup_notifications_allow);
+        notificationGroup.addView(Ui.spaced(this, notificationAction, R.dimen.space_2));
+        pushStatus = label(R.style.Text_Caption);
+        notificationGroup.addView(Ui.spaced(this, pushStatus, R.dimen.space_2));
+        homePanel.addView(Ui.spaced(this, notificationGroup, R.dimen.space_5));
+
+        status = label(R.style.Text_Caption);
+        status.setGravity(Gravity.START);
+        status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        homePanel.addView(Ui.spaced(this, status, R.dimen.space_4));
+
+        // A quiet foot behind a fine rule, the way the web puts administration last.
+        homePanel.addView(Ui.divider(this));
+        openApp = button(R.style.Widget_UsTogether_Button_Outline, R.string.setup_open_app);
+        homePanel.addView(openApp);
+        signOut = button(R.style.Widget_UsTogether_Button_Danger, R.string.setup_sign_out);
+        homePanel.addView(Ui.spaced(this, signOut, R.dimen.space_2));
+
+        drawingPanel.addView(label(R.style.Text_Eyebrow, R.string.setup_latest_eyebrow));
+        drawingPanel.addView(Ui.spaced(this, label(R.style.Text_Headline, R.string.setup_latest_heading), R.dimen.space_2));
         drawingImage = new ImageView(this);
-        drawingImage.setAdjustViewBounds(true); drawingImage.setContentDescription(getString(R.string.widget_image_description));
-        drawingPanel.addView(drawingImage, new LinearLayout.LayoutParams(-1, -2));
-        Button backHome = button(R.string.setup_back_home); drawingPanel.addView(backHome);
+        drawingImage.setAdjustViewBounds(true);
+        drawingImage.setBackgroundResource(R.drawable.shape_panel);
+        drawingImage.setClipToOutline(true);
+        drawingImage.setContentDescription(getString(R.string.widget_image_description));
+        LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(-1, -2);
+        imageParams.topMargin = Ui.dp(this, R.dimen.space_5);
+        drawingPanel.addView(drawingImage, imageParams);
+        Button backHome = button(R.style.Widget_UsTogether_Button_Outline, R.string.setup_back_home);
+        drawingPanel.addView(Ui.spaced(this, backHome, R.dimen.space_5));
         backHome.setOnClickListener(view -> showHome());
         openDrawing.setOnClickListener(view -> showDrawing());
         notifications.setOnClickListener(view -> startActivity(new Intent(this, NotificationActivity.class)));

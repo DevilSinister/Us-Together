@@ -1,7 +1,6 @@
 package app.ustogether;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -20,7 +19,7 @@ import java.util.concurrent.Executors;
 public final class NotificationActivity extends Activity {
     private final ExecutorService worker = Executors.newSingleThreadExecutor();
     private LinearLayout list;
-    private TextView status;
+    private TextView status, unread;
     private Button refresh;
     private JSONArray current = new JSONArray();
 
@@ -28,17 +27,26 @@ public final class NotificationActivity extends Activity {
         super.onCreate(state);
         LinearLayout page = new LinearLayout(this);
         page.setOrientation(LinearLayout.VERTICAL);
-        page.setPadding(24, 36, 24, 24);
-        page.setBackgroundColor(Color.rgb(251, 247, 243));
-        TextView heading = text("Partner updates", 28, Color.rgb(111, 23, 48));
-        page.addView(heading);
-        page.addView(text("Shared activity appears here without copying private details.", 15, Color.rgb(84, 43, 52)));
-        refresh = new Button(this);
-        refresh.setText("Refresh updates");
-        page.addView(refresh);
-        status = text("", 14, Color.rgb(84, 43, 52));
+        int gutter = Ui.dp(this, R.dimen.gutter_page);
+        page.setPadding(gutter, Ui.dp(this, R.dimen.space_10), gutter, Ui.dp(this, R.dimen.space_6));
+        page.setBackgroundColor(getColor(R.color.background));
+
+        page.addView(Ui.text(this, R.style.Text_Eyebrow, R.string.inbox_eyebrow));
+        page.addView(Ui.spaced(this, Ui.text(this, R.style.Text_Headline, R.string.inbox_heading), R.dimen.space_2));
+        page.addView(Ui.spaced(this, Ui.text(this, R.style.Text_Lede, R.string.inbox_lede), R.dimen.space_3));
+
+        refresh = Ui.button(this, R.style.Widget_UsTogether_Button_Outline, R.string.inbox_refresh);
+        page.addView(Ui.spaced(this, refresh, R.dimen.space_5));
+
+        unread = Ui.text(this, R.style.Text_Caption, "");
+        page.addView(Ui.spaced(this, unread, R.dimen.space_4));
+
+        status = Ui.text(this, R.style.Text_Caption, "");
         status.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
         page.addView(status);
+
+        page.addView(Ui.divider(this));
+
         ScrollView scroll = new ScrollView(this);
         list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
@@ -51,30 +59,21 @@ public final class NotificationActivity extends Activity {
         load();
     }
 
-    private TextView text(String value, int size, int color) {
-        TextView view = new TextView(this);
-        view.setText(value);
-        view.setTextSize(size);
-        view.setTextColor(color);
-        view.setPadding(0, 10, 0, 10);
-        return view;
-    }
-
     private void load() {
         refresh.setEnabled(false);
-        status.setText("Checking for updates...");
+        status.setText(R.string.inbox_checking);
         worker.execute(() -> {
             try {
                 JSONArray rows = DrawingApi.notifications(this);
                 runOnUiThread(() -> {
                     current = rows;
-                    status.setText("Up to date");
+                    status.setText(R.string.inbox_up_to_date);
                     refresh.setEnabled(true);
                     render();
                 });
             } catch (Exception error) {
                 runOnUiThread(() -> {
-                    status.setText("Offline or unable to refresh. Showing saved updates.");
+                    status.setText(R.string.inbox_offline);
                     refresh.setEnabled(true);
                 });
             }
@@ -83,27 +82,41 @@ public final class NotificationActivity extends Activity {
 
     private void render() {
         list.removeAllViews();
+        int unreadCount = 0;
+        for (int i = 0; i < current.length(); i++) {
+            JSONObject row = current.optJSONObject(i);
+            if (row != null && row.isNull("read_at")) unreadCount++;
+        }
+        unread.setText(unreadCount > 0 ? getString(R.string.inbox_unread_count, unreadCount) : "");
+
         if (current.length() == 0) {
-            list.addView(text("No partner updates yet.", 16, Color.rgb(47, 37, 39)));
+            // Content-led, not a card: an empty state here is a sentence, not a
+            // box drawn around a sentence.
+            list.addView(Ui.text(this, R.style.Text_Body, R.string.inbox_empty));
             return;
         }
-        DateFormat date = new SimpleDateFormat("MMM d, h:mm a", Locale.getDefault());
+        DateFormat date = new SimpleDateFormat(getString(R.string.inbox_date_pattern), Locale.getDefault());
         for (int i = 0; i < current.length(); i++) {
             JSONObject row = current.optJSONObject(i);
             if (row == null) continue;
             LinearLayout item = new LinearLayout(this);
             item.setOrientation(LinearLayout.VERTICAL);
-            item.setPadding(16, 14, 16, 14);
-            item.setBackgroundColor(Color.rgb(255, 250, 246));
-            TextView title = text(row.optString("title", "Shared activity"), 18, Color.rgb(47, 37, 39));
-            item.addView(title);
+            int vertical = Ui.dp(this, R.dimen.space_4);
+            item.setPadding(0, vertical, 0, vertical);
+
+            item.addView(Ui.text(this, R.style.Text_Body, row.optString("title", getString(R.string.inbox_untitled))));
+
             String when = row.optString("created_at", "");
             try { when = date.format(new Date(java.time.Instant.parse(when).toEpochMilli())); }
             catch (Exception ignored) { when = ""; }
-            item.addView(text(when, 13, Color.rgb(84, 43, 52)));
+            // category is already selected by DrawingApi and was being thrown
+            // away; the web inbox prints it beside the date.
+            String category = row.optString("category", "");
+            String meta = category.isEmpty() ? when : when.isEmpty() ? category : when + " · " + category;
+            item.addView(Ui.spaced(this, Ui.text(this, R.style.Text_Caption, meta), R.dimen.space_1));
+
             if (row.isNull("read_at")) {
-                Button markRead = new Button(this);
-                markRead.setText("Mark read");
+                Button markRead = Ui.button(this, R.style.Widget_UsTogether_Button_Ghost, R.string.inbox_mark_read);
                 String id = row.optString("id", "");
                 markRead.setOnClickListener(view -> {
                     markRead.setEnabled(false);
@@ -114,16 +127,22 @@ public final class NotificationActivity extends Activity {
                         } catch (Exception error) {
                             runOnUiThread(() -> {
                                 markRead.setEnabled(true);
-                                status.setText("Could not mark this update as read. Try again when connected.");
+                                status.setText(R.string.inbox_mark_read_failed);
                             });
                         }
                     });
                 });
-                item.addView(markRead);
+                item.addView(Ui.spaced(this, markRead, R.dimen.space_2));
             }
-            LinearLayout.LayoutParams spacing = new LinearLayout.LayoutParams(-1, -2);
-            spacing.bottomMargin = 12;
-            list.addView(item, spacing);
+
+            list.addView(item);
+            // Separated by a fine rule rather than each row sitting in its own
+            // tinted box, which is what read wrong here.
+            if (i < current.length() - 1) {
+                View rule = new View(this);
+                rule.setBackgroundColor(getColor(R.color.border));
+                list.addView(rule, new LinearLayout.LayoutParams(-1, Ui.dp(this, R.dimen.stroke_hairline)));
+            }
         }
     }
 

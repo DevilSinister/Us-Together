@@ -118,7 +118,7 @@ final class DrawingCanvasView extends View {
         super.onDraw(canvas);
         float scale = Math.min(getWidth() / (float) WIDTH, getHeight() / (float) HEIGHT);
         float left = (getWidth() - WIDTH * scale) / 2f, top = (getHeight() - HEIGHT * scale) / 2f;
-        canvas.drawColor(Color.rgb(245, 223, 226));
+        canvas.drawColor(getContext().getColor(R.color.canvas_mat));
         canvas.drawBitmap(image, null, new android.graphics.RectF(left, top, left + WIDTH * scale, top + HEIGHT * scale), null);
     }
     private float coordinate(float value, boolean x) {

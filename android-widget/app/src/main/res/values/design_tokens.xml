@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The web app's tokens, mirrored for the native screens.
+
+  Source of truth is src/app/globals.css and DESIGN.md at the repository root;
+  these values are that :root block. values-night/ mirrors the .dark block.
+
+  The brand constants in colors.xml - brand, paper, cream, ink, plum, blush -
+  deliberately keep no night variant. They are baked into the adaptive launcher
+  icon and the monochrome notification icon, and giving them one would silently
+  flip those.
+-->
+<resources>
+    <color name="background">#FFFBF7F3</color>
+    <color name="foreground">#FF2F2527</color>
+    <color name="card">#FFFFFAF6</color>
+    <color name="field">#FFFFFDFB</color>
+    <color name="primary">#FF6F1730</color>
+    <color name="primary_strong">#FF591124</color>
+    <color name="on_primary">#FFFFF9F6</color>
+    <color name="secondary">#FFF4E7E5</color>
+    <color name="on_secondary">#FF542B34</color>
+    <color name="muted">#FFF3EEEA</color>
+    <color name="muted_foreground">#FF74676A</color>
+    <color name="border">#FFDECFCA</color>
+    <color name="ring">#FF8F2943</color>
+    <color name="rose">#FFB75A6D</color>
+    <color name="danger">#FFA52B32</color>
+    <color name="success">#FF316849</color>
+
+    <!-- A drawing is white paper in both themes; only the mat around it moves. -->
+    <color name="canvas_paper">#FFFFFFFF</color>
+    <color name="canvas_mat">#FFF5DFE2</color>
+
+    <!-- Widget and system chrome, named separately so night behaviour can be
+         tuned without disturbing the in-app palette. -->
+    <color name="widget_background">#FFFBF7F3</color>
+    <color name="widget_caption">#FF542B34</color>
+    <color name="widget_accent">#FF6F1730</color>
+    <color name="notification_accent">#FF6F1730</color>
+    <color name="splash_background">#FF6F1730</color>
+    <color name="twa_status_bar">#FFFBF7F3</color>
+    <color name="twa_navigation_bar">#FFFBF7F3</color>
+    <color name="twa_status_bar_dark">#FF211A20</color>
+    <color name="twa_navigation_bar_dark">#FF211A20</color>
+
+    <color name="ripple_on_primary">#33FFF9F6</color>
+    <color name="ripple_on_surface">#1F6F1730</color>
+</resources>
