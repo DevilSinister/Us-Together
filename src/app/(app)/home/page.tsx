@@ -169,13 +169,13 @@ export default async function HomePage() {
                   {featuredMilestone ? (
                     <>
                       <p className="text-sm font-semibold text-primary">{featuredMilestone.is_featured ? "Featured moment" : "Latest moment"}</p>
-                      <h3 className="mt-1 font-display text-3xl">{featuredMilestone.title}</h3>
+                      <h3 className="mt-1 font-display text-2xl">{featuredMilestone.title}</h3>
                       <p className="mt-2 leading-7 text-muted-foreground">{dateFormatter.format(new Date(`${featuredMilestone.milestone_date}T00:00:00Z`))}</p>
                       <InlineLink href={`/milestones/${featuredMilestone.id}`} className="mt-3">Open moment <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
                     </>
                   ) : (
                     <>
-                      <h3 className="font-display text-3xl">Mark the date that began a chapter.</h3>
+                      <h3 className="font-display text-2xl">Mark the date that began a chapter.</h3>
                       <Button asChild variant="outline" className="mt-4"><Link href="/milestones/new">Add a moment</Link></Button>
                     </>
                   )}
@@ -187,7 +187,7 @@ export default async function HomePage() {
                   <ThreadMarker icon={Images} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-primary">Recently kept</p>
-                    <h3 className="mt-1 font-display text-3xl">{recentMemory.title}</h3>
+                    <h3 className="mt-1 font-display text-2xl">{recentMemory.title}</h3>
                     <p className="mt-2 leading-7 text-muted-foreground">{dateFormatter.format(new Date(`${recentMemory.memory_date}T00:00:00Z`))}</p>
                     <InlineLink href={`/memories/${recentMemory.id}`} className="mt-3">Open memory <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
                   </div>
@@ -199,7 +199,7 @@ export default async function HomePage() {
                   <ThreadMarker icon={NotebookPen} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-primary">{recentNote.type === "private" ? "Your private note" : recentNote.mine ? "You shared a note" : "Your partner left a note"}</p>
-                    <h3 className="mt-1 break-words font-display text-3xl">{recentNote.title}</h3>
+                    <h3 className="mt-1 break-words font-display text-2xl">{recentNote.title}</h3>
                     <InlineLink href={`/notes/${recentNote.id}`} className="mt-3">Open note <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
                   </div>
                 </article>
@@ -210,8 +210,8 @@ export default async function HomePage() {
                   <ThreadMarker icon={Brush} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-primary">{recentDrawing.mine ? "You sent a drawing" : "Your partner sent a drawing"}</p>
-                    <h3 className="mt-1 font-display text-3xl">A little something, drawn by hand.</h3>
-                    <Link href={`/drawings/${recentDrawing.id}`} className="mt-3 block w-56 overflow-hidden rounded-[0.8rem] bg-white shadow-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                    <h3 className="mt-1 font-display text-2xl">A little something, drawn by hand.</h3>
+                    <Link href={`/drawings/${recentDrawing.id}`} className="mt-3 block w-56 overflow-hidden rounded-panel bg-white shadow-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={`/api/drawing-notes/${recentDrawing.id}/image`} alt={recentDrawing.mine ? "The drawing you sent" : "The drawing your partner sent"} className="aspect-[4/3] w-full object-contain" />
                     </Link>
@@ -228,7 +228,7 @@ export default async function HomePage() {
                   <ThreadMarker icon={CheckCircle2} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-primary">Bucket progress</p>
-                    <h3 className="mt-1 font-display text-3xl">{bucketCompleted} of {bucketTotal} dreams completed.</h3>
+                    <h3 className="mt-1 text-xl font-semibold">{bucketCompleted} of {bucketTotal} dreams completed.</h3>
                     <p className="mt-2 leading-7 text-muted-foreground">Only shared bucket items contribute to this count.</p>
                     <InlineLink href="/bucket" className="mt-3">Open bucket lists <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
                   </div>
@@ -241,14 +241,19 @@ export default async function HomePage() {
             <section>
               <p className="text-sm font-semibold text-primary">Start something</p>
               <h2 className="mt-2 font-display text-3xl">Keep the thread moving.</h2>
-              <nav className="mt-5 grid gap-2" aria-label="Create">
-                <Button asChild className="justify-start"><Link href="/plans/new"><CalendarDays className="size-4" />New plan</Link></Button>
-                <Button asChild variant="outline" className="justify-start"><Link href="/memories/new"><Sparkles className="size-4" />Add a memory</Link></Button>
-                <Button asChild variant="outline" className="justify-start"><Link href="/milestones/new"><CalendarHeart className="size-4" />Add a moment</Link></Button>
-                <Button asChild variant="outline" className="justify-start"><Link href="/bucket/new"><ListChecks className="size-4" />Keep an idea</Link></Button>
-                <Button asChild variant="outline" className="justify-start"><Link href="/notes/new"><NotebookPen className="size-4" />Write a note</Link></Button>
-                <Button asChild variant="outline" className="justify-start"><Link href="/drawings/new"><Brush className="size-4" />Make a drawing</Link></Button>
-                <Button asChild variant="outline" className="justify-start"><Link href="/wishlist/new"><Gift className="size-4" />Add a wish</Link></Button>
+              {/* One filled wine button, then a two-column grid of outline
+                  actions: same capability in roughly half the height, and the
+                  accent stays singular instead of leading a stack of seven. */}
+              <nav className="mt-5" aria-label="Create">
+                <Button asChild className="w-full justify-start"><Link href="/plans/new"><CalendarDays className="size-4" />New plan</Link></Button>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <Button asChild variant="outline" size="sm" className="justify-start"><Link href="/memories/new"><Sparkles className="size-4" />Memory</Link></Button>
+                  <Button asChild variant="outline" size="sm" className="justify-start"><Link href="/milestones/new"><CalendarHeart className="size-4" />Moment</Link></Button>
+                  <Button asChild variant="outline" size="sm" className="justify-start"><Link href="/bucket/new"><ListChecks className="size-4" />Idea</Link></Button>
+                  <Button asChild variant="outline" size="sm" className="justify-start"><Link href="/notes/new"><NotebookPen className="size-4" />Note</Link></Button>
+                  <Button asChild variant="outline" size="sm" className="justify-start"><Link href="/drawings/new"><Brush className="size-4" />Drawing</Link></Button>
+                  <Button asChild variant="outline" size="sm" className="justify-start"><Link href="/wishlist/new"><Gift className="size-4" />Wish</Link></Button>
+                </div>
               </nav>
               <div className="mt-4 flex flex-wrap items-center gap-x-6">
                 <InlineLink href="/gallery"><Camera className="size-4" aria-hidden="true" />Open gallery</InlineLink>
@@ -260,10 +265,15 @@ export default async function HomePage() {
                 <LockKeyhole className="mt-1 size-5 shrink-0 text-primary" aria-hidden="true" />
                 <div>
                   <h2 className="font-display text-2xl">Safe projections only.</h2>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">Home reads shared plans, memories, moments, bucket counts, wishes, drawings both of you can already see, and only the notes you are allowed to read. A partner private note and any gift plan are never counted, previewed, or copied into notifications.</p>
+                  {/* The promise in one sentence, the full accounting one tap
+                      away. Same honesty, without a wall of text in the rail. */}
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">Home only ever shows what both of you can already see.</p>
+                  <details className="mt-2">
+                    <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-primary">What Home can read</summary>
+                    <p className="mt-2 text-sm leading-6 text-muted-foreground">Shared plans, memories, moments, bucket counts, wishes, drawings both of you can already see, and only the notes you are allowed to read. A partner private note and any gift plan are never counted, previewed, or copied into notifications.</p>
+                  </details>
                 </div>
               </div>
-              <Button asChild variant="outline" className="mt-5 w-full"><Link href="/notifications">Notification settings</Link></Button>
             </section>
           </aside>
         </div>
