@@ -198,3 +198,14 @@ Authenticated `app_lock_status()` returns `{configured,areas}`. `app_lock_open(a
 ### PIN flow update
 
 `app_lock_status()` also returns `pin_length` (4, 6 or null for a legacy code). New setup accepts a 4- or 6-digit PIN. Existing codes of 6–12 digits remain valid for unlock and configuration until changed. Authenticated `app_lock_change_code(current_code,new_code)` verifies the current code and accepts only a new 4- or 6-digit PIN; success revokes all current unlocks. The server action `changePrivacyPin` validates both inputs. Setup and change screens require local confirmation before making the mutation.
+
+## `GET /api/avatar/[scope]`
+
+`scope` is the closed set `me` | `partner`; anything else is 404. There is no identifier in the URL and the route never accepts a caller-supplied storage path — both branches derive the object from the session, so each is an own-folder read under the existing `avatars` policies and no cross-account read is possible.
+
+- `me` serves `profiles.avatar_path` for the signed-in user.
+- `partner` serves `partner_presentations.avatar_path` for `owner_id = auth.uid()` — the picture that account chose for its partner, never the partner's own.
+
+Every failure answers `404`: no session, a developer/preview identity, no row, a null path, an unrecognised extension, or an unreadable object. The route therefore cannot distinguish "nothing here" from "not allowed".
+
+Responses stream the bytes — no redirect to a signed URL, unlike `/api/memory-media/[id]`, because an avatar repeats many times on one page — with `Content-Type` derived from the stored path rather than the blob's own claim, `Cache-Control: private, max-age=300, must-revalidate`, an `ETag` over the path, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox` and `Referrer-Policy: no-referrer`. `If-None-Match` answers `304`. The cache header is a deliberate departure from the `no-store` used by the other private-media routes: an avatar is chrome the requesting account uploaded itself, `private` keeps it out of shared caches, and every upload mints a fresh UUID path so the ETag changes the instant the picture does.
