@@ -33,6 +33,9 @@ export async function savePartnerPresentationAction(_previous: ActionState, form
   if (!check.ok) return { status: "error", message: check.message };
 
   const name = parsed.data.partnerName.trim();
+  // Opened from onboarding it continues the flow; opened from the profile it
+  // returns there, so there is one editor rather than two.
+  const back = formData.get("returnTo") === "profile" ? "/profile" : "/onboarding?step=connect";
 
   if (identity.kind === "developer") {
     const state = await readDeveloperState();
@@ -44,7 +47,7 @@ export async function savePartnerPresentationAction(_previous: ActionState, form
         avatarStyle: parsed.data.partnerAvatarStyle,
       },
     });
-    redirect("/onboarding?step=connect");
+    redirect(back);
   }
 
   const supabase = await createServerSupabaseClient();
@@ -68,7 +71,7 @@ export async function savePartnerPresentationAction(_previous: ActionState, form
   if (error) return { status: "error", message: "We couldn't save these details. Try again." };
 
   revalidatePath("/", "layout");
-  redirect("/onboarding?step=connect");
+  redirect(back);
 }
 
 /** Forget the name and picture you chose. Deliberately explicit, never a side effect of unpairing. */

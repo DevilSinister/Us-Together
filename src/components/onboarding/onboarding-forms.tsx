@@ -127,7 +127,7 @@ export function ConnectStepForms() {
  * It also works before the partner has an account, which is the point: you can
  * name them while you are still waiting for them to join.
  */
-export function PartnerStepForm({ partnerName, partnerAvatarStyle }: { partnerName: string; partnerAvatarStyle: string }) {
+export function PartnerStepForm({ partnerName, partnerAvatarStyle, returnTo = "onboarding" }: { partnerName: string; partnerAvatarStyle: string; returnTo?: "onboarding" | "profile" }) {
   const [state, action] = useActionState(savePartnerPresentationAction, initialActionState);
   const [name, setName] = useState(partnerName);
   const [preview, setPreview] = useState<string | null>(null);
@@ -135,6 +135,7 @@ export function PartnerStepForm({ partnerName, partnerAvatarStyle }: { partnerNa
 
   return (
     <form action={action} className="space-y-6" noValidate>
+      <input type="hidden" name="returnTo" value={returnTo} />
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
         <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary font-display text-4xl text-primary">
           {preview ? <Image src={preview} alt="Selected partner photo preview" width={96} height={96} unoptimized className="size-full object-cover" /> : initial}
@@ -172,8 +173,8 @@ export function PartnerStepForm({ partnerName, partnerAvatarStyle }: { partnerNa
       <FormMessage state={state} />
 
       <div className="flex flex-wrap items-center gap-4">
-        <SubmitButton>Save and continue</SubmitButton>
-        <Button asChild variant="ghost"><Link href="/onboarding?step=connect">I&rsquo;ll add this later</Link></Button>
+        <SubmitButton>{returnTo === "profile" ? "Save" : "Save and continue"}</SubmitButton>
+        {returnTo === "onboarding" ? <Button asChild variant="ghost"><Link href="/onboarding?step=connect">I&rsquo;ll add this later</Link></Button> : null}
       </div>
     </form>
   );
