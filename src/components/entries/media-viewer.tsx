@@ -4,13 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import {ImageOff, X} from "lucide-react";
 import type {GalleryItem} from "@/lib/entries/gallery";
+import {mediaHref,type MediaVariant} from "@/lib/entries/media-url";
 import {memoryMediaAction} from "@/app/actions/memories";
 import {changePreviewMedia} from "@/lib/entries/preview-media";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {CommentThread} from "./comment-thread";
-export function mediaSource(item:GalleryItem,variant="original"){return (variant==="preview"?item.previewUrl:item.url)??"/api/memory-media/"+item.id+"?kind="+item.access.kind+"&variant="+variant;}
+// Preview mode holds blob URLs on the item itself; everything else is addressed
+// by the shared route builder so no two surfaces can drift on the query shape.
+export function mediaSource(item:GalleryItem,variant:MediaVariant="original"){return (variant==="preview"?item.previewUrl:item.url)??mediaHref(item.id,item.access.kind,variant);}
 export function MediaViewer({items,index,onIndex,onClose,onChange}:{items:GalleryItem[];index:number;onIndex:(i:number)=>void;onClose:()=>void;onChange:()=>Promise<void>}){
  const dialog=useRef<HTMLDialogElement>(null),item=items[index],touch=useRef<{x:number;y:number}|null>(null);
  useEffect(()=>{dialog.current?.showModal();},[]);
