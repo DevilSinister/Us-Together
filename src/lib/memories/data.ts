@@ -8,10 +8,12 @@ import type { DevState } from "@/lib/auth/dev-session";
 export const memoryColumns = "id,title,description,memory_date,location,rating,is_favorite,source_plan_id,source_bucket_item_id,version" as const;
 export const mediaColumns = "id,media_type,mime_type,size_bytes,state,caption,width,height,duration_seconds,upload_expires_at" as const;
 const galleryColumns = "id,title,description,memory_date,location,rating,is_favorite,source_plan_id,source_bucket_item_id,version,memory_tag_links(memory_tags(name)),memory_media(id,media_type,mime_type,size_bytes,state,caption,width,height,duration_seconds,upload_expires_at)" as const;
-// The index shows one thumbnail and a file count per row. The second, aliased
-// embed of the same table is how PostgREST returns a count alongside the single
-// embedded row; the detail query does not want it and keeps galleryColumns.
-const listColumns = "id,title,description,memory_date,location,rating,is_favorite,source_plan_id,source_bucket_item_id,version,memory_tag_links(memory_tags(name)),memory_media(id,media_type,mime_type,size_bytes,state,caption,width,height,duration_seconds,upload_expires_at),media_count:memory_media(count)" as const;
+// There is deliberately no file-count embed here. A second, aliased
+// `media_count:memory_media(count)` alongside the ordered single-row embed made
+// PostgREST emit one query that ordered by memory_media.media_type while
+// aggregating the same relation, and Postgres rejected it: "column
+// memory_media_1.media_type must appear in the GROUP BY clause". The
+// deterministic thumbnail is worth more than the count, so the count goes.
 // The embedded media row is limited to one, so without an order it is whichever
 // row Postgres happens to return. "image" sorts before "video", so ordering by
 // media_type then created_at yields the earliest photo, falling back to the
@@ -39,20 +41,20 @@ export async function loadMemories(input: unknown): Promise<MemoryPage & { paire
     if(error)throw new Error("Could not load memories. Try again.");
     const rows=(data??[]) as {id:string}[];
     if(!rows.length)return {memories:[],next:null,paired:true,preview:false};
-    const {data:full,error:fullError}=await thumbnailFirst(c.db.from("memories").select(listColumns).in("id",rows.map(r=>r.id)).eq("memory_media.state","ready").eq("media_count.state","ready").limit(1,{referencedTable:"memory_media"})).order("memory_date",{ascending:false}).order("id",{ascending:false});
+    const {data:full,error:fullError}=await thumbnailFirst(c.db.from("memories").select(galleryColumns).in("id",rows.map(r=>r.id)).eq("memory_media.state","ready").limit(1,{referencedTable:"memory_media"})).order("memory_date",{ascending:false}).order("id",{ascending:false});
     if(fullError)throw new Error("Could not load memories.");
     return pageFromRows(full??[]);
   }
-  let query=thumbnailFirst(c.db.from("memories").select(listColumns).eq("couple_id",c.coupleId!).eq("memory_media.state","ready").eq("media_count.state","ready").limit(1,{referencedTable:"memory_media"})).order("memory_date",{ascending:false}).order("id",{ascending:false}).limit(13);
+  let query=thumbnailFirst(c.db.from("memories").select(galleryColumns).eq("couple_id",c.coupleId!).eq("memory_media.state","ready").limit(1,{referencedTable:"memory_media"})).order("memory_date",{ascending:false}).order("id",{ascending:false}).limit(13);
   if(filter.favorite)query=query.eq("is_favorite",true);
   if(filter.cursor)query=query.or("memory_date.lt."+filter.cursor.date+",and(memory_date.eq."+filter.cursor.date+",id.lt."+filter.cursor.id+")");
   const {data,error}=await query;
   if(error)throw new Error("Could not load memories. Try again.");
   return pageFromRows(data??[]);
 }
-type GalleryRow = Omit<Memory,"tags"|"media"|"mediaCount"> & { memory_tag_links: {memory_tags:{name:string}|null}[]; memory_media: Memory["media"]; media_count?: {count:number}[] };
+type GalleryRow = Omit<Memory,"tags"|"media"> & { memory_tag_links: {memory_tags:{name:string}|null}[]; memory_media: Memory["media"] };
 function pageFromRows(rows: GalleryRow[]) {
-  const page=rows.slice(0,12).map(({memory_tag_links,memory_media,media_count,...row})=>({...row,tags:memory_tag_links.flatMap(t=>t.memory_tags?[t.memory_tags.name]:[]),media:memory_media,mediaCount:media_count?.[0]?.count}));
+  const page=rows.slice(0,12).map(({memory_tag_links,memory_media,...row})=>({...row,tags:memory_tag_links.flatMap(t=>t.memory_tags?[t.memory_tags.name]:[]),media:memory_media}));
   const last=page.at(-1);
   return {memories:page,next:rows.length>12&&last?{date:last.memory_date,id:last.id}:null,paired:true,preview:false};
 }
