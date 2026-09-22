@@ -25,8 +25,8 @@ const dayFormat = new Intl.DateTimeFormat("en", { day: "numeric", month: "short"
  * reached this page.
  *
  * Headings are months, not days, because the date now rides on the row; see
- * lib/memories/grouping.ts. The thumbnail, excerpt and tags were already being
- * fetched and thrown away, so the only new datum is the file count.
+ * lib/memories/grouping.ts. Nothing here costs a new query: the thumbnail,
+ * excerpt and tags were already being fetched and thrown away at render.
  */
 export function MemoryGallery({ initial }: { initial: MemoryPage }) {
   const [page, setPage] = useState(initial);
@@ -127,7 +127,6 @@ export function MemoryGallery({ initial }: { initial: MemoryPage }) {
 
                   <span className="mt-1 block text-xs font-semibold text-muted-foreground">
                     <time dateTime={m.memory_date}>{dayFormat.format(new Date(m.memory_date + "T00:00:00Z"))}</time>
-                    {m.mediaCount ? " · " + m.mediaCount + (m.mediaCount === 1 ? " file" : " files") : ""}
                   </span>
 
                   {m.description ? <span className="mt-1 block line-clamp-1 text-sm leading-6 text-muted-foreground">
