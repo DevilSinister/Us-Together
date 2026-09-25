@@ -28,7 +28,7 @@ export function IdeaTile({ item, groupedBy }: { item: BucketItem; groupedBy: Buc
   const Icon = categoryIcons[categoryMark(item.category)];
   const done = item.status === "completed";
   const level = priorityLevel(item.priority);
-  const lived = done && item.completed_at ? shortDate.format(new Date(item.completed_at)) : null;
+  const lived = done && item.lived_on ? shortDate.format(new Date(`${item.lived_on}T12:00:00Z`)) : null;
 
   return (
     <Link

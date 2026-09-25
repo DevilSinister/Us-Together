@@ -18,6 +18,14 @@ export const dateOnly = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine((value) =
   const date = new Date(`${value}T12:00:00Z`);
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }, "Choose a real calendar date.");
+/**
+ * The day a dream was lived. It cannot be later than today; the server does not know
+ * the member's zone at parse time, so "today" is allowed to run one day past UTC.
+ */
+export const livedOnDate = dateOnly.refine((value) => {
+  const tomorrow = new Date(Date.now() + 86_400_000).toISOString().slice(0, 10);
+  return value <= tomorrow && value >= "1900-01-01";
+}, "Choose the day you lived it, today or earlier.");
 export const bucketItemSchema = z.object({
   listId: z.uuid(), title: z.string().trim().min(1, "Give your idea a name.").max(160),
   description: optionalText(4000), category: optionalText(80),
@@ -37,7 +45,8 @@ export const bucketMutationSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("createItem"), item: bucketItemSchema }),
   z.object({ operation: z.literal("updateItem"), id: z.uuid(), version: z.number().int().nonnegative(), item: bucketItemSchema }),
   z.object({ operation: z.literal("deleteItem"), id: z.uuid(), version: z.number().int().nonnegative(), confirmation: z.literal("DELETE") }),
-  z.object({ operation: z.literal("completeItem"), id: z.uuid(), version: z.number().int().nonnegative() }),
+  z.object({ operation: z.literal("completeItem"), id: z.uuid(), version: z.number().int().nonnegative(), livedOn: livedOnDate }),
+  z.object({ operation: z.literal("setLivedOn"), id: z.uuid(), version: z.number().int().nonnegative(), livedOn: livedOnDate }),
   z.object({ operation: z.literal("subtask"), id: z.uuid(), version: z.number().int().nonnegative(), kind: z.enum(["add", "update", "delete", "reorder"]), subtaskId: z.uuid().nullable(), label: z.string().trim().max(240), completed: z.boolean(), orderedIds: z.array(z.uuid()).max(50) }),
 ]);
 export type BucketFilter = z.infer<typeof bucketFilterSchema>;

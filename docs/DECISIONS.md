@@ -387,3 +387,13 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 
 **Consequences:** `loadStory` batch-reads the page's memories and moments for their first three ready image ids, description and `created_by`, under the same member policies, plus five head counts and the start date on every page. Photo ids only ever become addresses on the authorized `/api/memory-media` route. The developer preview now has a story built from its local state, with its photos read from the browser's own storage.
 
+
+## ADR-043 — A memory tells its dream or plan once in Our Story
+
+**Status:** Accepted, 2026-09-25
+
+**Context:** A dream kept as a memory appeared twice on the timeline, as "Dream lived" and as the memory. A kept plan did the same. Dreams were also dated by the moment someone pressed complete, not by when they were lived.
+
+**Decision:** A dream records `lived_on`, chosen with a date picker when it is marked lived and changeable later. A dream and its direct memory share that day through a database trigger in both directions. Once any memory references a dream or plan, Our Story shows only the memory, which already names where it began.
+
+**Consequences:** Moving the day on either the dream or its memory moves both, and can raise a partner "edited" notice for each. A memory hidden by a locked memories section leaves its dream visible to that member, and the sync cannot move a memory that member cannot see.

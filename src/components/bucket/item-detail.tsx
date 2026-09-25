@@ -20,6 +20,10 @@ import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { EntryActions } from "@/components/app/entry-actions";
 import { ItemEditor } from "./item-editor";
 
+// lived_on is a calendar date, so it is formatted at UTC: a viewer's zone must not move the day.
+const livedFormat = new Intl.DateTimeFormat("en", { timeZone: "UTC", dateStyle: "long" });
+const localToday = () => new Date().toLocaleDateString("en-CA");
+
 export function ItemDetail({
   item,
   subtasks,
@@ -37,6 +41,7 @@ export function ItemDetail({
   const [message, setMessage] = useState("");
   const [editOpen, setEditOpen] = useState(false);
   const [editPending, setEditPending] = useState(false);
+  const [completing, setCompleting] = useState(false);
   const [touchDrag, setTouchDrag] = useState<{ sourceId: string; targetId: string } | null>(null);
   const touchHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const touchPointerId = useRef<number | null>(null);
@@ -137,29 +142,60 @@ export function ItemDetail({
           <section className="w-full rounded-panel bg-secondary p-6">
             <h2 className="font-display text-3xl">One more dream lived.</h2>
             <p className="mt-2 leading-7 text-muted-foreground">
-              Completion is saved. Your story can follow when you are ready.
+              {item.lived_on
+                ? <>You lived it on <time dateTime={item.lived_on} className="font-semibold text-foreground">{livedFormat.format(new Date(`${item.lived_on}T00:00:00Z`))}</time>, and that is where it sits in your story.</>
+                : "Completion is saved. Your story can follow when you are ready."}
             </p>
+            <form method="post"
+              className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end"
+              onSubmit={(event) => {
+                event.preventDefault();
+                const livedOn = String(new FormData(event.currentTarget).get("livedOn"));
+                submit({ operation: "setLivedOn", id: item.id, version: item.version, livedOn }, "The day you lived it is saved.");
+              }}
+            >
+              <label className="space-y-1.5 text-sm font-semibold">
+                <span className="block">The day you lived it</span>
+                <Input name="livedOn" type="date" required max={localToday()} defaultValue={item.lived_on ?? localToday()} key={item.lived_on} disabled={pending} />
+              </label>
+              <Button type="submit" variant="outline" className="min-h-11" disabled={pending}>Change the day</Button>
+            </form>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">A memory kept from this dream moves to the same day.</p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Button asChild>
                 <Link href={`/memories/new?bucket=${item.id}`}>Save this as a memory</Link>
               </Button>
             </div>
           </section>
+        ) : completing ? (
+          <form method="post"
+            className="w-full rounded-panel bg-secondary p-6"
+            onSubmit={(event) => {
+              event.preventDefault();
+              const livedOn = String(new FormData(event.currentTarget).get("livedOn"));
+              submit({ operation: "completeItem", id: item.id, version: item.version, livedOn }, "One more dream lived. Completion saved.", () => setCompleting(false));
+            }}
+          >
+            <h2 className="font-display text-3xl">When did you live it?</h2>
+            <p className="mt-2 leading-7 text-muted-foreground">Our Story places it on this day. You can change it later.</p>
+            <label className="mt-5 block space-y-1.5 text-sm font-semibold sm:max-w-xs">
+              <span className="block">The day you lived it</span>
+              <Input name="livedOn" type="date" required max={localToday()} defaultValue={localToday()} disabled={pending} autoFocus />
+            </label>
+            <div className="mt-5 flex flex-wrap gap-3">
+              <Button type="submit" disabled={pending}>
+                <Check className="size-4" aria-hidden="true" />
+                Mark as lived
+              </Button>
+              <Button type="button" variant="ghost" disabled={pending} onClick={() => setCompleting(false)}>Cancel</Button>
+            </div>
+          </form>
         ) : (
           <>
             <Button asChild>
               <Link href={`/plans/new?bucket=${item.id}`}>Plan this</Link>
             </Button>
-            <Button
-              variant="outline"
-              disabled={pending}
-              onClick={() =>
-                submit(
-                  { operation: "completeItem", id: item.id, version: item.version },
-                  "One more dream lived. Completion saved."
-                )
-              }
-            >
+            <Button variant="outline" disabled={pending} onClick={() => setCompleting(true)}>
               <Check className="size-4" />
               Mark complete
             </Button>

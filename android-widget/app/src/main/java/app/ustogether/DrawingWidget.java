@@ -26,8 +26,8 @@ import java.time.OffsetDateTime;
 public final class DrawingWidget extends AppWidgetProvider {
     private static final String PREF = "widget_state";
     static final String ACTION_REFRESH = "app.ustogether.widget.REFRESH";
-    /** 4:3, and under the ~1 MB RemoteViews bitmap budget (560×420 ARGB ≈ 940 KB). */
-    private static final int MAX_WIDTH = 560, MAX_HEIGHT = 420;
+    /** Under the ~1 MB RemoteViews bitmap budget: 560×420 or 485×485 ARGB is about 940 KB. */
+    private static final int MAX_PIXELS = 560 * 420;
     private static final int PADDING_DP = 16, CAPTION_DP = 52;
 
     private static SharedPreferences prefs(Context context) { return context.getSharedPreferences(PREF, Context.MODE_PRIVATE); }
@@ -77,7 +77,10 @@ public final class DrawingWidget extends AppWidgetProvider {
         manager.updateAppWidget(id, views);
     }
 
-    /** Scale the 640×480 PNG to the cell the launcher actually gave this instance. */
+    /**
+     * Scale the note to the cell the launcher actually gave this instance, keeping its
+     * own shape: square notes from the phone, 4:3 notes from the web and from before.
+     */
     private static Bitmap fitted(Context context, Bundle options, Bitmap original) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         int widthDp = options == null ? 0 : options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 0);
@@ -86,10 +89,14 @@ public final class DrawingWidget extends AppWidgetProvider {
         if (heightDp <= 0) heightDp = 140;
         int widthPx = Math.max(64, Math.round((widthDp - PADDING_DP) * metrics.density));
         int heightPx = Math.max(48, Math.round((heightDp - PADDING_DP - CAPTION_DP) * metrics.density));
-        // Fit 4:3 inside the box, then cap for the RemoteViews transaction.
-        int width = Math.min(widthPx, heightPx * 4 / 3), height = width * 3 / 4;
-        if (width > MAX_WIDTH) { width = MAX_WIDTH; height = MAX_HEIGHT; }
-        if (width <= 0 || height <= 0) { width = 320; height = 240; }
+        // Fit the note's aspect inside the box, then cap for the RemoteViews transaction.
+        float aspect = original.getWidth() / (float) original.getHeight();
+        int width = Math.min(widthPx, Math.round(heightPx * aspect)), height = Math.round(width / aspect);
+        if ((long) width * height > MAX_PIXELS) {
+            float shrink = (float) Math.sqrt(MAX_PIXELS / (double) ((long) width * height));
+            width = Math.round(width * shrink); height = Math.round(height * shrink);
+        }
+        if (width <= 0 || height <= 0) { width = 320; height = Math.round(320 / aspect); }
         return Bitmap.createScaledBitmap(original, width, height, true);
     }
 
