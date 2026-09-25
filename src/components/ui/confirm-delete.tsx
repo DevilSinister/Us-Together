@@ -15,6 +15,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
  *
  * `blocked` names a precondition the server would refuse - "remove the files
  * first" - so the dialog can explain it rather than fail after the click.
+ *
+ * `trigger={false}` with `open`/`onOpenChange` lets a menu item open the same
+ * confirmation - the photo viewer keeps Delete behind its three-dot menu.
  */
 export function ConfirmDelete({
   label,
@@ -27,6 +30,9 @@ export function ConfirmDelete({
   size,
   variant = "danger",
   className,
+  trigger = true,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   label: string;
   title: string;
@@ -38,8 +44,13 @@ export function ConfirmDelete({
   size?: "default" | "sm";
   variant?: "danger" | "ghost";
   className?: string;
+  trigger?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [ownOpen, setOwnOpen] = useState(false);
+  const open = controlledOpen ?? ownOpen;
+  const setOpen = (next: boolean) => { setOwnOpen(next); onOpenChange?.(next); };
   const [error, setError] = useState("");
   const [pending, start] = useTransition();
   const [done, setDone] = useState(false);
@@ -61,15 +72,17 @@ export function ConfirmDelete({
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!busy) { setOpen(next); setError(""); } }}>
-      <DialogTrigger asChild>
-        <Button
-          variant={variant}
-          size={size}
-          className={variant === "ghost" ? "text-danger hover:bg-danger/10 hover:text-danger " + (className ?? "") : className}
-        >
-          <Trash2 className="size-4" aria-hidden="true" />{label}
-        </Button>
-      </DialogTrigger>
+      {trigger ? (
+        <DialogTrigger asChild>
+          <Button
+            variant={variant}
+            size={size}
+            className={variant === "ghost" ? "text-danger hover:bg-danger/10 hover:text-danger " + (className ?? "") : className}
+          >
+            <Trash2 className="size-4" aria-hidden="true" />{label}
+          </Button>
+        </DialogTrigger>
+      ) : null}
       <DialogContent title={title} dismissible={!busy}>
         {/* No header rule: the footer's rule already separates the question from the answer. */}
         <DialogHeader className="border-b-0 pb-0">

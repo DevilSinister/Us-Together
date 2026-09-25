@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ProfileForm } from "@/components/profile/profile-form";
 import { PartnerStepForm } from "@/components/onboarding/onboarding-forms";
 import { PageHeader } from "@/components/app/page-header";
-import { Avatar } from "@/components/app/avatar";
 import { Button } from "@/components/ui/button";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
@@ -44,12 +43,10 @@ export default async function ProfilePage() {
       />
 
       <section aria-labelledby="profile-you" className="mt-9 rounded-panel bg-card p-6 shadow-paper sm:p-8">
-        <div className="flex items-center gap-4">
-          <Avatar name={identities.me.name} src={identities.me.src} style={identities.me.style} size="lg" eager/>
-          <h2 id="profile-you" className="font-display text-2xl">You</h2>
-        </div>
+        {/* The photo editor below carries the face, so the heading does not repeat it. */}
+        <h2 id="profile-you" className="font-display text-2xl">You</h2>
         <div className="mt-6">
-          <ProfileForm displayName={profile?.display_name ?? ""} timezone={profile?.timezone ?? "UTC"} />
+          <ProfileForm displayName={profile?.display_name ?? ""} timezone={profile?.timezone ?? "UTC"} avatarSrc={identities.me.src} />
         </div>
       </section>
 
@@ -60,23 +57,22 @@ export default async function ProfilePage() {
         rather than two that can drift.
       */}
       <section aria-labelledby="profile-partner" id="partner" className="mt-8 rounded-panel bg-card p-6 shadow-paper sm:p-8">
-        <div className="flex items-center gap-4">
-          <Avatar name={identities.partner.name} src={identities.partner.src} style={identities.partner.style} size="lg"/>
+        <div>
           <div className="min-w-0">
             <h2 id="profile-partner" className="font-display text-2xl">Your partner</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {partner.name
-                ? "This is yours, not theirs. They never see the name or picture you chose."
+                ? "This is how they appear to you everywhere in the app. It is yours, not theirs: they never see the name or picture you chose."
                 : `Right now they appear as “${identities.partner.name}”, the name they chose.`}
             </p>
           </div>
         </div>
 
         <div className="mt-6">
-          <PartnerStepForm partnerName={partner.name} partnerAvatarStyle={partner.avatarStyle} returnTo="profile" />
+          <PartnerStepForm partnerName={partner.name} partnerAvatarStyle={partner.avatarStyle} partnerAvatarSrc={identities.partner.src} returnTo="profile" />
         </div>
 
-        {partner.name ? (
+        {partner.name || identities.partner.src ? (
           <form action={forgetPartnerPresentationAction} className="mt-6 border-t pt-5">
             <Button type="submit" variant="ghost" size="sm" className="text-danger hover:bg-danger/10 hover:text-danger">
               Forget these details

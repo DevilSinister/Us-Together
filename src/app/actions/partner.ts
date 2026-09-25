@@ -52,7 +52,10 @@ export async function savePartnerPresentationAction(_previous: ActionState, form
 
   const supabase = await createServerSupabaseClient();
   let avatarPath: string | undefined;
+  let previousPath: string | null = null;
   if (!check.empty) {
+    const { data: current } = await supabase.from("partner_presentations").select("avatar_path").eq("owner_id", identity.userId).maybeSingle();
+    previousPath = current?.avatar_path ?? null;
     const file = formData.get("partnerAvatar") as File;
     avatarPath = avatarObjectPath(identity.userId, "partner", check.extension);
     const bytes = new Uint8Array(await file.arrayBuffer());
@@ -69,6 +72,8 @@ export async function savePartnerPresentationAction(_previous: ActionState, form
 
   const { error } = await supabase.from("partner_presentations").upsert(row, { onConflict: "owner_id" });
   if (error) return { status: "error", message: "We couldn't save these details. Try again." };
+  // The replaced picture is removed only after the row points at the new one.
+  if (avatarPath && previousPath && previousPath !== avatarPath) await supabase.storage.from("avatars").remove([previousPath]);
 
   revalidatePath("/", "layout");
   redirect(back);

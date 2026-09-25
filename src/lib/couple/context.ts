@@ -22,21 +22,34 @@ export async function coupleContext() {
   return { kind: "database" as const, db, userId: identity.userId, coupleId: membership?.couple_id ?? null };
 }
 
-/** The other active member, used only for labels. Never for authorization. */
+/**
+ * The other active member's name as the caller sees it, used only for labels.
+ * Never for authorization.
+ *
+ * It follows the same rule as lib/avatar/resolve.ts: the name I chose for my
+ * partner in Settings wins, and their own profile name is the fallback. Reading
+ * their profile directly here used to print the signup name on notes, drawings
+ * and wishes while the avatar beside it showed the name I had chosen.
+ */
 export async function partnerName(context: Extract<Awaited<ReturnType<typeof coupleContext>>, { kind: "database" }>) {
   if (!context.coupleId) return null;
-  const { data } = await context.db
-    .from("couple_memberships")
-    .select("user_id")
-    .eq("couple_id", context.coupleId)
-    .is("left_at", null)
-    .neq("user_id", context.userId)
-    .maybeSingle();
+  const [{ data }, { data: presentation }] = await Promise.all([
+    context.db
+      .from("couple_memberships")
+      .select("user_id")
+      .eq("couple_id", context.coupleId)
+      .is("left_at", null)
+      .neq("user_id", context.userId)
+      .maybeSingle(),
+    context.db.from("partner_presentations").select("display_name").eq("owner_id", context.userId).maybeSingle(),
+  ]);
   if (!data) return null;
+  const chosen = presentation?.display_name?.trim();
+  if (chosen) return chosen;
   const { data: profile } = await context.db
     .from("profiles")
     .select("display_name")
     .eq("user_id", data.user_id)
     .maybeSingle();
-  return profile?.display_name ?? null;
+  return profile?.display_name?.trim() || null;
 }

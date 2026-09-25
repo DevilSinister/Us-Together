@@ -36,10 +36,30 @@ export type PartnerPresentation = { display_name: string | null; avatar_path: st
  */
 export type PartnerProfile = { display_name: string | null; avatar_path?: string | null } | null;
 
+/**
+ * The avatar route plus a version derived from the stored object path.
+ *
+ * The route answers with `max-age=300`, so an unversioned URL let a browser keep
+ * showing the old face for five minutes after a new one was saved in Settings.
+ * Every upload mints a fresh UUID path, so hashing the path yields a new URL the
+ * moment the picture changes and the same URL for as long as it does not. The
+ * hash is a short FNV-1a digest: the path itself (it carries a user id) never
+ * reaches the page.
+ */
+export function avatarSrc(scope: "me" | "partner", path: string | null | undefined): string | null {
+  if (!path) return null;
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < path.length; i++) {
+    hash ^= path.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return "/api/avatar/" + scope + "?v=" + (hash >>> 0).toString(36);
+}
+
 export function resolveMe(profile: OwnProfile, fallbackName = "You"): ResolvedIdentity {
   return {
     name: profile?.display_name?.trim() || fallbackName,
-    src: profile?.avatar_path ? "/api/avatar/me" : null,
+    src: avatarSrc("me", profile?.avatar_path),
     style: toAvatarStyle(profile?.avatar_style),
   };
 }
@@ -47,7 +67,7 @@ export function resolveMe(profile: OwnProfile, fallbackName = "You"): ResolvedId
 export function resolvePartner(presentation: PartnerPresentation, partnerProfile: PartnerProfile): ResolvedIdentity {
   return {
     name: presentation?.display_name?.trim() || partnerProfile?.display_name?.trim() || "Your partner",
-    src: presentation?.avatar_path ? "/api/avatar/partner" : null,
+    src: avatarSrc("partner", presentation?.avatar_path),
     style: toAvatarStyle(presentation?.avatar_style),
   };
 }
