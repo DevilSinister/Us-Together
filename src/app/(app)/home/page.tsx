@@ -6,7 +6,9 @@ import { InlineLink } from "@/components/ui/inline-link";
 import { PageHeader } from "@/components/app/page-header";
 import { PairingNotice } from "@/components/app/states";
 import { ThreadMarker } from "@/components/app/thread";
+import { AvatarPair } from "@/components/app/avatar";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
+import { loadIdentities } from "@/lib/avatar/identities";
 import { readDeveloperState } from "@/lib/auth/dev-session";
 import { bucketPreview } from "@/lib/bucket/preview";
 import { relationshipDayCount } from "@/lib/dashboard/model";
@@ -22,7 +24,8 @@ type NoteRow = { id: string; title: string; type: string; mine: boolean };
 type DrawingRow = { id: string; mine: boolean; sent_at: string | null };
 
 export default async function HomePage() {
-  const identity = await getCurrentIdentity();
+  const [identity, identities] = await Promise.all([getCurrentIdentity(), loadIdentities()]);
+  const partnerLabel = identities.partner.name;
   let name: string | null = null;
   let timezone = "UTC";
   let onboardingCompleted = false;
@@ -127,7 +130,9 @@ export default async function HomePage() {
   return (
     <div className="reveal-on-load">
       <PageHeader
-        eyebrow={name ? `Good to see you, ${name}` : "Welcome to Us Together"}
+        eyebrow={coupleStatus === "paired"
+          ? <span className="inline-flex items-center gap-2.5"><AvatarPair me={identities.me} partner={identities.partner} size="sm" />{name ? `Good to see you, ${name}` : "Welcome back"}</span>
+          : name ? `Good to see you, ${name}` : "Welcome to Us Together"}
         title={dayCount === null ? "Your shared story has room for its first date." : `${dayCount.toLocaleString()} days of us—and counting.`}
         lede="What comes next, what you have kept, and the dates that hold the thread together."
         actions={<InlineLink href="/notifications"><Bell className="size-4" aria-hidden="true" />{unreadCount ? `${unreadCount} unread` : "Notifications"}</InlineLink>}
@@ -198,7 +203,7 @@ export default async function HomePage() {
                 <article className="relative flex gap-5 py-5">
                   <ThreadMarker icon={NotebookPen} />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-primary">{recentNote.type === "private" ? "Your private note" : recentNote.mine ? "You shared a note" : "Your partner left a note"}</p>
+                    <p className="text-sm font-semibold text-primary">{recentNote.type === "private" ? "Your private note" : recentNote.mine ? "You shared a note" : partnerLabel + " left a note"}</p>
                     <h3 className="mt-1 break-words font-display text-2xl">{recentNote.title}</h3>
                     <InlineLink href={`/notes/${recentNote.id}`} className="mt-3">Open note <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
                   </div>
@@ -209,11 +214,11 @@ export default async function HomePage() {
                 <article className="relative flex gap-5 py-5">
                   <ThreadMarker icon={Brush} />
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-primary">{recentDrawing.mine ? "You sent a drawing" : "Your partner sent a drawing"}</p>
+                    <p className="text-sm font-semibold text-primary">{recentDrawing.mine ? "You sent a drawing" : partnerLabel + " sent a drawing"}</p>
                     <h3 className="mt-1 font-display text-2xl">A little something, drawn by hand.</h3>
                     <Link href={`/drawings/${recentDrawing.id}`} className="mt-3 block w-56 overflow-hidden rounded-panel bg-white shadow-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={`/api/drawing-notes/${recentDrawing.id}/image`} alt={recentDrawing.mine ? "The drawing you sent" : "The drawing your partner sent"} className="aspect-[4/3] w-full object-contain" />
+                      <img src={`/api/drawing-notes/${recentDrawing.id}/image`} alt={recentDrawing.mine ? "The drawing you sent" : "The drawing " + partnerLabel + " sent"} className="aspect-[4/3] w-full object-contain" />
                     </Link>
                     <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
                       <InlineLink href={`/drawings/${recentDrawing.id}`}>Open drawing <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>

@@ -166,3 +166,21 @@ body:has(dialog[open]) { overflow: hidden; }
   width: 1px;
   background: linear-gradient(var(--border), var(--rose), var(--border));
 }
+
+/* Photo viewer. The memory title rises, holds and fades as one authored
+   moment; the comments sheet slides up. The sheet fills backwards only, so once
+   it has arrived the inline transform of a pull-to-dismiss drag still applies. */
+@media (prefers-reduced-motion: no-preference) {
+  .viewer-chapter { animation: viewer-chapter 2600ms cubic-bezier(.16, 1, .3, 1) both; }
+  @keyframes viewer-chapter {
+    0% { opacity: 0; transform: translateY(-8px); filter: blur(4px); }
+    12% { opacity: 1; transform: translateY(0); filter: blur(0); }
+    84% { opacity: 1; transform: translateY(0); filter: blur(0); }
+    100% { opacity: 0; transform: translateY(-4px); filter: blur(2px); }
+  }
+  .viewer-sheet { animation: viewer-sheet 340ms cubic-bezier(.16, 1, .3, 1) backwards; }
+  @keyframes viewer-sheet {
+    from { transform: translateY(36%); opacity: 0.5; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+}

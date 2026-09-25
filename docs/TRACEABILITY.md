@@ -184,3 +184,16 @@ Local `npm run test:rls` exited before assertions because Postgres at 127.0.0.1:
 | Notes with more character | `src/app/(app)/notes/page.tsx` (author avatars, serif excerpts), `notes/[id]/page.tsx` (letter vs journal page, signature) | Lint, typecheck and build only; the developer preview has no notes, so no visual check ran |
 | No form puts its fields in the URL before hydration | `method="post"` on all 17 script-handled forms; `src/lib/forms-guard.test.ts` fails on any `<form>` without `action` or `method` | Guard failed before the fix and passes after; in the in-app browser a native `form.submit()` on `/bucket/new` sent a POST and left the probe title out of the URL |
 | A memory without photos gets a warm placeholder | `MemoryMonogram` in `src/components/memories/gallery.tsx`; `src/lib/memories/initial.ts` (2 unit tests) | In-app browser: a photo-less memory shows its serif initial on blush |
+
+## Partner identity, picture framing, full-screen viewer and Our Story — 2026-09-25
+
+| Requirement | Implementation | Verification |
+| --- | --- | --- |
+| The partner's name and photo are what you set in Settings, on both sides | `partnerName()` in `src/lib/couple/context.ts` reads `partner_presentations` first (3 unit tests); Home and pairing use `loadIdentities()`; `avatarSrc()` versions avatar URLs (2 unit tests) | Unit tests; in-app browser: a name saved in Settings appeared on the pairing card and Home's avatar pair |
+| Crop, center and rotate for profile pictures only | `src/components/profile/avatar-field.tsx`, `src/lib/avatar/crop.ts` (9 unit tests); used by onboarding (you, partner) and Settings (you, partner); `updateProfileAction` accepts `avatar` | In-app browser, 375px: editor opened, zoom 2×, quarter turn, keyboard pan clamped at the frame, Center enabled, "Use photo" put a 640×640 JPEG into the `avatar` field |
+| Photos open full screen and swipe to the next | `src/components/entries/media-viewer.tsx`, `src/lib/entries/viewer.ts` (9 unit tests) | In-app browser: synthetic touch swipe followed the finger and committed; no wrap at the last file; desktop 1280×800 square and portrait photos fit the screen; arrows and ArrowRight navigate; Escape closes and restores scroll |
+| A slight indication when the next photo is from another memory | Chapter title in the viewer, announced politely | In-app browser: swiping from a memory into a moment showed "The day we chose us" with its date |
+| Caption edit, download and delete behind the top-right three dots, shown on touch | `ViewerMenu` and `CaptionForm` in `media-viewer.tsx`; `ConfirmDelete` controlled mode | In-app browser: top bar hidden on open and shown on tap; menu focus and items; caption saved; delete confirmed and landed on the neighbouring file |
+| Bottom shows only caption and comments, comments revealed by swiping up | Bottom strip and comments `Sheet`; `CommentThread` `sheet` variant | In-app browser: swipe up opened the sheet with focus on its heading; strip hidden while it is open |
+| Our Story reimagined | `src/app/(app)/story/page.tsx`, `src/components/story/story-prints.tsx`, `loadStory` enrichment, `storySummary`, `chapterLabel`, `storyExcerpt` (6 unit tests) | In-app browser at 375px and 1280px: opening, chapters, prints, excerpts, author and "Where it began"; no horizontal overflow |
+

@@ -1,9 +1,8 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
-import { CircleAlert, ImagePlus, Link2, UsersRound } from "lucide-react";
+import { CircleAlert, Link2, UsersRound } from "lucide-react";
 import type { ActionState } from "@/lib/auth/types";
 import { initialActionState } from "@/lib/auth/types";
 import { createCoupleAction, joinCoupleAction, saveOnboardingProfileAction, saveRelationshipAction } from "@/app/actions/onboarding";
@@ -13,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/auth/submit-button";
+import { AvatarField } from "@/components/profile/avatar-field";
 import { cn } from "@/lib/utils";
 
 // The four colours moved to lib/avatar/styles so the Avatar, this picker and
@@ -27,33 +27,14 @@ function FormMessage({ state }: { state: ActionState }) {
   return state.message ? <div className="status-message status-error" role="alert"><CircleAlert className="size-5 shrink-0" aria-hidden="true" />{state.message}</div> : null;
 }
 
-export function ProfileStepForm({ displayName, timezone, avatarStyle }: { displayName: string; timezone: string; avatarStyle: string }) {
+export function ProfileStepForm({ displayName, timezone, avatarStyle, avatarSrc = null }: { displayName: string; timezone: string; avatarStyle: string; avatarSrc?: string | null }) {
   const [state, action] = useActionState(saveOnboardingProfileAction, initialActionState);
   const [name, setName] = useState(displayName);
-  const [preview, setPreview] = useState<string | null>(null);
   const initial = name.trim().slice(0, 1).toUpperCase() || "U";
 
   return (
     <form action={action} className="space-y-6" noValidate>
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary font-display text-4xl text-primary">
-          {preview ? <Image src={preview} alt="Selected profile preview" width={96} height={96} unoptimized className="size-full object-cover" /> : initial}
-        </div>
-        <div className="min-w-0 flex-1">
-          <Label htmlFor="avatar">Profile photo <span className="font-normal text-muted-foreground">(optional)</span></Label>
-          <label htmlFor="avatar" className="mt-2 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-lg border bg-field px-4 text-sm font-semibold hover:bg-secondary focus-within:ring-2 focus-within:ring-ring">
-            <ImagePlus className="size-4" aria-hidden="true" />Choose a photo
-            <input id="avatar" name="avatar" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (!file) return setPreview(null);
-              const reader = new FileReader();
-              reader.onload = () => setPreview(typeof reader.result === "string" ? reader.result : null);
-              reader.readAsDataURL(file);
-            }} />
-          </label>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">JPG, PNG, or WebP. Maximum 2 MB.</p>
-        </div>
-      </div>
+      <AvatarField name="avatar" label={<>Profile photo <span className="font-normal text-muted-foreground">(optional)</span></>} currentSrc={avatarSrc} fallback={initial} previewAlt="Your profile photo" />
 
       <fieldset>
         <legend className="text-sm font-semibold">Avatar color</legend>
@@ -127,34 +108,15 @@ export function ConnectStepForms() {
  * It also works before the partner has an account, which is the point: you can
  * name them while you are still waiting for them to join.
  */
-export function PartnerStepForm({ partnerName, partnerAvatarStyle, returnTo = "onboarding" }: { partnerName: string; partnerAvatarStyle: string; returnTo?: "onboarding" | "profile" }) {
+export function PartnerStepForm({ partnerName, partnerAvatarStyle, partnerAvatarSrc = null, returnTo = "onboarding" }: { partnerName: string; partnerAvatarStyle: string; partnerAvatarSrc?: string | null; returnTo?: "onboarding" | "profile" }) {
   const [state, action] = useActionState(savePartnerPresentationAction, initialActionState);
   const [name, setName] = useState(partnerName);
-  const [preview, setPreview] = useState<string | null>(null);
   const initial = initials(name) || "?";
 
   return (
     <form action={action} className="space-y-6" noValidate>
       <input type="hidden" name="returnTo" value={returnTo} />
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-        <div className="grid size-24 shrink-0 place-items-center overflow-hidden rounded-full bg-secondary font-display text-4xl text-primary">
-          {preview ? <Image src={preview} alt="Selected partner photo preview" width={96} height={96} unoptimized className="size-full object-cover" /> : initial}
-        </div>
-        <div className="min-w-0 flex-1">
-          <Label htmlFor="partnerAvatar">Their photo <span className="font-normal text-muted-foreground">(optional)</span></Label>
-          <label htmlFor="partnerAvatar" className="mt-2 flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-control border bg-field px-4 text-sm font-semibold hover:bg-secondary focus-within:ring-2 focus-within:ring-ring">
-            <ImagePlus className="size-4" aria-hidden="true" />Choose a photo
-            <input id="partnerAvatar" name="partnerAvatar" type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (!file) return setPreview(null);
-              const reader = new FileReader();
-              reader.onload = () => setPreview(typeof reader.result === "string" ? reader.result : null);
-              reader.readAsDataURL(file);
-            }} />
-          </label>
-          <p className="mt-2 text-xs leading-5 text-muted-foreground">JPG, PNG, or WebP. Maximum 2 MB.</p>
-        </div>
-      </div>
+      <AvatarField name="partnerAvatar" label={<>Their photo <span className="font-normal text-muted-foreground">(optional)</span></>} currentSrc={partnerAvatarSrc} fallback={initial} previewAlt="The photo you chose for your partner" />
 
       <div className="space-y-2">
         <Label htmlFor="partnerName">What you call them <span className="font-normal text-muted-foreground">(optional)</span></Label>

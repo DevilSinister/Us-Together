@@ -8,13 +8,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { Button } from "@/components/ui/button";
+import { AvatarField } from "@/components/profile/avatar-field";
+import { initials } from "@/lib/avatar/styles";
 
-export function ProfileForm({ displayName, timezone }: { displayName: string; timezone: string }) {
+export function ProfileForm({ displayName, timezone, avatarSrc = null }: { displayName: string; timezone: string; avatarSrc?: string | null }) {
   const [state, action] = useActionState(updateProfileAction, initialActionState);
   const [detectedTimezone, setDetectedTimezone] = useState(timezone);
 
   return (
     <form action={action} className="space-y-5" noValidate>
+      <AvatarField name="avatar" label="Your photo" currentSrc={avatarSrc} fallback={initials(displayName) || "U"} previewAlt="Your profile photo" />
       <div className="space-y-2">
         <Label htmlFor="displayName">Your name</Label>
         <Input id="displayName" name="displayName" defaultValue={displayName} autoComplete="name" required aria-invalid={Boolean(state.fields?.displayName)} />

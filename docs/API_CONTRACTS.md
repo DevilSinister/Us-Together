@@ -40,7 +40,7 @@ Authorization failures may map to `NOT_FOUND` when `FORBIDDEN` would disclose a 
 
 | Contract | Input | Output and invariants |
 | --- | --- | --- |
-| `updateProfile` | display name, timezone, optional avatar reference/DOB | Current user's profile only |
+| `updateProfile` | display name, timezone, optional `avatar` file (JPEG/PNG/WebP, 2 MB; the client sends a 640px framed JPEG) | Current user's profile only; object uploaded to the caller's own `avatars` folder before the row, replaced object removed after |
 | `createCouple` | name, optional relationship date | Couple plus creator membership, idempotent request key |
 | `createCoupleInvite` | kind and lifetime within server limits | Raw token/code returned once; digest stored |
 | `revokeCoupleInvite` | invite public reference | Creator/current member only |
@@ -208,7 +208,7 @@ Authenticated `app_lock_status()` returns `{configured,areas}`. `app_lock_open(a
 
 Every failure answers `404`: no session, a developer/preview identity, no row, a null path, an unrecognised extension, or an unreadable object. The route therefore cannot distinguish "nothing here" from "not allowed".
 
-Responses stream the bytes — no redirect to a signed URL, unlike `/api/memory-media/[id]`, because an avatar repeats many times on one page — with `Content-Type` derived from the stored path rather than the blob's own claim, `Cache-Control: private, max-age=300, must-revalidate`, an `ETag` over the path, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox` and `Referrer-Policy: no-referrer`. `If-None-Match` answers `304`. The cache header is a deliberate departure from the `no-store` used by the other private-media routes: an avatar is chrome the requesting account uploaded itself, `private` keeps it out of shared caches, and every upload mints a fresh UUID path so the ETag changes the instant the picture does.
+Responses stream the bytes — no redirect to a signed URL, unlike `/api/memory-media/[id]`, because an avatar repeats many times on one page — with `Content-Type` derived from the stored path rather than the blob's own claim, `Cache-Control: private, max-age=300, must-revalidate`, an `ETag` over the path, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox` and `Referrer-Policy: no-referrer`. `If-None-Match` answers `304`. Pages address the route as `/api/avatar/{scope}?v=<hash>`, where the version is a short FNV-1a hash of the stored path (`avatarSrc` in `src/lib/avatar/resolve.ts`); the route ignores the query, which exists only so a browser never shows a cached old face after a new one is saved. The path itself never reaches the page. The cache header is a deliberate departure from the `no-store` used by the other private-media routes: an avatar is chrome the requesting account uploaded itself, `private` keeps it out of shared caches, and every upload mints a fresh UUID path so the ETag changes the instant the picture does.
 
 ## `GET /api/version` — 2026-09-25
 

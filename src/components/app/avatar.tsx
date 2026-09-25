@@ -78,3 +78,26 @@ export function Avatar({ name, src, style = "rose", size = "md", alt, eager = fa
     </span>
   );
 }
+
+/**
+ * The two of you, one face tucked behind the other.
+ *
+ * Both faces come from the resolved identities, so the partner is always the
+ * name and picture chosen in Settings. The ring in the page colour is what
+ * separates the overlap; it is a border, not a shadow.
+ */
+const overlaps = { xs: "-ml-2", sm: "-ml-2.5", md: "-ml-3", lg: "-ml-5", xl: "-ml-7" } as const;
+
+export function AvatarPair({ me, partner, size = "sm", className }: {
+  me: { name: string; src: string | null; style: AvatarStyle };
+  partner: { name: string; src: string | null; style: AvatarStyle };
+  size?: AvatarSize;
+  className?: string;
+}) {
+  return (
+    <span className={cn("inline-flex shrink-0 items-center", className)}>
+      <Avatar name={me.name} src={me.src} style={me.style} size={size} className="ring-2 ring-background" />
+      <Avatar name={partner.name} src={partner.src} style={partner.style} size={size} className={cn(overlaps[size], "ring-2 ring-background")} />
+    </span>
+  );
+}

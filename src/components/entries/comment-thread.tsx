@@ -50,8 +50,8 @@ function subscribePointer(onChange: () => void) {
 export function CommentThread({ access, mediaId, variant = "page", partnerName, timezone }: {
   access: EntryAccess;
   mediaId?: string;
-  /** "panel" is the narrow column inside the media viewer. */
-  variant?: "page" | "panel";
+  /** "panel" is a narrow column; "sheet" sits inside the photo viewer's comments sheet, which already carries the heading. */
+  variant?: "page" | "panel" | "sheet";
   partnerName?: string | null;
   /** The profile zone. Falls back to the browser's when a call site has none. */
   timezone?: string | null;
@@ -163,15 +163,16 @@ export function CommentThread({ access, mediaId, variant = "page", partnerName, 
     }
   }
 
-  const panel = variant === "panel";
+  const panel = variant !== "page";
+  const sheet = variant === "sheet";
   const today = todayKey(zone);
   const groups = groupByDay(comments, zone);
 
   return <section
     aria-label={mediaId ? "Photo comments" : kind === "memory" ? "Memory comments" : "Moment comments"}
-    className={panel ? "mt-6 border-t pt-5" : "mt-10 border-t pt-8"}
+    className={sheet ? "mt-5" : panel ? "mt-6 border-t pt-5" : "mt-10 border-t pt-8"}
   >
-    <h2 className={panel ? "font-display text-xl" : "font-display text-2xl"}>
+    <h2 className={sheet ? "sr-only" : panel ? "font-display text-xl" : "font-display text-2xl"}>
       {mediaId ? "Comments" : "What you remember"}
     </h2>
 

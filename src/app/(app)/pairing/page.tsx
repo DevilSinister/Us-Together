@@ -4,17 +4,24 @@ import { PairedConnectionActions, WaitingConnectionActions } from "@/components/
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState } from "@/lib/auth/dev-session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { loadIdentities } from "@/lib/avatar/identities";
+import { Avatar } from "@/components/app/avatar";
+import { InlineLink } from "@/components/ui/inline-link";
 
 export const metadata: Metadata = { title: "Partner connection" };
 
 export default async function PairingPage() {
   const identity = await getCurrentIdentity();
   let status: "solo" | "waiting" | "paired" = "solo";
-  let partner: { displayName: string; timezone: string } | null = null;
+  // The name and face come from the resolved identities - what you chose for
+  // your partner in Settings, falling back to their own name - so this card
+  // matches every other place they appear. Only the timezone is read here.
+  const identities = await loadIdentities();
+  let partner: { timezone: string } | null = null;
   if (identity?.kind === "developer") {
     const state = await readDeveloperState();
     status = state.coupleStatus;
-    if (state.partnerProfile) partner = { displayName: state.partnerProfile.displayName, timezone: state.partnerProfile.timezone };
+    if (state.partnerProfile) partner = { timezone: state.partnerProfile.timezone };
   }
   if (identity?.kind === "supabase") {
     const supabase = await createServerSupabaseClient();
@@ -24,8 +31,8 @@ export default async function PairingPage() {
       const partnerId = memberships?.find((item) => item.user_id !== identity.userId)?.user_id;
       status = partnerId ? "paired" : "waiting";
       if (partnerId) {
-        const { data: profile } = await supabase.from("profiles").select("display_name, timezone").eq("user_id", partnerId).maybeSingle();
-        if (profile) partner = { displayName: profile.display_name || "Your partner", timezone: profile.timezone };
+        const { data: profile } = await supabase.from("profiles").select("timezone").eq("user_id", partnerId).maybeSingle();
+        if (profile) partner = { timezone: profile.timezone };
       }
     }
   }
@@ -41,9 +48,15 @@ export default async function PairingPage() {
       {paired ? (
         <div className="paper-surface rounded-[1.25rem] border bg-card p-6 sm:p-9">
           <div className="rounded-[1rem] bg-secondary p-7">
-            <p className="text-sm font-semibold text-primary">Connected partner</p>
-            <h2 className="mt-2 font-display text-3xl">{partner?.displayName ?? "Your partner"}</h2>
-            <p className="mt-2 leading-7 text-muted-foreground">Timezone: {partner?.timezone ?? "Not provided"}. Shared access is granted only while both memberships are active.</p>
+            <div className="flex items-center gap-4">
+              <Avatar name={identities.partner.name} src={identities.partner.src} style={identities.partner.style} size="lg" eager />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-primary">Connected partner</p>
+                <h2 className="mt-1 break-words font-display text-3xl">{identities.partner.name}</h2>
+              </div>
+            </div>
+            <p className="mt-4 leading-7 text-muted-foreground">Timezone: {partner?.timezone ?? "Not provided"}. Shared access is granted only while both memberships are active.</p>
+            <InlineLink href="/profile#partner" className="mt-2">Change their name or photo</InlineLink>
           </div>
           <div className="mt-8"><PairedConnectionActions /></div>
         </div>
