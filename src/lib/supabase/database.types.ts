@@ -65,6 +65,7 @@ export type Database = {
           estimated_cost_minor: number | null
           id: string
           list_id: string
+          lived_on: string | null
           location: string | null
           priority: string
           status: string
@@ -85,6 +86,7 @@ export type Database = {
           estimated_cost_minor?: number | null
           id?: string
           list_id: string
+          lived_on?: string | null
           location?: string | null
           priority?: string
           status?: string
@@ -105,6 +107,7 @@ export type Database = {
           estimated_cost_minor?: number | null
           id?: string
           list_id?: string
+          lived_on?: string | null
           location?: string | null
           priority?: string
           status?: string

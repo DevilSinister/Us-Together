@@ -130,7 +130,8 @@ async function previewStory(cursor: StoryCursor | null): Promise<StoryView> {
   const all: StoryItem[] = [
     ...state.milestones.map((m) => item("milestone", m.id, m.milestoneDate, m.title, m.location ?? null, m.description)),
     ...state.memories.map((m) => ({ ...item("memory", m.id, m.memoryDate, m.title, m.location || null, m.description), source_plan_id: m.sourcePlanId, source_bucket_item_id: m.sourceBucketId ?? null })),
-    ...state.plans.filter((p) => p.status === "completed").map((p) => item("plan", p.id, p.startsAt.slice(0, 10), p.title, p.location || null, null)),
+    // As in the database view, a kept plan is told by its memory once one exists.
+    ...state.plans.filter((p) => p.status === "completed" && !state.memories.some((m) => m.sourcePlanId === p.id)).map((p) => item("plan", p.id, p.startsAt.slice(0, 10), p.title, p.location || null, null)),
   ].sort((a, b) => b.occurred_on.localeCompare(a.occurred_on) || b.id.localeCompare(a.id));
   const rows = all.filter((e) => !cursor || e.occurred_on < cursor.occurredOn || (e.occurred_on === cursor.occurredOn && e.id < cursor.id));
   const page = rows.slice(0, storyPageSize);

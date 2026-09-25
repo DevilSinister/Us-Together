@@ -62,7 +62,9 @@ export async function mutateBucket(input: unknown): Promise<{ ok: boolean; messa
       } else if (changes) {
         if (!preview.lists.some((row) => row.id === changes.list_id)) throw new Error("List unavailable.");
         const now = new Date().toISOString();
-        const completion = changes.status === "completed" ? { completed_at: item?.completed_at ?? now, completed_by: context.userId } : { completed_at: null, completed_by: null };
+        const completion = changes.status === "completed"
+          ? { completed_at: item?.completed_at ?? now, completed_by: context.userId, lived_on: item?.lived_on ?? now.slice(0, 10) }
+          : { completed_at: null, completed_by: null, lived_on: null };
         if (command.operation === "createItem") {
           if (preview.items.length >= 100) throw new Error("This preview has reached its 100-idea limit.");
           id = crypto.randomUUID(); preview.items.push({ ...changes, ...completion, id, couple_id: context.userId, created_by: context.userId, created_at: now, updated_at: now, version: 0 });
@@ -73,7 +75,13 @@ export async function mutateBucket(input: unknown): Promise<{ ok: boolean; messa
         const state = await readDeveloperState();
         await writeDeveloperState({ ...state, plans: state.plans.map((plan) => plan.sourceBucketId === id ? { ...plan, sourceBucketId: undefined } : plan), memories: state.memories.map((memory) => memory.sourceBucketId === id ? { ...memory, sourceBucketId: undefined } : memory) });
       } else if (command.operation === "completeItem" && item!.status !== "completed") {
-        Object.assign(item!, { status: "completed", completed_at: new Date().toISOString(), completed_by: context.userId, version: item!.version + 1 });
+        Object.assign(item!, { status: "completed", completed_at: new Date().toISOString(), completed_by: context.userId, lived_on: command.livedOn, version: item!.version + 1 });
+      } else if (command.operation === "setLivedOn") {
+        if (item!.status !== "completed") throw new Error("Mark this dream as lived first.");
+        Object.assign(item!, { lived_on: command.livedOn, version: item!.version + 1 });
+        // The database keeps a dream and its memory on one day; the preview does the same.
+        const state = await readDeveloperState();
+        await writeDeveloperState({ ...state, memories: state.memories.map((memory) => memory.sourceBucketId === id && !memory.sourcePlanId ? { ...memory, memoryDate: command.livedOn } : memory) });
       } else if (command.operation === "subtask") {
         const tasks = preview.subtasks.filter((task) => task.item_id === id);
         const task = tasks.find((task) => task.id === command.subtaskId);
@@ -114,15 +122,23 @@ export async function mutateBucket(input: unknown): Promise<{ ok: boolean; messa
           const { data, error } = await db.from("bucket_list_items").select("status").eq("id", command.id).eq("couple_id", coupleId).maybeSingle(); check(error);
           if (data?.status === "completed") return { ok: true, message: "This dream is already completed.", id };
         }
-        const query = command.operation === "deleteItem" ? db.from("bucket_list_items").delete() : db.from("bucket_list_items").update(command.operation === "completeItem" ? { status: "completed" } : changes!);
+        let query = command.operation === "deleteItem" ? db.from("bucket_list_items").delete()
+          : db.from("bucket_list_items").update(
+            command.operation === "completeItem" ? { status: "completed", lived_on: command.livedOn }
+              : command.operation === "setLivedOn" ? { lived_on: command.livedOn }
+                : changes!,
+          );
+        // Only a lived dream has a day to move; the trigger would quietly clear any other.
+        if (command.operation === "setLivedOn") query = query.eq("status", "completed");
         const { data, error } = await query.eq("id", command.id).eq("couple_id", coupleId).eq("version", command.version).select("id").maybeSingle(); check(error);
         if (!data) throw new Error("This idea changed or is no longer available. Reload before saving.");
       }
     }
     if (context.kind === "preview") await saveBucketPreview(context.userId, context.preview);
     revalidatePath("/bucket/lists/[listId]", "page");
-    revalidatePath("/bucket"); if (id) revalidatePath(`/bucket/${id}`); revalidatePath("/home");
-    return { ok: true, message: command.operation === "completeItem" ? "One more dream lived. Keep the memory when you're ready." : "Saved.", id };
+    revalidatePath("/bucket"); if (id) revalidatePath(`/bucket/${id}`); revalidatePath("/home"); revalidatePath("/story");
+    if (command.operation === "setLivedOn") revalidatePath("/memories");
+    return { ok: true, message: command.operation === "completeItem" ? "One more dream lived. Keep the memory when you're ready." : command.operation === "setLivedOn" ? "The day you lived it is saved." : "Saved.", id };
   } catch (error) {
     return { ok: false, message: error instanceof Error ? error.message : "We couldn't save this change. Try again." };
   }

@@ -271,3 +271,11 @@ RLS is enabled **and forced**, all privileges are revoked from `anon`, and `auth
 `profiles` gains `avatar_style` (`not null default 'rose'`, same four values) and the check constraint `profiles_avatar_path_own_folder`, added `NOT VALID` and validated separately so the live table is not scanned under an exclusive lock.
 
 The `avatars` bucket is unchanged and keeps its four own-folder-only policies. See ADR-034 for why the presentation cannot live on `profiles`.
+
+## Dream lived-on date and one entry per story (`20260925153346_dream_lived_on.sql`)
+
+`bucket_list_items.lived_on` (`date`) is the calendar day a dream was lived. The check constraint `bucket_lived_on_when_completed` makes it present exactly when `status = 'completed'`. `private.bucket_item_revision` sets it to the member's own today (from `profiles.timezone`, UTC fallback) when an idea is completed without a day, keeps it across later edits, and clears it on reopen. Existing completed dreams are backfilled from their direct memory's `memory_date`, else `completed_at::date`, with user triggers disabled so no partner notification is raised.
+
+`private.sync_dream_lived_on` (security invoker, `search_path = ''`, execute revoked from `public`, `anon`, `authenticated`) keeps a dream and the memory saved directly from it (`source_bucket_item_id` set, `source_plan_id` null) on one day in both directions; each side writes only when the day differs, so the pair terminates.
+
+`public.story_entries` now dates the dream branch by `lived_on` and leaves out a dream or completed plan once any memory references it; that memory is the single entry. `bucket_items_couple_completed_story_idx` is replaced by `bucket_items_couple_lived_story_idx (couple_id, lived_on desc, id desc) where status = 'completed'`.
