@@ -8,6 +8,10 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // The commit being deployed, inlined into client and server bundles so an open tab
+  // can tell it has fallen behind /api/version. Vercel sets it on every Git deploy;
+  // anywhere else it stays empty and the update prompt stays off.
+  env: { NEXT_PUBLIC_APP_VERSION: process.env.VERCEL_GIT_COMMIT_SHA ?? "" },
   allowedDevOrigins: ["127.0.0.1"],
   poweredByHeader: false,
   serverExternalPackages: ["imagescript"],

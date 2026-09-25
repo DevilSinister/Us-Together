@@ -1,0 +1,101 @@
+name: Android release
+
+# Every push to main that changes the Android app publishes a signed APK and an
+# update.json to a new GitHub release. Installed copies read
+# releases/latest/download/update.json, see a higher versionCode and offer the update.
+# The web app needs none of this: Vercel redeploys it and open tabs are told to refresh.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android-widget/**"
+      - ".github/workflows/android-release.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: android-widget
+    env:
+      WIDGET_SUPABASE_URL: ${{ secrets.WIDGET_SUPABASE_URL }}
+      WIDGET_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.WIDGET_SUPABASE_PUBLISHABLE_KEY }}
+      WIDGET_WEB_BASE_URL: ${{ secrets.WIDGET_WEB_BASE_URL }}
+      WIDGET_FIREBASE_APP_ID: ${{ secrets.WIDGET_FIREBASE_APP_ID }}
+      WIDGET_FIREBASE_SENDER_ID: ${{ secrets.WIDGET_FIREBASE_SENDER_ID }}
+      WIDGET_FIREBASE_API_KEY: ${{ secrets.WIDGET_FIREBASE_API_KEY }}
+      WIDGET_FIREBASE_PROJECT_ID: ${{ secrets.WIDGET_FIREBASE_PROJECT_ID }}
+      WIDGET_KEYSTORE_BASE64: ${{ secrets.WIDGET_KEYSTORE_BASE64 }}
+      WIDGET_KEYSTORE_PASSWORD: ${{ secrets.WIDGET_KEYSTORE_PASSWORD }}
+      WIDGET_KEY_ALIAS: ${{ secrets.WIDGET_KEY_ALIAS }}
+      WIDGET_KEY_PASSWORD: ${{ secrets.WIDGET_KEY_PASSWORD }}
+      WIDGET_UPDATE_MANIFEST_URL: https://github.com/${{ github.repository }}/releases/latest/download/update.json
+    steps:
+      - uses: actions/checkout@v4
+
+      # An update signed with any other key cannot install over the phones' copy, so a
+      # missing secret stops the release rather than publishing something unusable.
+      - name: Check release secrets
+        run: |
+          missing=0
+          for name in WIDGET_SUPABASE_URL WIDGET_SUPABASE_PUBLISHABLE_KEY WIDGET_WEB_BASE_URL \
+                      WIDGET_KEYSTORE_BASE64 WIDGET_KEYSTORE_PASSWORD WIDGET_KEY_ALIAS WIDGET_KEY_PASSWORD; do
+            if [ -z "${!name}" ]; then echo "::error::Repository secret $name is not set. See android-widget/README.md, Updates."; missing=1; fi
+          done
+          exit $missing
+
+      - name: Number this release
+        run: |
+          # 100 + run number keeps every CI build above the hand-built versionCode 2.
+          code=$((100 + GITHUB_RUN_NUMBER))
+          echo "WIDGET_VERSION_CODE=$code" >> "$GITHUB_ENV"
+          echo "WIDGET_VERSION_NAME=0.3.$GITHUB_RUN_NUMBER" >> "$GITHUB_ENV"
+          echo "RELEASE_TAG=android-v$code" >> "$GITHUB_ENV"
+
+      - name: Restore signing key
+        run: |
+          echo "$WIDGET_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          echo "WIDGET_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - run: chmod +x gradlew
+      - run: ./gradlew :app:testDebugUnitTest :app:assembleRelease --no-daemon
+
+      - name: Write update manifest
+        run: |
+          apk=app/build/outputs/apk/release/app-release.apk
+          # An unsigned build is named app-release-unsigned.apk; its absence here means signing failed.
+          test -f "$apk"
+          cp "$apk" "$RUNNER_TEMP/us-together.apk"
+          sha=$(sha256sum "$RUNNER_TEMP/us-together.apk" | cut -d' ' -f1)
+          jq -n --argjson code "$WIDGET_VERSION_CODE" --arg name "$WIDGET_VERSION_NAME" --arg sha "$sha" \
+            --arg url "https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/us-together.apk" \
+            '{versionCode: $code, versionName: $name, apkUrl: $url, sha256: $sha}' > "$RUNNER_TEMP/update.json"
+          cat "$RUNNER_TEMP/update.json"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$RELEASE_TAG" "$RUNNER_TEMP/us-together.apk" "$RUNNER_TEMP/update.json" \
+            --target "$GITHUB_SHA" --latest \
+            --title "Android $WIDGET_VERSION_NAME" \
+            --notes "Built from $GITHUB_SHA. Installed copies offer this update on their next launch or within six hours."
+
+      - name: Remove signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks"

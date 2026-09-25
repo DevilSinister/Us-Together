@@ -27,6 +27,11 @@ public final class WidgetApplication extends Application {
             getString(R.string.channel_partner_updates), NotificationManager.IMPORTANCE_DEFAULT);
         channel.setDescription(getString(R.string.channel_partner_updates_description));
         getSystemService(NotificationManager.class).createNotificationChannel(channel);
+        NotificationChannel updates = new NotificationChannel(AppUpdates.CHANNEL,
+            getString(R.string.channel_app_updates), NotificationManager.IMPORTANCE_DEFAULT);
+        updates.setDescription(getString(R.string.channel_app_updates_description));
+        getSystemService(NotificationManager.class).createNotificationChannel(updates);
+        UpdateCheckJob.schedule(this);
     }
 
     boolean pushConfigured() { return pushConfigured; }

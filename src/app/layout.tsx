@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { PwaRegister } from "@/components/providers/pwa-register";
+import { UpdatePrompt } from "@/components/providers/update-prompt";
 
 export const metadata: Metadata = {
   title: { default: "Us Together", template: "%s · Us Together" },
@@ -34,6 +35,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body>
         <ThemeProvider>
           <PwaRegister />
+          <UpdatePrompt />
           {children}
         </ThemeProvider>
       </body>
