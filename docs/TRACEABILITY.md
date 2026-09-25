@@ -163,3 +163,10 @@ Local `npm run test:rls` exited before assertions because Postgres at 127.0.0.1:
 | Requirement | Implementation | Verification |
 | --- | --- | --- |
 | Date-categorized title-only Memories list; open full memory for media and comments | `/memories` uses grouped rows in `src/components/memories/gallery.tsx`; each row links to `/memories/[id]` where the existing detail view renders media and comments | Typecheck, lint, 95 unit tests and production build passed. Focused desktop/mobile Playwright journey was attempted but timed out at the pre-existing paired-preview sign-in control before reaching the list. Schema/RLS and Android gates do not apply to this presentation-only change. |
+
+## Update on push — 2026-09-25
+
+| Requirement | Implementation | Verification |
+| --- | --- | --- |
+| A push to GitHub makes the open app offer the new web version and apply it | `src/app/api/version/route.ts`, `src/lib/app-version.ts`, `src/components/providers/update-prompt.tsx` mounted in `src/app/layout.tsx`; `NEXT_PUBLIC_APP_VERSION` in `next.config.ts`; proxy matcher skips `/api/version` | 7 new unit cases in `src/lib/app-version.test.ts`; lint, typecheck, 187 unit tests and production build passed. Production server on port 3100: `/api/version` returned the inlined SHA with `no-store` and no `Set-Cookie`; a simulated newer deployment showed the prompt after one poll, *Later* hid it, a client-side `router.push` then replaced the document while the same push with no update kept it; the prompt fits a 375 px viewport with no horizontal overflow. Not verified against a real Vercel deploy. |
+| A push that changes the Android app offers the update in the installed APK and installs it | `.github/workflows/android-release.yml`, `android-widget/publish-release-secrets.ps1`; `AppLauncherActivity`, `AppUpdates`, `ReleaseInfo`, `UpdateActivity`, `UpdateCheckJob`, `UpdateInstallReceiver`; `REQUEST_INSTALL_PACKAGES` | 6 JVM cases in `ReleaseInfoTest`; `:app:assembleDebug :app:lintDebug :app:testDebugUnitTest` passed with no new lint warnings. The release workflow has not run (repository secrets not yet set) and the download/install flow has not run on a device. |

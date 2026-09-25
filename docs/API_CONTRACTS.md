@@ -209,3 +209,17 @@ Authenticated `app_lock_status()` returns `{configured,areas}`. `app_lock_open(a
 Every failure answers `404`: no session, a developer/preview identity, no row, a null path, an unrecognised extension, or an unreadable object. The route therefore cannot distinguish "nothing here" from "not allowed".
 
 Responses stream the bytes — no redirect to a signed URL, unlike `/api/memory-media/[id]`, because an avatar repeats many times on one page — with `Content-Type` derived from the stored path rather than the blob's own claim, `Cache-Control: private, max-age=300, must-revalidate`, an `ETag` over the path, `X-Content-Type-Options: nosniff`, `Content-Security-Policy: default-src 'none'; sandbox` and `Referrer-Policy: no-referrer`. `If-None-Match` answers `304`. The cache header is a deliberate departure from the `no-store` used by the other private-media routes: an avatar is chrome the requesting account uploaded itself, `private` keeps it out of shared caches, and every upload mints a fresh UUID path so the ETag changes the instant the picture does.
+
+## `GET /api/version` — 2026-09-25
+
+Public and unauthenticated. Answers `200 { "version": "<commit sha>" }` with `Cache-Control: no-store`. The value is `VERCEL_GIT_COMMIT_SHA` inlined by `next.config.ts` at build time as `NEXT_PUBLIC_APP_VERSION`, so it is the same string every client bundle of that deployment already carries; it discloses nothing new. Outside Vercel the value is `""` and every open tab treats updates as off. The proxy matcher excludes the path, so polling never refreshes a Supabase session. The client validates the body with Zod (`parseServedVersion` in `src/lib/app-version.ts`) and prompts only when both sides are non-empty and differ.
+
+## Android update manifest — 2026-09-25
+
+Not a server route: `.github/workflows/android-release.yml` attaches `update.json` and `us-together.apk` to a GitHub release, and installed APKs read `https://github.com/<repo>/releases/latest/download/update.json` (baked in as `WIDGET_UPDATE_MANIFEST_URL`).
+
+```json
+{ "versionCode": 123, "versionName": "0.3.23", "apkUrl": "https://github.com/<repo>/releases/download/android-v123/us-together.apk", "sha256": "<64 lowercase hex>" }
+```
+
+`ReleaseInfo.of` rejects a manifest unless `versionCode > 0`, `versionName` is 1–40 characters, `sha256` is 64 hex digits, and `apkUrl` is https on the manifest's own host with no credentials. The download is capped at 100 MB and refused on a digest mismatch; Android refuses any APK not signed with the installed app's key.

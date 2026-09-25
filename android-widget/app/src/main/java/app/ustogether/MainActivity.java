@@ -44,7 +44,8 @@ public final class MainActivity extends Activity {
     private TextView status, pushStatus, notificationStatus;
     private EditText email, password;
     private Button signIn, refresh, signOut, openDrawing, makeDrawing, sendQueued, notifications, openApp, notificationAction;
-    private LinearLayout homePanel, drawingPanel;
+    private LinearLayout homePanel, drawingPanel, updatePanel;
+    private TextView updateText;
     private ImageView drawingImage;
     private ConnectivityManager manager;
     private ConnectivityManager.NetworkCallback networkCallback;
@@ -71,6 +72,16 @@ public final class MainActivity extends Activity {
         drawingPanel = new LinearLayout(this); drawingPanel.setOrientation(LinearLayout.VERTICAL);
 
         homePanel.addView(Ui.spaced(this, label(R.style.Text_Lede, R.string.setup_intro), R.dimen.space_4));
+
+        // Shown only while a newer release is waiting; the launcher asks too, this is the calm path.
+        updatePanel = Ui.panel(this);
+        updateText = label(R.style.Text_Body);
+        updatePanel.addView(updateText);
+        Button updateAction = button(R.style.Widget_UsTogether_Button_Primary, R.string.setup_update_action);
+        updateAction.setOnClickListener(view -> startActivity(UpdateActivity.intent(this, true)));
+        updatePanel.addView(Ui.spaced(this, updateAction, R.dimen.space_3));
+        updatePanel.setVisibility(View.GONE);
+        homePanel.addView(Ui.spaced(this, updatePanel, R.dimen.space_5));
 
         email = Ui.field(this, R.string.setup_email, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
         password = Ui.field(this, R.string.setup_password, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
@@ -317,6 +328,10 @@ public final class MainActivity extends Activity {
     @Override protected void onStart() {
         super.onStart();
         updateControls();
+        ReleaseInfo release = AppUpdates.available(this);
+        updatePanel.setVisibility(release == null ? View.GONE : View.VISIBLE);
+        if (release != null) updateText.setText(getString(R.string.setup_update_available, release.versionName));
+        UpdateCheckJob.runSoon(this);
         manager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         networkCallback = new ConnectivityManager.NetworkCallback() {
             @Override public void onAvailable(Network network) {
