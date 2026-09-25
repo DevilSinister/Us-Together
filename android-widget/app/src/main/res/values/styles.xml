@@ -105,8 +105,12 @@
         <item name="android:scaleType">centerInside</item>
         <item name="android:padding">@dimen/space_3</item>
     </style>
-    <style name="Widget.UsTogether.Field" parent="">
+    <!-- The parent carries focusable, focusableInTouchMode, clickable and the cursor.
+         An empty parent built a field no tap could focus, so the keyboard never opened. -->
+    <style name="Widget.UsTogether.Field" parent="@android:style/Widget.Material.EditText">
         <item name="android:background">@drawable/shape_field</item>
+        <item name="android:gravity">center_vertical|start</item>
+        <item name="android:singleLine">true</item>
         <item name="android:minHeight">@dimen/field_height</item>
         <item name="android:paddingLeft">@dimen/space_4</item>
         <item name="android:paddingRight">@dimen/space_4</item>

@@ -18,6 +18,7 @@ import android.provider.Settings;
 import android.text.InputType;
 import android.view.Gravity;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -87,8 +88,16 @@ public final class MainActivity extends Activity {
         password = Ui.field(this, R.string.setup_password, InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
         homePanel.addView(Ui.spaced(this, email, R.dimen.space_5));
         homePanel.addView(Ui.spaced(this, password, R.dimen.space_3));
+        email.setImeOptions(EditorInfo.IME_ACTION_NEXT);
+        password.setImeOptions(EditorInfo.IME_ACTION_DONE);
 
         signIn = button(R.style.Widget_UsTogether_Button_Primary, R.string.setup_sign_in);
+        // The keyboard's Done key signs in, so nobody has to dismiss it to find the button.
+        password.setOnEditorActionListener((view, actionId, event) -> {
+            if (actionId != EditorInfo.IME_ACTION_DONE || !signIn.isEnabled()) return false;
+            signIn.performClick();
+            return true;
+        });
         homePanel.addView(Ui.spaced(this, signIn, R.dimen.space_4));
 
         // One dominant next step rather than nine controls of equal weight.
@@ -172,7 +181,7 @@ public final class MainActivity extends Activity {
         pushStatus.setText(pushConfigured ? R.string.setup_push_ready : R.string.setup_push_unavailable);
         updateControls();
         signIn.setOnClickListener(view -> {
-            String enteredEmail = email.getText().toString();
+            String enteredEmail = email.getText().toString().trim();
             String enteredPassword = password.getText().toString();
             work(() -> {
                 DrawingApi.signIn(this, enteredEmail, enteredPassword);
