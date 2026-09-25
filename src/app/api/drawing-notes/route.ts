@@ -22,7 +22,8 @@ export async function POST(request: Request) {
   try {
     const input = new Uint8Array(await file.arrayBuffer());
     const info = inspectMedia(input, "image/png");
-    if (info.width !== 640 || info.height !== 480) return failure("The drawing must use the note canvas.", 400);
+    // 640×480 from the web editor, 640×640 from the phone's square paper.
+    if (info.width !== 640 || (info.height !== 480 && info.height !== 640)) return failure("The drawing must use the note canvas.", 400);
     const decoded = await Image.decode(input);
     bytes = await decoded.encode();
     if (bytes.byteLength > SIZE) return failure("The drawing is too large to send.", 400);

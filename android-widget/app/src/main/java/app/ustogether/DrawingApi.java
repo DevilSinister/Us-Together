@@ -180,7 +180,7 @@ final class DrawingApi {
             if (image.status != 200 || image.body.length < 100 || image.body.length > MAX_IMAGE)
                 throw new IllegalStateException("Could not download the latest drawing.");
             Bitmap bitmap = BitmapFactory.decodeByteArray(image.body, 0, image.body.length);
-            if (bitmap == null || bitmap.getWidth() != 640 || bitmap.getHeight() != 480)
+            if (bitmap == null || !DrawingCanvasView.isNoteCanvas(bitmap.getWidth(), bitmap.getHeight()))
                 throw new IllegalStateException("The latest drawing could not be displayed.");
             File temp = new File(context.getFilesDir(), "latest.tmp");
             try (FileOutputStream output = new FileOutputStream(temp)) { output.write(image.body); output.getFD().sync(); }
@@ -217,7 +217,7 @@ final class DrawingApi {
         // These two can never succeed on retry, so the outbox sets the file aside instead of blocking.
         if (!id.matches("[0-9a-fA-F-]{36}")) throw new PendingDrawings.PermanentSendFailure("Invalid drawing ID.");
         Bitmap bitmap = BitmapFactory.decodeByteArray(png, 0, png.length);
-        if (bitmap == null || bitmap.getWidth() != 640 || bitmap.getHeight() != 480)
+        if (bitmap == null || !DrawingCanvasView.isNoteCanvas(bitmap.getWidth(), bitmap.getHeight()))
             throw new PendingDrawings.PermanentSendFailure("The drawing canvas is invalid.");
         bitmap.recycle();
         SessionStore.Session current = session(context);

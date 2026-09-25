@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The tool drawer: card paper with the surface radius on its top edge only. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/card"/>
+    <corners android:topLeftRadius="@dimen/radius_surface" android:topRightRadius="@dimen/radius_surface"
+        android:bottomLeftRadius="0dp" android:bottomRightRadius="0dp"/>
+    <stroke android:width="@dimen/stroke_hairline" android:color="@color/border"/>
+</shape>
