@@ -47,6 +47,10 @@ final class Ui {
         EditText view = new EditText(context, null, 0, R.style.Widget_UsTogether_Field);
         view.setHint(hintRes);
         view.setInputType(inputType);
+        // Stated here too: with defStyleAttr 0 nothing else guarantees a tap focuses the field.
+        view.setFocusable(true);
+        view.setFocusableInTouchMode(true);
+        view.setClickable(true);
         return view;
     }
 

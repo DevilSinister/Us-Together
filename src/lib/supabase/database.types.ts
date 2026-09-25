@@ -998,6 +998,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          activity_count: number
           category: string
           couple_id: string | null
           created_at: string
@@ -1010,6 +1011,7 @@ export type Database = {
           title: string
         }
         Insert: {
+          activity_count?: number
           category: string
           couple_id?: string | null
           created_at?: string
@@ -1022,6 +1024,7 @@ export type Database = {
           title: string
         }
         Update: {
+          activity_count?: number
           category?: string
           couple_id?: string | null
           created_at?: string

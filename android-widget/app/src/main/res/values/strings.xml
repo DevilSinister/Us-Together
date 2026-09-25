@@ -5,8 +5,8 @@
 
     <!-- Notifications -->
     <string name="channel_partner_updates">Partner updates</string>
-    <string name="channel_partner_updates_description">A quiet line when your partner adds something shared. Never the content itself.</string>
-    <string name="notification_body_generic">Open Us Together to see it.</string>
+    <string name="channel_partner_updates_description">A quiet line saying what your partner added, edited or removed. Never the content itself.</string>
+    <string name="notification_body_generic">From your partner. Tap to open.</string>
 
     <!-- Widget -->
     <string name="widget_description">The latest drawing your partner sent, right on your home screen.</string>

@@ -136,6 +136,7 @@ The owner replaced the webapp target with a native Android APK covering every ex
 | Requirement | Source | Verification |
 | --- | --- | --- |
 | Shared additions and edits | `20260917144048_partner_activity_notifications.sql`, inbox/preferences, push map | Typecheck, lint, unit suite, build; hosted migration applied and metadata/advisors checked; negative RLS pending |
+| Specific partner activity (added/edited/completed/deleted, photo counts) | `20260925145349_partner_activity_detail.sql`, inbox section links, Android notification body | Lint, typecheck, unit suite, build, Android assemble/lint/unit; hosted migration applied (ledger `20260925145349`), trigger and grant readback, advisors unchanged; live trigger event, negative RLS and device push pending |
 | Photos and attachments only when ready | Media and attachment transition triggers | Source review; live transition test pending |
 | Private content remains silent | No trigger on purchase secrets or private notes; fixed strings | Source review; negative RLS test pending |
 | Native inbox with offline read | `NotificationActivity.java`, `DrawingApi.java` | Android assembly/lint pass; device test pending |

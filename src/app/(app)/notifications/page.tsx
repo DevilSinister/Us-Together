@@ -22,8 +22,11 @@ const defaults: Preferences = { inAppEnabled: true, plansEnabled: true, memories
  */
 const categoryLabels: Record<string, string> = { plan: "Plan", memory: "Memory", milestone: "Moment", note: "Note", system: "System", on_this_day: "On this day", bucket: "Bucket list", wishlist: "Wish", drawing: "Drawing" };
 
+/** Where an envelope with no target lands: a deletion points at the section it left. */
+const sectionHrefs: Record<string, string> = { plan: "/plans", memory: "/memories", milestone: "/milestones", note: "/notes", bucket: "/bucket", wishlist: "/wishlist", drawing: "/drawings" };
+
 function targetHref(notification: NotificationRow) {
-  if (!notification.target_id) return "/home";
+  if (!notification.target_id) return sectionHrefs[notification.category] ?? "/home";
   if (notification.target_type === "milestone") return `/milestones/${notification.target_id}`;
   if (notification.target_type === "plan") return `/plans/${notification.target_id}`;
   if (notification.target_type === "memory") return `/memories/${notification.target_id}`;
