@@ -23,6 +23,6 @@ test("plans support calendar, details, checklist, reminders, rescheduling and ca
  expect(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)).toBe(false);
  await page.goto(planUrl);await page.getByRole("button",{name:"Cancel plan",exact:true}).click();await expect(page.getByText("date · cancelled",{exact:true})).toBeVisible();await expect(page.getByText(/· cancelled/)).toHaveCount(2);
  await page.getByRole("button",{name:"Restore plan",exact:true}).click();await expect(page.getByRole("button",{name:"Mark complete",exact:true})).toBeVisible();
- await page.getByText("Delete this plan",{exact:true}).click();await page.getByLabel("Type DELETE to confirm",{exact:true}).fill("DELETE");await page.getByRole("button",{name:"Delete plan permanently",exact:true}).click();await expect(page).toHaveURL(/\/plans$/);
+ await page.getByRole("button",{name:"Delete plan",exact:true}).click();await page.getByRole("dialog",{name:"Delete this plan?"}).getByRole("button",{name:"Delete plan",exact:true}).click();await expect(page).toHaveURL(/\/plans$/);
  await page.goto(planUrl);await expect(page.getByText(/could not be found|not found/i).first()).toBeVisible();
 });

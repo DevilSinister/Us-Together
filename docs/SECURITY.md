@@ -111,3 +111,7 @@ Classify and contain; revoke credentials/sessions; disable affected integration/
 Moment uploads use the same authenticated parent checks, binary validation, bounded processing, signed-read lifetime and cleanup ordering as memory uploads, with separate private table/bucket ownership. Caption mutations cannot change media identity. Comments are shared only through active parent membership; deletion is author-only. Reminders are personal even within a couple and the worker rechecks membership and notification preferences before emitting generic content.
 
 Preview files/comments are local IndexedDB records keyed by developer session and parent; they are not shared or uploaded. Preview entry-reminder polling has been removed. Per-file comments are scoped by session, parent and media ID; no preview comments are shared across users. Location lookup is an intentional external request using only user-entered search text or explicitly permitted geolocation; no story, caption, comment, ownership identifier or account credential is forwarded. Returned coordinates are not persisted. Production request logging must not record provider query strings.
+
+## Forms and URLs — 2026-09-25
+
+Every `<form>` declares how it submits: a server `action`, or `method="post"` when a client `onSubmit` handles it. Without one, a submit that lands before hydration is a native GET and writes every field into the URL, which reaches history, logs and referrers. `src/lib/forms-guard.test.ts` enforces this for all of `src`.

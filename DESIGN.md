@@ -221,6 +221,10 @@ Bucket-list Options and in-place idea editing use one focused, warm card-paper d
 
 Applied filters remain visible as removable blush controls above the idea rows. The list landing page has a direct creation action, including its empty state. Step editing retains visible Save controls and 44px checkbox/reorder targets; narrow screens put reorder actions below the input instead of compressing it.
 
+### Idea Tiles and Organize
+
+An opened bucket list is sectioned under wine label headings with an icon and a count: In progress, Planned, Ideas, Completed by default, or by category or priority from the Organize control beside Options. Organize is a native select laid under an outline-button face, so phones get their own picker. Ideas are card-paper tiles in one column on phones and two from `sm`. The tile rule is border or tone, never both with shadow. A tile leads with a round blush category mark and a four-dot rose priority meter (the memory-rating vocabulary, with a sparkle for Dream). Then comes the serif title, clamped to two lines, and a two-line story, then date and place in muted metadata. A lived idea sits on muted paper, trades its category mark for a success check, and says "Lived" and the date. Whatever the list is grouped by is left off the tile.
+
 ### Page Headers
 
 Every signed-in surface uses one page header component rather than a hand-built `<header>`. It composes an optional back row, a wine label eyebrow, one serif `h1`, and a lede capped at 68 characters, with page actions bottom-aligned to the right on wide screens and stacked below on phones. Two scales exist: `display` for page indexes and `compact` for workspaces and narrow reading columns. The fine rule under the header is on by default and turned off only where the next element already provides separation. No surface introduces its own header rhythm, heading size, tracking, or lede measure.
@@ -247,6 +251,18 @@ A calendar cell marks the kinds saved on that date by shape first and color seco
 ### Relationship Thread
 
 The signature component is a content-led vertical sequence: circular card-paper markers sit over a one-pixel line that gradients from fine rule through restrained rose and back. Each marker introduces a serif title and supporting sans-serif copy. Use it only when entries form a genuine temporal or conceptual journey.
+
+### Deletion and the Page Foot
+
+Every detail page ends with one ruled action row: an outline Edit with a pencil, then a danger-outline Delete with a trash mark. Delete always opens a confirmation dialog. It carries a round danger-tint mark, a serif question ("Delete this note?"), the named item and what goes and what stays, then "Keep it" (focused) and a solid danger button repeating the action. A precondition the server enforces is shown as a blush note inside the dialog, and it disables the confirm button. While deleting, every control, including close, is disabled; a deletion that leaves the page stays pending until the route changes. There are no disclosures or typed confirmations for ordinary content. Couple and account deletion keep their stronger typed confirmation.
+
+### Memory Monogram
+
+A memory with no photograph wears its own initial in the thumbnail square: the first letter of its first lettered word ("5 meetup" reads M), in the story serif and wine, on the blush field with a faint rose corner. A title with no lettered word gets a small heart. A failed image still shows the image-off glyph, because that one is information.
+
+### Notes as Letters
+
+A shared note is a letter: card paper with the paper shadow and no border, the author's avatar and "From … to …" at its head, the body on the one-pixel note thread, and the author's name signed in serif italic at the foot. A private note is a journal page: flat muted paper with an "Only you" seal. The notes list leads each row with the author's avatar and a small visibility badge pinned to it, a one-line serif title, and a two-line serif-italic excerpt.
 
 ## Do's and Don'ts
 

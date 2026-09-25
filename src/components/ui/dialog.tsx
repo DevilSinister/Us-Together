@@ -114,10 +114,16 @@ export function DialogContent({
       )}
       onCancel={(event) => {
         event.preventDefault();
+        // A confirmation opened from inside another dialog is portalled to
+        // <body>, but React still bubbles its events up the component tree.
+        // Without this, Escape on the confirmation would close its parent too.
+        event.stopPropagation();
         if (dismissible) setOpen(false);
       }}
       onKeyDown={(event) => {
         if (event.key !== "Tab") return;
+        // Same reason: a nested dialog's Tab belongs to its own focus trap.
+        if (!event.currentTarget.contains(event.target as Node)) return;
         const controls = Array.from(event.currentTarget.querySelectorAll<HTMLElement>(
           'a[href], button:not(:disabled), input:not(:disabled):not([type="hidden"]), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
         )).filter((element) => element.tabIndex >= 0 && element.getClientRects().length > 0);

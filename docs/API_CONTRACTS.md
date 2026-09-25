@@ -54,7 +54,7 @@ Implemented now: public Data API functions are security-invoker wrappers around 
 
 ## Bucket and plan actions
 
-Phase 4 list/item/step actions return { ok, message, id? }. filterBucketItems validates list/status/priority/category/cursor and returns { page?, error? }, with 12 rows and a next UUID cursor. Filters stay in the request body. List/item deletion requires literal DELETE; lists must be empty. Conversion forms prefill content but commit only on submit. Completed-idea memory creation calls create_memory_from_bucket; both conversion RPCs are security invokers and retry on source identity. No supplied actor/couple field is accepted.
+Phase 4 list/item/step actions return { ok, message, id? }. filterBucketItems validates list/status/priority/category/cursor and returns { page?, error? }, with 12 rows and a next UUID cursor. Filters stay in the request body. List/item deletion requires literal DELETE; lists must be empty. Since 2026-09-25 the interface sends that literal from its confirmation dialog rather than a typed field (ADR-038). Conversion forms prefill content but commit only on submit; a plan made from an idea uses the ordinary plan form with a hidden `sourceBucketId` (ADR-039). Completed-idea memory creation calls create_memory_from_bucket; both conversion RPCs are security invokers and retry on source identity. No supplied actor/couple field is accepted.
 
 - Implemented `mutateBucket(unknown)`: discriminated Zod operations `createList`, `renameList`, `deleteList`, `createItem`, `updateItem`, `deleteItem`, `completeItem`, `subtask`
 - `subtask` kinds `add`, `update`, `delete`, `reorder`: item UUID/version and complete ordered-ID permutation; server session supplies identity; database locks/checks the parent

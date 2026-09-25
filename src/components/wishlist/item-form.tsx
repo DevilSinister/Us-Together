@@ -46,7 +46,7 @@ export function WishlistItemForm({ item }: { item?: WishlistItem }) {
   const error = (key: string) => (fields[key] ? <p className="field-error">{fields[key][0]}</p> : null);
 
   return (
-    <form className="space-y-6" noValidate onSubmit={(event) => { event.preventDefault(); submit(event.currentTarget); }}>
+    <form method="post" className="space-y-6" noValidate onSubmit={(event) => { event.preventDefault(); submit(event.currentTarget); }}>
       <div className="space-y-2">
         <Label htmlFor="title">What is it?</Label>
         <Input id="title" name="title" defaultValue={item?.title} placeholder="The navy winter coat" required aria-invalid={Boolean(fields.title)} />

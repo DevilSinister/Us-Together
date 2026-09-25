@@ -47,7 +47,7 @@ export function EntryUploader({access,files,onFiles,autoStart=false,onBusy,onCha
  finally{upload.current=null;rejectUpload.current=null;setStatus("idle");await onChange();}
  }
  if(!files.length&&!busy&&!error)return null;
- return <form ref={form} onSubmit={submit} className="mt-5 space-y-4">
+ return <form method="post" ref={form} onSubmit={submit} className="mt-5 space-y-4">
  <PhotoQueue value={files} onChange={onFiles} disabled={busy}/>
  {access.previewSession&&files.length?<p className="text-sm leading-6 text-muted-foreground">Preview photos stay in this browser for up to 24 hours. They are not uploaded to your shared account.</p>:null}
  {busy?<div role="status"><p className="text-sm font-semibold">{status==="processing"?"Preparing the file":status==="paused"?"Upload paused":"Uploading"} · {current} of {files.length}</p><progress className="mt-2 h-1.5 w-full accent-[var(--primary)]" value={progress} max={100} aria-label="Upload progress"/></div>:null}

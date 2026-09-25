@@ -25,7 +25,7 @@ export function MemoryForm({sourcePlan,memory,previewSession,defaultDate}:{previ
   const described=(name:string)=>error(name)?name+"-error":undefined;
   const message=(name:string)=>error(name)?<p id={name+"-error"} className="field-error">{error(name)}</p>:null;
   if(state.savedId)return <section><h2 className="font-display text-3xl">Your memory is saved.</h2><MediaCollection access={{kind:"memory",id:state.savedId,previewSession}} initial={files}/><Button asChild className="mt-6"><Link href={"/memories/"+state.savedId}>View memory</Link></Button></section>;
-  return <form ref={formRef} onSubmit={e=>{e.preventDefault();const data=new FormData(e.currentTarget);startTransition(()=>action(data));}} className="space-y-6" noValidate>
+  return <form method="post" ref={formRef} onSubmit={e=>{e.preventDefault();const data=new FormData(e.currentTarget);startTransition(()=>action(data));}} className="space-y-6" noValidate>
     <input type="hidden" name="returnCreated" value={files.length?"true":"false"}/>
     <input type="hidden" name="sourcePlanId" value={sourcePlan?.id??""}/>
     {memory?<><input type="hidden" name="id" value={memory.id}/><input type="hidden" name="version" value={memory.version}/></>:null}

@@ -41,6 +41,6 @@ test("memories preserve stories through editing, tags, filters and deletion",asy
  await page.getByLabel("Find a tag").fill("other");await page.getByRole("button",{name:"Apply filters"}).click();await expect(page.getByText("No memories match just yet.")).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)).toBe(false);
  await page.goto(detail);await page.keyboard.press("Tab");await expect(page.locator(":focus-visible")).toBeVisible();
- await page.getByText("Delete this memory",{exact:true}).click();await page.getByLabel("Type DELETE to confirm").fill("DELETE");await page.getByRole("button",{name:"Permanently delete memory"}).click();await expect(page).toHaveURL(/\/memories$/);
+ await page.getByRole("button",{name:"Delete memory",exact:true}).click();await page.getByRole("dialog",{name:"Delete this memory?"}).getByRole("button",{name:"Delete memory",exact:true}).click();await expect(page).toHaveURL(/\/memories$/);
  await expect(page.getByRole("heading",{name:"An evening at the harbour"})).toHaveCount(0);
 });

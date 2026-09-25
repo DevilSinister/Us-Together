@@ -1,4 +1,7 @@
 import "server-only";
+// Memoised per request: the protected layout and any page that prints a face
+// share one set of profile reads instead of repeating them.
+import { cache } from "react";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState } from "@/lib/auth/dev-session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -20,7 +23,7 @@ const ANONYMOUS: Identities = {
  * Nothing here reads their `avatar_path`; see resolve.ts for why that chain
  * terminates instead.
  */
-export async function loadIdentities(): Promise<Identities> {
+export const loadIdentities = cache(async function loadIdentities(): Promise<Identities> {
   try {
     const identity = await getCurrentIdentity();
     if (!identity) return ANONYMOUS;
@@ -61,4 +64,4 @@ export async function loadIdentities(): Promise<Identities> {
     // An avatar is never worth failing a page over.
     return ANONYMOUS;
   }
-}
+});
