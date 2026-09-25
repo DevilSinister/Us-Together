@@ -32,7 +32,7 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await page.getByRole("button", { name: "Save this idea" }).click();
   await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
   const ideaUrl = page.url();
-  await page.getByText("Edit the idea", { exact: true }).click();
+  await page.getByText("Edit idea", { exact: true }).click();
   await page.screenshot({ path: `test-results/bucket-editor-${testInfo.project.name}.png` });
   await page.getByLabel("Location", { exact: false }).fill("By the water");
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
@@ -105,10 +105,9 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await page.getByRole("button", { name: "Apply filters" }).click();
   await expect(page.getByText("Room for your next idea.")).toBeVisible();
   await page.goto(ideaUrl);
-  await page.getByRole("button", { name: "Delete this idea", exact: true }).click();
-  await page.getByLabel("Type DELETE to confirm").fill("DELETE");
-  await page.getByRole("button", { name: "Delete idea permanently" }).click();
-  await expect(page).toHaveURL(/\/bucket$/);
+  await page.getByRole("button", { name: "Delete idea", exact: true }).click();
+  await page.getByRole("dialog", { name: "Delete this idea?" }).getByRole("button", { name: "Delete idea", exact: true }).click();
+  await expect(page).toHaveURL(listUrl);
   await page.goto("/memories");
   await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
   await expect(page.getByRole("link", { name: "From your bucket list" })).toHaveCount(0);
@@ -120,8 +119,8 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await expect(page.getByRole("heading", { name: "Small adventures", exact: true }).first()).toBeVisible();
   await page.getByRole("button", { name: "Options", exact: true }).click();
   await page.getByRole("button", { name: "Manage this list", exact: true }).click();
-  await page.getByLabel("Type DELETE to confirm").fill("DELETE");
-  await page.getByRole("button", { name: "Delete empty list" }).click();
+  await page.getByRole("button", { name: "Delete list", exact: true }).click();
+  await page.getByRole("dialog", { name: "Delete this list?" }).getByRole("button", { name: "Delete list", exact: true }).click();
   await expect(page).toHaveURL(/\/bucket$/);
   await expect(page.getByRole("heading", { name: "What would you love to do together?" })).toBeVisible();
 });

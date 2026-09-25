@@ -3,10 +3,15 @@ import { usePartnerRefresh } from "@/components/providers/partner-sync";
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { ArrowLeft, ArrowRight, Plus, Settings2, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { useState, useSyncExternalStore, useTransition } from "react";
+import { ArrowLeft, ArrowRight, CalendarDays, ChevronDown, CircleCheck, Footprints, ListTree, Plus, Settings2, SlidersHorizontal, Sparkles, Tag, X, type LucideIcon } from "lucide-react";
 import { filterBucketItems, mutateBucket } from "@/app/actions/bucket";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
+import { refreshWindow } from "@/lib/partner-sync";
+import { bucketGroupingLabels, bucketGroupings, categoryMark, groupBucketItems, NO_CATEGORY, type BucketGrouping } from "@/lib/bucket/grouping";
+import { cn } from "@/lib/utils";
+import { categoryIcons, IdeaTile } from "./idea-tile";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { InlineLink } from "@/components/ui/inline-link";
@@ -19,6 +24,31 @@ export const bucketFieldClass =
 export function bucketLabel(value: string) {
   const words = value.replaceAll("_", " ");
   return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
+const statusIcons: Record<string, LucideIcon> = { in_progress: Footprints, planned: CalendarDays, idea: Sparkles, completed: CircleCheck };
+
+// How a list is organized is a per-device preference, kept in this browser.
+// An in-memory copy stands in when storage is blocked, so the control still works.
+const GROUPING_KEY = "us-together:bucket-grouping";
+const groupingListeners = new Set<() => void>();
+let groupingFallback: BucketGrouping = "status";
+function readGrouping(): BucketGrouping {
+  try {
+    const stored = window.localStorage.getItem(GROUPING_KEY);
+    if (stored && (bucketGroupings as readonly string[]).includes(stored)) return stored as BucketGrouping;
+  } catch { /* storage unavailable: use the in-memory choice */ }
+  return groupingFallback;
+}
+function subscribeGrouping(listener: () => void) {
+  groupingListeners.add(listener);
+  window.addEventListener("storage", listener);
+  return () => { groupingListeners.delete(listener); window.removeEventListener("storage", listener); };
+}
+function saveGrouping(next: BucketGrouping) {
+  groupingFallback = next;
+  try { window.localStorage.setItem(GROUPING_KEY, next); } catch { /* keep the in-memory choice */ }
+  groupingListeners.forEach((listener) => listener());
 }
 
 const initialFilter: BucketFilter = { listId: "", status: "", priority: "", category: "", before: null };
@@ -44,11 +74,18 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
   const selectedList = lists.find((list) => list.id === draft.listId);
   const allCategories = Array.from(new Set([...categories, ...DEFAULT_BUCKET_CATEGORIES, filter.category])).filter(Boolean);
   const hasFilters = Boolean(filter.status || filter.priority || filter.category);
+  const grouping = useSyncExternalStore(subscribeGrouping, readGrouping, () => "status" as const);
+  const groups = groupBucketItems(page.items, grouping);
 
   usePartnerRefresh(async () => {
     if (!listId) return;
-    const result = await filterBucketItems(filter);
-    if (result.page) setPage(current => current === page ? result.page! : current);
+    // Refresh every idea already on screen, not just the first page.
+    const result = await refreshWindow<BucketPage["items"][number], string>(async (before) => {
+      const response = await filterBucketItems({ ...filter, before });
+      if (!response.page) throw Error("Refresh unavailable");
+      return response.page;
+    }, page.items.length);
+    setPage(current => current === page ? result : current);
   }, pending || open);
 
   function showOptions(nextView: OptionsView = "options") {
@@ -81,6 +118,20 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
     });
   }
 
+  function loadMore() {
+    start(async () => {
+      setMessage("");
+      try {
+        const result = await filterBucketItems({ ...filter, before: page.next });
+        if (!result.page) { setMessage(result.error ?? "We couldn't load more ideas. Try again."); return; }
+        const more = result.page;
+        setPage((current) => ({ items: [...current.items, ...more.items.filter((item) => !current.items.some((old) => old.id === item.id))], next: more.next }));
+      } catch {
+        setMessage("Connection interrupted. The ideas above are unchanged. Try again when you are online.");
+      }
+    });
+  }
+
   function listAction(form: FormData) {
     start(async () => {
       setDialogMessage("");
@@ -108,6 +159,20 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
         actions={listId ? <>
           <Button asChild><Link href={`/bucket/new?list=${listId}`}><Plus className="size-4" />Add idea</Link></Button>
           <Button variant="outline" onClick={() => showOptions()}><SlidersHorizontal className="size-4" />Options</Button>
+          {/* A native select under a button face: the phone's own picker, full keyboard support. */}
+          <label className={cn(buttonVariants({ variant: "outline" }), "relative cursor-pointer pr-10 focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2")}>
+            <ListTree className="size-4" aria-hidden="true" />
+            <span aria-hidden="true">Organize <span className="font-normal text-muted-foreground">by {bucketGroupingLabels[grouping].toLowerCase()}</span></span>
+            <select
+              aria-label="Organize ideas by"
+              value={grouping}
+              onChange={(event) => saveGrouping(event.target.value as BucketGrouping)}
+              className="absolute inset-0 cursor-pointer appearance-none rounded-control opacity-0"
+            >
+              {bucketGroupings.map((value) => <option key={value} value={value}>{bucketGroupingLabels[value]}</option>)}
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 size-4" aria-hidden="true" />
+          </label>
         </> : <Button onClick={() => showOptions("create")}><Plus className="size-4" />Add list</Button>}
       />
 
@@ -120,7 +185,7 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
           </DialogHeader>
 
           {view === "options" ? (
-            <form className="mt-5 space-y-5" onSubmit={(event) => { event.preventDefault(); search({ ...draft, before: null }, true); }}>
+            <form method="post" className="mt-5 space-y-5" onSubmit={(event) => { event.preventDefault(); search({ ...draft, before: null }, true); }}>
               <Button type="button" variant="ghost" className="-ml-3 text-muted-foreground" disabled={pending} onClick={() => changeView("manage")}><Settings2 className="size-4" />Manage this list</Button>
               <fieldset className="border-t border-border pt-5">
                 <legend className="sr-only">Filter ideas</legend>
@@ -153,7 +218,7 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
             </form>
           ) : (
             <div className="mt-5 space-y-6" key={view}>
-              <form className="space-y-4" onSubmit={(event) => { event.preventDefault(); listAction(new FormData(event.currentTarget)); }}>
+              <form method="post" className="space-y-4" onSubmit={(event) => { event.preventDefault(); listAction(new FormData(event.currentTarget)); }}>
                 <input type="hidden" name="operation" value={view === "create" ? "createList" : "renameList"} />
                 {view === "manage" ? <input type="hidden" name="id" value={draft.listId} /> : null}
                 <label className="block space-y-2 text-sm font-semibold">List name
@@ -162,12 +227,23 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
                 <Button disabled={pending}>{pending ? "Saving…" : view === "create" ? "Create list" : "Rename list"}</Button>
               </form>
               {view === "manage" ? (
-                <form className="space-y-4 border-t border-border pt-5" onSubmit={(event) => { event.preventDefault(); listAction(new FormData(event.currentTarget)); }}>
+                <div className="space-y-4 border-t border-border pt-5">
                   <div><h3 className="text-sm font-semibold">Delete this list</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">Only empty lists can be deleted. Move or delete their ideas first.</p></div>
-                  <input type="hidden" name="operation" value="deleteList" /><input type="hidden" name="id" value={draft.listId} />
-                  <label className="block space-y-2 text-sm font-semibold">Type DELETE to confirm<Input name="confirmation" required pattern="DELETE" placeholder="DELETE" disabled={pending} /></label>
-                  <Button variant="outline" className="border-danger/40 text-danger hover:bg-danger/10 hover:text-danger" disabled={pending}><Trash2 className="size-4" />Delete empty list</Button>
-                </form>
+                  <ConfirmDelete
+                    label="Delete list"
+                    title="Delete this list?"
+                    description={<><strong className="font-semibold text-foreground">“{selectedList?.title ?? "This list"}”</strong> is removed for both of you. Only an empty list can go.</>}
+                    blocked={page.items.length && !hasFilters ? "This list still holds ideas. Move or delete them first." : null}
+                    leavesPage
+                    onConfirm={async () => {
+                      const result = await mutateBucket({ operation: "deleteList", id: draft.listId, confirmation: "DELETE" });
+                      if (!result.ok) return result.message;
+                      setOpen(false);
+                      router.push("/bucket");
+                      router.refresh();
+                    }}
+                  />
+                </div>
               ) : null}
               <p role="status" className="text-sm leading-6 text-primary">{dialogMessage}</p>
             </div>
@@ -190,7 +266,7 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
       </section> : <section aria-label="Bucket ideas" className="mt-5 min-w-0">
         {lists.length ? (
           <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-            <p className="min-w-0 break-words text-sm font-semibold">{activeList?.title ?? "All lists"}<span className="ml-2 font-normal text-muted-foreground">· {page.items.length}{page.next ? "+" : ""} {page.items.length === 1 ? "idea" : "ideas"}{filter.before ? " on this page" : ""}</span></p>
+            <p className="min-w-0 break-words text-sm font-semibold">{activeList?.title ?? "All lists"}<span className="ml-2 font-normal text-muted-foreground">· {page.items.length}{page.next ? "+" : ""} {page.items.length === 1 ? "idea" : "ideas"}</span></p>
             {hasFilters ? <Button variant="ghost" disabled={pending} onClick={() => search(listFilter)}>Reset view</Button> : null}
             {filter.status || filter.priority || filter.category ? (
               <div className="flex w-full flex-wrap gap-2" aria-label="Active filters">
@@ -203,24 +279,23 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
         ) : null}
         <p role="status" aria-hidden={open || undefined} className={!open && (pending || message) ? "mb-5 text-sm leading-6 text-primary" : "sr-only"}>{!open ? pending ? "Updating your ideas…" : message : ""}</p>
         {page.items.length ? (
-          <ul className="divide-y divide-border" aria-busy={pending}>
-            {page.items.map((item) => (
-              <li key={item.id} className="py-6 first:pt-0">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="break-words text-xs font-medium leading-5 text-muted-foreground">{lists.find((list) => list.id === item.list_id)?.title} · {bucketLabel(item.status)} · {bucketLabel(item.priority)} priority</p>
-                    <h2 className="mt-2 break-words font-display text-2xl sm:text-3xl"><Link className="text-foreground underline-offset-4 hover:underline" href={`/bucket/${item.id}`}>{item.title}</Link></h2>
-                    {item.description ? <p className="mt-2.5 line-clamp-2 max-w-prose break-words text-sm leading-6 text-muted-foreground">{item.description}</p> : null}
-                    {item.category || item.target_date ? <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-                      {item.category ? <span className="max-w-full break-words rounded-md bg-secondary px-2 py-1 font-medium text-secondary-foreground">{item.category}</span> : null}
-                      {item.target_date ? <span>By {new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "UTC" }).format(new Date(`${item.target_date}T12:00:00Z`))}</span> : null}
-                    </div> : null}
-                  </div>
-                  <Link href={`/bucket/${item.id}`} aria-label={`Open ${item.title}`} className="grid size-11 shrink-0 place-items-center rounded-lg text-primary hover:bg-secondary"><ArrowRight className="size-5" /></Link>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-9" aria-busy={pending}>
+            {groups.map((group) => {
+              const GroupIcon = grouping === "status" ? statusIcons[group.key] ?? Tag : grouping === "category" ? categoryIcons[categoryMark(group.key === NO_CATEGORY ? null : group.key)] : null;
+              return (
+                <section key={group.key} aria-labelledby={"group-" + group.key}>
+                  <h2 id={"group-" + group.key} className="flex items-center gap-2 text-sm font-semibold text-primary">
+                    {GroupIcon ? <GroupIcon className="size-4" aria-hidden="true" /> : null}
+                    <span className="min-w-0 break-words">{group.label}</span>
+                    <span className="font-normal text-muted-foreground">· {group.items.length}</span>
+                  </h2>
+                  <ul className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {group.items.map((item) => <li key={item.id} className="min-w-0"><IdeaTile item={item} groupedBy={grouping} /></li>)}
+                  </ul>
+                </section>
+              );
+            })}
+          </div>
         ) : (
           <div className="rounded-panel border border-dashed border-border bg-card/50 px-6 py-12 text-center">
             <h2 className="font-display text-2xl sm:text-3xl">{lists.length ? "Room for your next idea." : "What would you love to do together?"}</h2>
@@ -228,10 +303,8 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
             {lists.length ? <Button asChild className="mt-6"><Link href={`/bucket/new?list=${listId}`}>Add idea</Link></Button> : <Button className="mt-6" onClick={() => showOptions("create")}><Plus className="size-4" />Create your first list</Button>}
           </div>
         )}
-        {filter.before || page.next ? <div className="mt-6 flex gap-3">
-          {filter.before ? <Button variant="ghost" onClick={() => search({ ...filter, before: null })} disabled={pending}>Back to first page</Button> : null}
-          {page.next ? <Button variant="outline" disabled={pending} onClick={() => search({ ...filter, before: page.next })}>Next ideas</Button> : null}
-        </div> : null}
+        {/* Sections regroup as pages arrive, so more ideas append rather than replace. */}
+        {page.next ? <Button className="mt-8" variant="outline" disabled={pending} onClick={loadMore}>{pending ? "Loading…" : "Load more ideas"}</Button> : null}
       </section>}
     </div>
   );

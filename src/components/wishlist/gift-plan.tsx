@@ -5,6 +5,7 @@ import { EyeOff, Gift } from "lucide-react";
 import { deletePurchaseSecret, savePurchaseSecret } from "@/app/actions/wishlist";
 import { purchaseStatusLabels, purchaseStatuses, type PurchaseSecret } from "@/lib/wishlist/schema";
 import { Button } from "@/components/ui/button";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { Label } from "@/components/ui/label";
 
 const fieldClass = "min-h-12 w-full rounded-control border border-border bg-field px-4 py-3 text-base text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-ring/25";
@@ -46,7 +47,7 @@ export function GiftPlan({ itemId, secret, ownerName }: { itemId: string; secret
       </div>
 
       {open ? (
-        <form
+        <form method="post"
           className="mt-5 space-y-4"
           onSubmit={(event) => {
             event.preventDefault();
@@ -69,9 +70,17 @@ export function GiftPlan({ itemId, secret, ownerName }: { itemId: string; secret
           <div className="flex flex-wrap items-center gap-3">
             <Button disabled={pending}>{pending ? "Saving..." : "Save gift plan"}</Button>
             {secret ? (
-              <Button type="button" variant="ghost" disabled={pending} className="text-danger hover:bg-danger/10 hover:text-danger" onClick={() => run(() => deletePurchaseSecret(itemId))}>
-                Clear plan
-              </Button>
+              <ConfirmDelete
+                variant="ghost"
+                label="Clear plan"
+                title="Clear this gift plan?"
+                description="Your private status and notes for this wish are deleted. Your partner never saw them, and still won't."
+                onConfirm={async () => {
+                  const result = await deletePurchaseSecret(itemId);
+                  if (result.error) return result.error;
+                  router.refresh();
+                }}
+              />
             ) : (
               <Button type="button" variant="ghost" disabled={pending} onClick={() => setOpen(false)}>Not now</Button>
             )}

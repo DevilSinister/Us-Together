@@ -7,6 +7,7 @@ import { usePartnerRefresh } from "@/components/providers/partner-sync";
 import { refreshWindow } from "@/lib/partner-sync";
 import { filterMemories } from "@/app/actions/memories";
 import { groupByMonth } from "@/lib/memories/grouping";
+import { memoryInitial } from "@/lib/memories/initial";
 import { mediaHref } from "@/lib/entries/media-url";
 import { MediaThumb } from "@/components/entries/media-thumb";
 import type { MemoryPage } from "@/lib/memories/types";
@@ -15,6 +16,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 const dayFormat = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", timeZone: "UTC" });
+
+/**
+ * What a memory without photographs shows in its thumbnail square: its own
+ * initial in the story serif, on a blush field with a faint rose corner, rather
+ * than the "no image" glyph, which read as a broken upload. A title with no
+ * lettered word gets a small heart instead.
+ */
+function MemoryMonogram({ title }: { title: string }) {
+  const initial = memoryInitial(title);
+  return <span
+    aria-hidden="true"
+    className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_100%_0%,color-mix(in_srgb,var(--rose)_22%,transparent),transparent_65%)] text-primary"
+  >
+    {initial
+      ? <span className="font-display text-3xl leading-none sm:text-4xl">{initial}</span>
+      : <Heart className="size-5" />}
+  </span>;
+}
 
 /**
  * Every memory you have kept, as a list you can actually scan.
@@ -67,8 +86,9 @@ export function MemoryGallery({ initial }: { initial: MemoryPage }) {
   const groups = groupByMonth(page.memories);
 
   return <section className="mt-8" aria-label="Memories by date" aria-busy={pending}>
-    <form onSubmit={e => { e.preventDefault(); load(); }} className="flex flex-wrap items-end gap-4 border-b pb-6">
-      <div className="min-w-0 flex-1 space-y-2 sm:max-w-xs">
+    <form method="post" onSubmit={e => { e.preventDefault(); load(); }} className="flex flex-wrap items-end gap-4 border-b pb-6">
+      {/* Its own row on phones: beside the checkbox and button it was crushed to four letters. */}
+      <div className="min-w-0 flex-1 basis-full space-y-2 sm:max-w-xs sm:basis-auto">
         <Label htmlFor="tag-filter">Find a tag</Label>
         <Input id="tag-filter" value={tag} onChange={e => setTag(e.target.value)} placeholder="All tags" maxLength={48}/>
       </div>
@@ -106,16 +126,16 @@ export function MemoryGallery({ initial }: { initial: MemoryPage }) {
               >
                 <span className="relative size-16 shrink-0 overflow-hidden rounded-panel bg-secondary sm:size-20">
                   {/* Decorative: the title sits beside it, so an alt would only repeat. */}
-                  <MediaThumb
-                    src={thumb ? mediaHref(thumb.id, "memory", "preview") : null}
-                    mediaType={thumb?.media_type}
+                  {thumb ? <MediaThumb
+                    src={mediaHref(thumb.id, "memory", "preview")}
+                    mediaType={thumb.media_type}
                     alt=""
-                  />
+                  /> : <MemoryMonogram title={m.title}/>}
                 </span>
 
                 <span className="min-w-0 flex-1">
                   <span className="flex items-start gap-2">
-                    <span className="min-w-0 break-words font-display text-xl leading-tight transition-colors group-hover:text-primary motion-reduce:transition-none sm:text-2xl">
+                    <span className="min-w-0 truncate font-display text-xl leading-tight transition-colors group-hover:text-primary motion-reduce:transition-none sm:text-2xl">
                       {m.title}
                     </span>
                     {m.is_favorite ? <>
@@ -129,8 +149,11 @@ export function MemoryGallery({ initial }: { initial: MemoryPage }) {
                     <time dateTime={m.memory_date}>{dayFormat.format(new Date(m.memory_date + "T00:00:00Z"))}</time>
                   </span>
 
-                  {m.description ? <span className="mt-1 block line-clamp-1 text-sm leading-6 text-muted-foreground">
-                    {m.description}
+                  {/* One line, always: `block` beside `line-clamp-1` let display:block win
+                      and the clamp never applied, so long stories wrapped to three lines.
+                      `truncate` also folds line breaks the story itself contains. */}
+                  {m.description ? <span className="mt-1 block truncate text-sm leading-6 text-muted-foreground">
+                    {m.description.replace(/\s+/g, " ")}
                   </span> : null}
                 </span>
               </Link>

@@ -2,6 +2,12 @@ import { z } from "zod";
 
 export const planTypes = ["date", "trip", "activity", "birthday", "anniversary", "event", "reminder", "other"] as const;
 
+/** How a plan type reads in the interface: "Date", not the stored "date". */
+export function planTypeLabel(type: string) {
+  const words = type.replaceAll("_", " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 const optionalText = (maximum: number) => z.string().trim().max(maximum).optional().transform((value) => value || null);
 
 export const planSchema = z.object({

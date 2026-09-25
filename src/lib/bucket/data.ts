@@ -57,6 +57,26 @@ export async function loadBucketPage(input: unknown): Promise<BucketPage> {
   return { items, next: rows.length > bucketPageSize ? items.at(-1)!.id : null };
 }
 
+export type PlannableIdea = Pick<BucketItem, "id" | "title" | "list_id">;
+
+/**
+ * Every idea that could still become a plan - anything not yet lived - for
+ * the "start from your bucket list" picker on a new plan. Titles only; the
+ * chosen idea is loaded in full by id.
+ */
+export async function loadPlannableIdeas(): Promise<PlannableIdea[]> {
+  const context = await bucketContext();
+  if (context.kind === "preview") {
+    return context.preview.items.filter((item) => item.status !== "completed")
+      .sort((a, b) => b.id.localeCompare(a.id)).slice(0, 200)
+      .map(({ id, title, list_id }) => ({ id, title, list_id }));
+  }
+  const { data, error } = await context.db.from("bucket_list_items").select("id,title,list_id")
+    .eq("couple_id", context.coupleId).neq("status", "completed").order("id", { ascending: false }).limit(200);
+  if (error) throw new Error("We couldn't load your bucket list ideas. Try again.");
+  return data;
+}
+
 export async function loadBucketItem(id: string) {
   if (!z.uuid().safeParse(id).success) return null;
   const context = await bucketContext();

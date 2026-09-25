@@ -1,5 +1,5 @@
 "use client";
-import {useState,useTransition} from "react";
+import {useState} from "react";
 import Link from "next/link";
 import {useRouter} from "next/navigation";
 import {ArrowLeft,Heart,MapPin,Pencil} from "lucide-react";
@@ -13,8 +13,8 @@ import {CommentThread} from "@/components/entries/comment-thread";
 import {mediaHref} from "@/lib/entries/media-url";
 import {PageHeader} from "@/components/app/page-header";
 import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Label} from "@/components/ui/label";
+import {ConfirmDelete} from "@/components/ui/confirm-delete";
+import {EntryActions} from "@/components/app/entry-actions";
 import {cn} from "@/lib/utils";
 
 const longDate=new Intl.DateTimeFormat("en",{dateStyle:"long",timeZone:"UTC"});
@@ -36,7 +36,7 @@ const longDate=new Intl.DateTimeFormat("en",{dateStyle:"long",timeZone:"UTC"});
  */
 export function MemoryDetailView({data}:{data:MemoryDetail}){
  const {memory:m}=data,router=useRouter();
- const [error,setError]=useState(""),[confirmation,setConfirmation]=useState(""),[pending,start]=useTransition(),[fileCount,setFileCount]=useState<number|null>(null);
+ const [fileCount,setFileCount]=useState<number|null>(null);
  const access={kind:"memory" as const,id:m.id,previewSession:data.previewSession};
  const provenance=data.planTitle||m.source_bucket_item_id;
  // loadMemory applies no state filter, unlike loadMemories, so an entry with a
@@ -104,25 +104,16 @@ export function MemoryDetailView({data}:{data:MemoryDetail}){
 
   <CommentThread access={access} timezone={data.timezone}/>
 
-  {/* One foot, one rule: editing, its error slot, and deletion behind a
-      disclosure, rather than three separately ruled blocks. */}
-  <section className="mt-12 border-t pt-8">
-   <div className="flex flex-wrap items-center gap-x-5 gap-y-3">
-    <Button asChild><Link href={"/memories/"+m.id+"/edit"}><Pencil className="size-4" aria-hidden="true"/>Edit memory</Link></Button>
-    <p className="text-sm text-muted-foreground">Change the story, date, place, tags, or favorite.</p>
-   </div>
-
-   {error?<p className="status-message status-error mt-6" role="alert">{error}</p>:null}
-
-   <details className="mt-6">
-    <summary className="inline-flex min-h-11 cursor-pointer items-center text-sm font-semibold text-danger">Delete this memory</summary>
-    <p className="mt-3 max-w-prose leading-7 text-muted-foreground">This permanently removes the story. Its source plan or bucket idea stays. Remove all files and unfinished uploads first.</p>
-    <form className="mt-5 max-w-sm space-y-4" onSubmit={e=>{e.preventDefault();start(async()=>{try{const result=await deleteMemory({id:m.id,version:m.version,confirmation});if(result.ok){router.push("/memories");router.refresh();}else setError(result.error??"Could not delete.");}catch{setError("Could not confirm deletion. Check your connection, then refresh before trying again.");}});}}>
-     <Label htmlFor="delete-memory">Type DELETE to confirm</Label>
-     <Input id="delete-memory" value={confirmation} onChange={e=>setConfirmation(e.target.value)} autoComplete="off"/>
-     <Button type="submit" variant="outline" className="border-danger/40 text-danger hover:bg-danger/10 hover:text-danger" disabled={pending||confirmation!=="DELETE"||fileCount===null||fileCount>0}>Permanently delete memory</Button>
-    </form>
-   </details>
-  </section>
+  <EntryActions label="Change this memory" hint="Edit changes the story, date, place, tags, or favorite. Deleting keeps the plan or bucket idea it came from.">
+   <Button asChild variant="outline"><Link href={"/memories/"+m.id+"/edit"}><Pencil className="size-4" aria-hidden="true"/>Edit memory</Link></Button>
+   <ConfirmDelete
+    label="Delete memory"
+    title="Delete this memory?"
+    description={<><strong className="font-semibold text-foreground">“{m.title}”</strong> and its story are removed for both of you. Its source plan or bucket idea stays.</>}
+    blocked={fileCount===null?"Checking this memory’s photos and videos…":fileCount>0?"Remove its "+fileCount+" "+(fileCount===1?"photo or video":"photos and videos")+", including unfinished uploads, first. Then you can delete the story.":null}
+    leavesPage
+    onConfirm={async()=>{const result=await deleteMemory({id:m.id,version:m.version,confirmation:"DELETE"});if(!result.ok)return result.error??"Could not delete this memory.";router.push("/memories");router.refresh();}}
+   />
+  </EntryActions>
  </div>;
 }

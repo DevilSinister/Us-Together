@@ -52,7 +52,7 @@ export function NoteForm({ note }: { note?: Note }) {
   }, [dirty, pending]);
 
   return (
-    <form
+    <form method="post"
       className="space-y-6"
       noValidate
       onSubmit={(event) => {

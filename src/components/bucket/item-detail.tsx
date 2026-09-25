@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { ArrowDown, ArrowUp, Check, Edit3, GripVertical, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, GripVertical, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { mutateBucket } from "@/app/actions/bucket";
 import { moveSubtask, subtaskProgress, type BucketItem, type BucketList, type BucketSubtask } from "@/lib/bucket/schema";
@@ -12,11 +12,12 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
+import { EntryActions } from "@/components/app/entry-actions";
 import { ItemEditor } from "./item-editor";
 
 export function ItemDetail({
@@ -35,7 +36,6 @@ export function ItemDetail({
   const [pending, start] = useTransition();
   const [message, setMessage] = useState("");
   const [editOpen, setEditOpen] = useState(false);
-  const [deleteOpen, setDeleteOpen] = useState(false);
   const [editPending, setEditPending] = useState(false);
   const [touchDrag, setTouchDrag] = useState<{ sourceId: string; targetId: string } | null>(null);
   const touchHoldTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -103,8 +103,8 @@ export function ItemDetail({
     <Dialog open={editOpen} onOpenChange={setEditOpen}>
       <DialogTrigger asChild>
         <Button variant="outline">
-          <Edit3 className="size-4" />
-          Edit the idea
+          <Pencil className="size-4" aria-hidden="true" />
+          Edit idea
         </Button>
       </DialogTrigger>
       <DialogContent title="Edit bucket idea" className="max-w-2xl" dismissible={!editPending}>
@@ -143,7 +143,6 @@ export function ItemDetail({
               <Button asChild>
                 <Link href={`/memories/new?bucket=${item.id}`}>Save this as a memory</Link>
               </Button>
-              {editIdea}
             </div>
           </section>
         ) : (
@@ -164,14 +163,11 @@ export function ItemDetail({
               <Check className="size-4" />
               Mark complete
             </Button>
-
-            {/* Edit Idea Modal Trigger Button */}
-            {editIdea}
           </>
         )}
       </div>
 
-      <p role="status" className={deleteOpen ? "sr-only" : "mt-5 min-h-6 text-sm text-primary"} aria-hidden={deleteOpen || undefined}>
+      <p role="status" className="mt-5 min-h-6 text-sm text-primary">
         {pending ? "Saving…" : message}
       </p>
 
@@ -286,7 +282,7 @@ export function ItemDetail({
                 </label>
 
                 {/* Inline Editable Form */}
-                <form
+                <form method="post"
                   className="flex flex-1 items-center gap-2 min-w-0"
                   onSubmit={(event) => {
                     event.preventDefault();
@@ -388,7 +384,7 @@ export function ItemDetail({
         </div>
 
         {/* Add Step Form */}
-        <form
+        <form method="post"
           className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end"
           onSubmit={(event) => {
             event.preventDefault();
@@ -428,86 +424,24 @@ export function ItemDetail({
       </section>
 
 
-      {/* Danger Zone: Delete Idea Button with Modal */}
-      <section className="mt-10 border-t pt-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h3 className="text-sm font-semibold">Delete this idea</h3>
-            <p className="text-sm text-muted-foreground">
-              Permanently remove this idea and its steps.
-            </p>
-          </div>
-          <Dialog open={deleteOpen} onOpenChange={(next) => { setDeleteOpen(next); setMessage(""); }}>
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                className="border-danger/40 text-danger hover:bg-danger/10 hover:text-danger"
-              >
-                <Trash2 className="size-4" />
-                Delete this idea
-              </Button>
-            </DialogTrigger>
-            <DialogContent title="Delete idea permanently" dismissible={!pending}>
-              <DialogHeader>
-                <DialogTitle>Delete this idea</DialogTitle>
-                <DialogDescription>
-                  This permanently removes <strong>&ldquo;{item.title}&rdquo;</strong> and its steps
-                  from your shared bucket list. Existing plans and memories are kept, but their link to this
-                  idea is removed.
-                </DialogDescription>
-              </DialogHeader>
-              <form
-                className="mt-4 space-y-4"
-                onSubmit={(event) => {
-                  event.preventDefault();
-                  submit(
-                    {
-                      operation: "deleteItem",
-                      id: item.id,
-                      version: item.version,
-                      confirmation: new FormData(event.currentTarget).get("confirmation"),
-                    },
-                    "Idea deleted.",
-                    () => {
-                      setDeleteOpen(false);
-                      router.push("/bucket");
-                    }
-                  );
-                }}
-              >
-                <label className="block space-y-2 text-sm font-semibold">
-                  Type DELETE to confirm
-                  <Input
-                    name="confirmation"
-                    aria-label="Type DELETE to confirm"
-                    required
-                    pattern="DELETE"
-                    placeholder="DELETE"
-                  />
-                </label>
-                <p role="status" className="text-sm leading-6 text-primary">{pending ? "Deleting…" : message}</p>
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    disabled={pending}
-                    onClick={() => setDeleteOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="outline"
-                    disabled={pending}
-                    className="border-danger/40 text-danger hover:bg-danger/10 hover:text-danger"
-                  >
-                    Delete idea permanently
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </section>
+      <EntryActions label="Change this idea">
+        {editIdea}
+        <ConfirmDelete
+          label="Delete idea"
+          title="Delete this idea?"
+          description={<>
+            <strong className="font-semibold text-foreground">&ldquo;{item.title}&rdquo;</strong> and its steps leave your shared bucket list for good.
+            Plans and memories made from it stay, without the link back.
+          </>}
+          leavesPage
+          onConfirm={async () => {
+            const result = await mutateBucket({ operation: "deleteItem", id: item.id, version: item.version, confirmation: "DELETE" });
+            if (!result.ok) return result.message;
+            router.push(`/bucket/lists/${item.list_id}`);
+            router.refresh();
+          }}
+        />
+      </EntryActions>
     </div>
   );
 }

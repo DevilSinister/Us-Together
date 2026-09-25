@@ -1,6 +1,6 @@
 "use client";
 import { Fragment, useCallback, useEffect, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
-import { Clock, MoreHorizontal, SendHorizontal, Trash2 } from "lucide-react";
+import { Clock, MoreHorizontal, SendHorizontal } from "lucide-react";
 
 import { usePartnerRefresh } from "@/components/providers/partner-sync";
 import { useIdentities } from "@/components/providers/identities";
@@ -12,6 +12,7 @@ import { dropPending, isPending, mergePending, optimisticComment } from "@/lib/e
 import { clockLabel, dayLabel, fullLabel, groupByDay, resolveTimeZone, todayKey } from "@/lib/time/day";
 import type { EntryAccess, EntryComment } from "@/lib/entries/types";
 import { Button } from "@/components/ui/button";
+import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { cn } from "@/lib/utils";
 
 /**
@@ -141,8 +142,8 @@ export function CommentThread({ access, mediaId, variant = "page", partnerName, 
     }
   }
 
-  async function remove(commentId: string) {
-    setOpenId(null);
+  // Resolves to an error for the confirmation dialog to show, or nothing.
+  async function remove(commentId: string): Promise<string | undefined> {
     setPending(true);
     try {
       if (previewSession) await deletePreviewComment(access, commentId, mediaId);
@@ -154,8 +155,9 @@ export function CommentThread({ access, mediaId, variant = "page", partnerName, 
       }
       await reload();
       setError("");
+      setOpenId(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not remove comment.");
+      return e instanceof Error ? e.message : "Could not remove comment.";
     } finally {
       setPending(false);
     }
@@ -235,22 +237,21 @@ export function CommentThread({ access, mediaId, variant = "page", partnerName, 
             </li>
 
             {openId === c.id ? <li className="flex justify-end">
-              <Button
+              <ConfirmDelete
                 variant="ghost"
                 size="sm"
-                disabled={pending}
-                onClick={() => void remove(c.id)}
-                className="text-danger hover:bg-danger/10 hover:text-danger"
-              >
-                <Trash2 className="size-4" aria-hidden="true"/>Delete comment
-              </Button>
+                label="Delete comment"
+                title="Delete this comment?"
+                description="It disappears from the conversation for both of you."
+                onConfirm={() => remove(c.id)}
+              />
             </li> : null}
           </Fragment>;
         })}
       </Fragment>)}
     </ol>
 
-    <form
+    <form method="post"
       onSubmit={e => { e.preventDefault(); void send(); }}
       className="mt-5 flex items-end gap-2 rounded-panel border bg-field p-2 focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-ring"
     >

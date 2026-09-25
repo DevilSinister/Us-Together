@@ -48,7 +48,7 @@ export function ItemEditor({
   const [customCategory, setCustomCategory] = useState("");
 
   return (
-    <form
+    <form method="post"
       className="space-y-6"
       onSubmit={(event) => {
         event.preventDefault();

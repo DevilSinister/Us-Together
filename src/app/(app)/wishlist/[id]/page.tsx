@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { z } from "zod";
-import { ArrowLeft, ExternalLink } from "lucide-react";
+import { ArrowLeft, ExternalLink, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InlineLink } from "@/components/ui/inline-link";
 import { PageHeader } from "@/components/app/page-header";
+import { EntryActions } from "@/components/app/entry-actions";
 import { GiftPlan } from "@/components/wishlist/gift-plan";
 import { DeleteWish } from "@/components/wishlist/delete-wish";
 import { loadWishlistItem } from "@/lib/wishlist/data";
@@ -27,7 +28,6 @@ export default async function WishPage({ params }: { params: Promise<{ id: strin
         eyebrow={item.mine ? "Your wish" : (partnerName ?? "Your partner") + " would love this"}
         title={item.title}
         back={<InlineLink href="/wishlist"><ArrowLeft className="size-4" aria-hidden="true" />Back to wishlists</InlineLink>}
-        actions={item.mine ? <Button asChild variant="outline"><Link href={"/wishlist/" + item.id + "/edit"}>Edit wish</Link></Button> : null}
       />
 
       <dl className="mt-8 flex flex-wrap gap-x-10 gap-y-4">
@@ -52,7 +52,10 @@ export default async function WishPage({ params }: { params: Promise<{ id: strin
           <p className="mt-10 max-w-prose rounded-panel bg-secondary p-5 text-sm leading-6 text-muted-foreground">
             Anything your partner plans around this wish is theirs alone. This page never tells you whether a gift is on its way.
           </p>
-          <DeleteWish id={item.id} />
+          <EntryActions label="Change this wish">
+            <Button asChild variant="outline"><Link href={"/wishlist/" + item.id + "/edit"}><Pencil className="size-4" aria-hidden="true" />Edit wish</Link></Button>
+            <DeleteWish id={item.id} title={item.title} />
+          </EntryActions>
         </>
       ) : (
         <GiftPlan itemId={item.id} secret={secret} ownerName={partnerName} />

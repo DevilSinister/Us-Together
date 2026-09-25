@@ -30,7 +30,7 @@ export function UnlockPanel({ area, userId, pinLength }: { area: LockArea; userI
       <Heart aria-hidden="true" className="mx-auto mb-4 size-9 fill-primary/20 text-primary" />
       <h1 className="font-serif text-3xl">{label} is locked.</h1>
       <p className="mt-3 text-sm leading-6 text-muted-foreground">A little privacy, just for you. Enter your PIN to open this section for five minutes.</p>
-      <form className="mt-5" onSubmit={(event) => { event.preventDefault(); if (pinValid) void submit(pin); }}>
+      <form method="post" className="mt-5" onSubmit={(event) => { event.preventDefault(); if (pinValid) void submit(pin); }}>
         <PinPad value={pin} onChange={setPin} length={pinLength} label="Privacy PIN" disabled={busy} />
         {message ? <p role="alert" className="mt-3 text-sm text-destructive">{message}</p> : null}
         <Button className="mt-5 w-full" type="submit" disabled={busy || !pinValid}>Open {label}</Button>

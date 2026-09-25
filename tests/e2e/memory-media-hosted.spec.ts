@@ -44,7 +44,7 @@ test("connected account uploads, views and removes private photos and videos",as
  await page.getByRole("link",{name:/Show more/}).click();
  for(let i=0;i<2;i++){
   await page.getByRole("button",{name:/Open (photo|video)/}).first().click();
-  await page.getByText("Caption and file options",{exact:true}).first().click();await page.getByRole("button",{name:"Remove file",exact:true}).click();
+  await page.getByText("Caption and file options",{exact:true}).first().click();await page.getByRole("button",{name:"Remove file",exact:true}).click();await page.getByRole("dialog",{name:"Remove this file?"}).getByRole("button",{name:"Remove file",exact:true}).click();
   await expect(page.getByRole("dialog")).toHaveCount(0);await expect(page.getByRole("button",{name:/Open (photo|video)/})).toHaveCount(1-i);
  }
  await expect(page.getByRole("button",{name:/Open (photo|video)/})).toHaveCount(0);

@@ -11,6 +11,10 @@ const buttonVariants = cva(
         default: "bg-primary text-primary-foreground shadow-action hover:bg-primary-strong",
         outline: "border border-border bg-transparent text-foreground hover:bg-secondary",
         ghost: "text-foreground hover:bg-secondary",
+        // The trigger that opens a deletion: danger text on a fine danger rule.
+        danger: "border border-danger/40 bg-transparent text-danger hover:bg-danger/10",
+        // The one irreversible button, inside a confirmation and nowhere else.
+        destructive: "bg-danger text-background hover:bg-danger/90",
       },
       size: { default: "h-11", sm: "h-10 px-4", lg: "h-12 px-6 text-base" },
     },
