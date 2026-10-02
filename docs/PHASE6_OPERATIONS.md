@@ -6,6 +6,8 @@ Apply Phase 6 migrations and `20260907040000_phase9_media_formats`, then deploy 
 
 The image processor pins `@imagemagick/magick-wasm@0.0.43`. It reads the exported x86 WASM asset locally when packaged. The connector's deployment bundle omits binary npm assets, so the fallback fetches that exact public package asset from jsDelivr and verifies its SHA-256 against the pinned package before initialization. Only decoder code is fetched; user media never goes to the CDN. A decoder/CDN outage leaves the upload recoverable and unpublished.
 
+Multi-image repair, 2026-10-02: the package exports `magick.wasm`, not `x86/magick.wasm`. The corrected loader shares one verified initialization promise per Edge worker, including overlapping requests, and clears a failed initialization so a later request can retry. It caches only the decoder module, never user image bytes. Redeploy `memory-media` with its new `decoder.ts` and shared `src/lib/memories/decoder.ts` dependency to activate this repair.
+
 Current library/runtime choices were checked against [Supabase image processing](https://supabase.com/docs/guides/functions/examples/image-manipulation), [resumable uploads](https://supabase.com/docs/guides/storage/uploads/resumable-uploads), and [private downloads](https://supabase.com/docs/guides/storage/serving/downloads).
 
 ## Supported files and limits
@@ -22,6 +24,8 @@ These controls validate file class and structure; they are not a malware-scannin
 The Edge handler allocates immutable metadata/path values after fresh authorization. The browser resolves each file's media type before allocating — browsers report an empty type for HEIC and MOV on some platforms, and legacy aliases elsewhere, so the name is used as the fallback and the resolved type is what is allocated and sent. The browser then uploads directly through authenticated TUS, with six-MiB chunks, bounded retries and visible progress. It never receives a service key. Upload authorization expires after one hour, and Storage requires the exact pending metadata, uploader and active membership. No upsert or browser object deletion is allowed.
 
 Pause/resume works while the page is open. TUS fingerprints and private upload URLs are not persisted to browser storage. After leaving the page, finish a fully uploaded file with **Finish processing**; otherwise remove the unfinished upload and choose the file again. Failed/expired rows remain visible for recovery rather than disappearing.
+
+Batches run sequentially, up to 30 selected files. A per-file processing failure keeps that file and caption selected while the other files continue. Retrying in the same mounted uploader reuses its allocated row; after a successful transfer it retries finalization without uploading the original again. Cancellation preserves the current and remaining selected files. Recovery controls and partner polling pause during an active batch. Authorization, quotas and the processing lease remain unchanged.
 
 Finalization claims a five-minute processing lease and token, downloads/inspects the actual object, creates image derivatives, rechecks membership, then publishes only if its lease still matches. Repeated finalization of ready media is safe. Failed processing stores only a generic error code. A worker killed by a runtime limit can be retried after its lease expires.
 

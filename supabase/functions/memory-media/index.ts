@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.4";
 import { z } from "npm:zod@4.5.4";
 
 import { checkImageSize, inspectMedia, isImage, validateUpload, mediaTypes } from "../../../src/lib/memories/media.ts";
+import { getDecoder } from "./decoder.ts";
 
 const requestSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("prepare"), kind: z.enum(["memory","moment"]).default("memory"), memoryId: z.uuid(), filename: z.string().min(1).max(240), mime: z.enum(mediaTypes), size: z.number().int().positive(), caption: z.string().trim().max(240).default("") }),
@@ -75,18 +76,7 @@ Deno.serve(async (request: Request) => {
     let { width, height } = info;
     let derivative: string | null = null;
     if (media.media_type === "image") {
-      const { ImageMagick, initializeImageMagick, MagickFormat } = await import("npm:@imagemagick/magick-wasm@0.0.43");
-      let wasmBytes: Uint8Array;
-      try { wasmBytes = await Deno.readFile(new URL(import.meta.resolve("npm:@imagemagick/magick-wasm@0.0.43/x86/magick.wasm"))); }
-      catch {
-        // The connector bundle omits binary npm assets. Fetch only this pinned public decoder, never user media.
-        const asset = await fetch("https://cdn.jsdelivr.net/npm/@imagemagick/magick-wasm@0.0.43/dist/x86/magick.wasm");
-        if (!asset.ok) throw new Error("Could not create the photo preview. Try again shortly.");
-        wasmBytes = new Uint8Array(await asset.arrayBuffer());
-      }
-      const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new Uint8Array(wasmBytes).buffer))).map(b=>b.toString(16).padStart(2,"0")).join("");
-      if (hash !== "5a4ed1017eda113144c86ae839c22c610afebcfebfa22b1da18e00e98d78b0f7") throw new Error("Could not create the photo preview. Decoder integrity check failed.");
-      await initializeImageMagick(wasmBytes);
+      const { ImageMagick, MagickFormat } = await getDecoder();
       const jpg = ImageMagick.read(bytes, (decoded) => {
         // The decoder is the authority on what the file really contains. The
         // structural parse above is a cheap gate; requiring the two to agree

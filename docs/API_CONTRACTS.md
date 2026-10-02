@@ -82,6 +82,8 @@ Implemented now: `createMemoryAction` supports direct creation and completed-pla
 
 `memoryMediaAction` validates a prepare/finalize/remove discriminated Zod request and invokes the authenticated `memory-media` Edge Function. Prepare accepts memory UUID, filename/MIME/size/caption and returns a newly authorized media UUID/path/expiry for transient upload use. It accepts no actor, tenant or caller path. Finalize/remove accept only memory/media UUIDs. The Edge Function authenticates with `getUser`, resolves the parent under caller RLS, then uses its built-in service role for tightly scoped metadata/Storage operations. Authenticated clients cannot write media metadata or overwrite/delete objects. See [media operations](PHASE6_OPERATIONS.md) for limits, state transitions, leases and recovery.
 
+The memory/moment browser uploader processes selected files independently. Failed files keep their captions and transient allocated IDs for retry while later files continue; a transferred original is not sent again when only finalization failed. Decoder initialization is shared per Edge worker, with retry after initialization failure. These changes preserve the request/response shapes and ownership boundary.
+
 `GET /api/memory-media/[id]?kind=memory|moment&variant=original|preview|download` reauthorizes the caller and ready row, consumes an account viewer budget, and emits a no-store/no-referrer redirect to a 60-second signed URL. Gallery/detail DTOs never contain raw paths or signed URLs. Previously issued URLs remain valid until expiry. `consume_memory_media_budget(kind)` is security-invoker and derives the budget owner from auth.uid; its backing relation is in the unexposed private schema.
 
 ## Wishlist and note actions

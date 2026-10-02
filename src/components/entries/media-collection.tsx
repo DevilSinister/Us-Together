@@ -42,7 +42,7 @@ export function MediaCollection({access,initial=[],onCount,separated=false,entry
  for(const u of urls.current)URL.revokeObjectURL(u);urls.current=files.flatMap(m=>[m.url,m.previewUrl].filter((x):x is string=>!!x));setMedia(files);countCallback.current?.(files.length);setError("");
  }catch(e){setError(e instanceof Error?e.message:"Could not load files.");}finally{setLoading(false);}},[kind,id,previewSession]);
  useEffect(()=>{const timer=setTimeout(()=>void reload(),0);return()=>{clearTimeout(timer);for(const u of urls.current)URL.revokeObjectURL(u);};},[reload]);
- usePartnerRefresh(reload,pending || loading || !!previewSession);
+ usePartnerRefresh(reload,pending || loading || uploading || !!previewSession);
  const ready:GalleryItem[]=media.filter(m=>m.state==="ready").map(m=>({...m,access,entryTitle,entryDate,sortKey:kind+":"+m.id}));
  const photos=ready.filter(m=>m.media_type==="image"),videos=ready.filter(m=>m.media_type==="video");
  const shown=(previewOnly?photos:[...photos,...videos]).slice(0,6),index=ready.findIndex(m=>m.id===selected);
@@ -74,7 +74,7 @@ export function MediaCollection({access,initial=[],onCount,separated=false,entry
  </div>
  {!loading&&ready.length>shown.length?<p className="mt-4 text-sm text-muted-foreground">{ready.length-shown.length} more in the full gallery.</p>:null}
  {editable?<EntryUploader access={access} files={queue} onFiles={setQueue} autoStart={initial.length>0} onBusy={setUploading} onChange={reload}/>:null}
- {editable?media.filter(m=>m.state!=="ready").map(m=><div key={m.id} className="mt-4 rounded-panel border p-4"><p className="text-sm font-semibold">{m.state==="failed"?"This upload could not be processed.":"Unfinished upload"}</p><p className="mt-1 text-sm text-muted-foreground">{m.state==="failed"?"Finish processing to try again, or remove it.":"Status: "+m.state}</p><div className="mt-3 flex flex-wrap gap-3">{m.state!=="deleting"?<Button variant="outline" disabled={pending} onClick={()=>void unfinished(m.id,"finalize")}>Finish processing</Button>:null}<Button variant="outline" disabled={pending} onClick={()=>void unfinished(m.id,"remove")}>Remove unfinished upload</Button></div></div>):null}
+ {editable?media.filter(m=>m.state!=="ready").map(m=><div key={m.id} className="mt-4 rounded-panel border p-4"><p className="text-sm font-semibold">{m.state==="failed"?"This upload could not be processed.":"Unfinished upload"}</p><p className="mt-1 text-sm text-muted-foreground">{m.state==="failed"?"Finish processing to try again, or remove it.":"Status: "+m.state}</p><div className="mt-3 flex flex-wrap gap-3">{m.state!=="deleting"?<Button variant="outline" disabled={pending||uploading} onClick={()=>void unfinished(m.id,"finalize")}>Finish processing</Button>:null}<Button variant="outline" disabled={pending||uploading} onClick={()=>void unfinished(m.id,"remove")}>Remove unfinished upload</Button></div></div>):null}
  {index>=0?<MediaViewer items={ready} index={index} onIndex={i=>setSelected(ready[i].id)} onClose={()=>setSelected(null)} onChange={reload}/>:null}
  </section>;
 }
