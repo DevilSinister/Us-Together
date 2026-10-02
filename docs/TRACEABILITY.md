@@ -1,5 +1,9 @@
 # Master Prompt Traceability
 
+## Multi-image upload repair — 2026-10-02
+
+Memory/moment uploads share `src/lib/entries/upload-batch.ts`: sequential 30-file batches, per-file failure continuation, preserved captions, cancellation and allocation reuse after failed finalization. `supabase/functions/memory-media/decoder.ts` uses the actual exported WASM path and a retryable shared initialization promise. Six new unit regressions include 30 real JPEG/PNG preview derivations. `tests/e2e/multi-photo-upload.spec.ts` checks both entry kinds on desktop/mobile preview, bad-file continuation, 30-photo completion, keyboard submission and no horizontal overflow. Hosted TUS/finalization, resource-limit behavior for large photos and deployment remain unverified; see `docs/MULTI_IMAGE_UPLOAD_VERIFICATION.md` for gate results.
+
 ## Purpose
 
 This matrix maps every numbered section of the source master prompt to its canonical specification, delivery release/phase, and verification. “Later” means intentionally deferred, not forgotten. Phase numbers refer to [Implementation Plan](IMPLEMENTATION_PLAN.md).

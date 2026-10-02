@@ -5,6 +5,7 @@ import {memoryMediaAction} from "@/app/actions/memories";
 import {createBrowserSupabaseClient} from "@/lib/supabase/browser";
 import {requireSupabaseConfig} from "@/lib/supabase/config";
 import {addPreviewMedia} from "@/lib/entries/preview-media";
+import {runUploadBatch,uploadQueuedFile,type UploadAllocation} from "@/lib/entries/upload-batch";
 import type {EntryAccess} from "@/lib/entries/types";
 import {PhotoQueue,type QueuedPhoto} from "./photo-picker";
 import {Button} from "@/components/ui/button";
@@ -24,27 +25,36 @@ export function EntryUploader({access,files,onFiles,autoStart=false,onBusy,onCha
  onChange:()=>Promise<void>;
 }){
  const form=useRef<HTMLFormElement>(null),upload=useRef<Upload|null>(null),rejectUpload=useRef<((error:Error)=>void)|null>(null),started=useRef(false),cancelled=useRef(false);
+ const allocations=useRef(new Map<string,UploadAllocation>()),running=useRef(false);
  const [status,setStatus]=useState("idle"),[progress,setProgress]=useState(0),[error,setError]=useState(""),[current,setCurrent]=useState(0);
  const busy=status!=="idle";
  const busyCallback=useRef(onBusy);
  useEffect(()=>{busyCallback.current=onBusy;},[onBusy]);
  useEffect(()=>{busyCallback.current?.(busy);},[busy]);
  useEffect(()=>{const timer=setTimeout(()=>{if(autoStart&&files.length&&!started.current){started.current=true;form.current?.requestSubmit();}},0);return()=>clearTimeout(timer);},[autoStart,files.length]);
- useEffect(()=>()=>{cancelled.current=true;void upload.current?.abort().catch(()=>{});},[]);
- async function submit(e:React.FormEvent){e.preventDefault();if(!files.length)return;setError("");setStatus("uploading");cancelled.current=false;let index=0;
- try{for(;index<files.length;index++){if(cancelled.current)break;const item=files[index];setCurrent(index+1);setProgress(0);
- if(access.previewSession){await addPreviewMedia(access,item.file,item.caption);setProgress(100);continue;}
+ useEffect(()=>()=>{cancelled.current=true;void upload.current?.abort().catch(()=>{});rejectUpload.current?.(Error("Upload stopped."));},[]);
+ async function submit(e:React.FormEvent){e.preventDefault();if(!files.length||running.current)return;running.current=true;setError("");setStatus("uploading");cancelled.current=false;
+ try{const result=await runUploadBatch(files,async(item,index)=>{setCurrent(index+1);setProgress(0);setStatus("uploading");
+ if(access.previewSession){await addPreviewMedia(access,item.file,item.caption);setProgress(100);return;}
  const db=createBrowserSupabaseClient(),{data:{session}}=await db.auth.getSession();if(!session)throw Error("Your session expired. Sign in again.");
+ await uploadQueuedFile(item,allocations.current,{prepare:async()=>{
  const prepared=await memoryMediaAction({operation:"prepare",kind:access.kind,memoryId:access.id,filename:item.file.name,mime:item.mime,size:item.file.size,caption:item.caption});
  if(prepared.error||!prepared.path||!prepared.id)throw Error(prepared.error??"Could not start upload.");
+ return {id:prepared.id,path:prepared.path};
+ },upload:async(prepared)=>{
+ if(cancelled.current)throw Error("Upload stopped.");
  const {Upload}=await import("tus-js-client"),host=new URL(requireSupabaseConfig().url);host.hostname=host.hostname.replace(".supabase.co",".storage.supabase.co");
  setStatus("uploading");
  await new Promise<void>((resolve,reject)=>{rejectUpload.current=reject;upload.current=new Upload(item.file,{endpoint:host.origin+"/storage/v1/upload/resumable",headers:{authorization:"Bearer "+session.access_token,apikey:requireSupabaseConfig().publishableKey},chunkSize:6*1024*1024,uploadDataDuringCreation:true,retryDelays:[0,1000,3000,5000],storeFingerprintForResuming:false,removeFingerprintOnSuccess:true,metadata:{bucketName:access.kind==="moment"?"moment-media":"memory-media",objectName:prepared.path!,contentType:item.mime,cacheControl:"60"},onProgress:(n,total)=>setProgress(Math.round(n/total*100)),onSuccess:()=>resolve(),onError:()=>{setStatus("paused");setError("Upload paused after a connection problem. Resume or stop this batch.");}});upload.current.start();});
+ upload.current=null;rejectUpload.current=null;
+ },finalize:async(prepared)=>{
+ if(cancelled.current)throw Error("Upload stopped.");
  setStatus("processing");const result=await memoryMediaAction({operation:"finalize",kind:access.kind,memoryId:access.id,id:prepared.id});if(result.error)throw Error(result.error);
- }
- onFiles([]);setError(cancelled.current?"Upload stopped. Remove any unfinished files below.":"");
- }catch(e){setError((e instanceof Error?e.message:"Could not finish upload.")+" Your saved story is safe. Check unfinished files below before retrying.");onFiles(files.slice(index));}
- finally{upload.current=null;rejectUpload.current=null;setStatus("idle");await onChange();}
+ }});
+ },()=>cancelled.current);
+ onFiles(result.remaining);setError(result.cancelled?"Upload stopped. Remaining files are still selected.":result.failed?result.failed+" file"+(result.failed===1?"":"s")+" could not finish. "+result.firstError+(result.failed<files.length?" Other files were saved.":" Your saved story is safe.")+" Retry the remaining files or use Finish processing below.":"");
+ }catch(e){setError(e instanceof Error?e.message:"Could not finish upload.");}
+ finally{upload.current=null;rejectUpload.current=null;running.current=false;setStatus("idle");await onChange();}
  }
  if(!files.length&&!busy&&!error)return null;
  return <form method="post" ref={form} onSubmit={submit} className="mt-5 space-y-4">
