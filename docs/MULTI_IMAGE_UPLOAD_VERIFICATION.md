@@ -25,3 +25,11 @@ Activation requires both the web changes and redeployment of the `memory-media` 
 ## Publication follow-up — 2026-10-02
 
 The owner authorized branch publication, a PR and function redeployment. The repair is being published on the existing `sinister/changes` branch. `supabase functions deploy memory-media --use-api` was attempted but returned `Access token not provided`; no deployment occurred. Plugin discovery confirms Supabase is installed and enabled, but this chat exposes no Supabase tools. CLI login is required to proceed with deployment and hosted verification. No schema migration is needed.
+
+## Supabase redeployment completed — 2026-10-02
+
+This supersedes the deployment/access blocker above. The Supabase plugin became available and authenticated in a subsequent turn. The project was confirmed by name before deployment. The plugin deployed `memory-media` version 12 with `verify_jwt=true`; status is ACTIVE. Readback confirmed all four uploaded source files match the repository after line-ending normalization, including both decoder modules and media validation. An unauthenticated POST returned HTTP 401.
+
+Security and performance advisors ran before and after deployment with unchanged findings: four informational RLS-without-policy findings, the existing public `pg_net` extension and disabled leaked-password protection warnings, 41 informational unused-index findings and one duplicate-index warning. No schema change or migration was made. These notices are not a clean-advisor claim.
+
+Branch commit `ceca37e` and PR #9 were published; web CI, Android CI and Vercel preview passed. PR #9 remains open and unmerged, so production web batch handling is not claimed updated. The deployed processor is backward-compatible with the existing web contract. Hosted signed-in multi-file TUS/processing, large-photo runtime-limit acceptance, negative RLS, clean migration replay and device tests remain unverified; the endpoint smoke verifies only routing and anonymous denial.
