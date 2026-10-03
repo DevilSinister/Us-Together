@@ -50,3 +50,7 @@ The Edge function now accepts a validated memory/moment kind and caption edits. 
 Apply phase6_shared_calendar_moments, phase6_location_budget, phase6_shared_entries_verification and phase6_moment_index_cleanup. Then apply phase6_gallery_photo_comments and phase6_gallery_verification. The entry reminder job is retired; only the independent us-together-plan-reminders job remains active. Historical entry-reminder records are retained but cannot deliver.
 
 Preview reminders are derived on inbox reads and refreshed by a development-only read-only endpoint. Preview files expire after 24 hours and are removed on later access. Real-account media and reminder authorization still require hosted testing. Free location-provider setup and usage limits are documented in SETUP.
+
+## Browser video thumbnails - 2026-10-03
+
+Videos have no stored photo-preview derivative. The web tile requests the authenticated original and displays a silent paused early frame; the upload queue uses a temporary local file URL. Near-viewport loading releases the source offscreen. The loading deadline stops after the frame is ready. Browser codec support determines whether a frame can be decoded; failures show "Preview unavailable" while preserving playback access. No backfill or re-upload is required. See `VIDEO_THUMBNAIL_VERIFICATION.md` for evidence and limits.

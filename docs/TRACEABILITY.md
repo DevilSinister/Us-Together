@@ -202,3 +202,5 @@ Local `npm run test:rls` exited before assertions because Postgres at 127.0.0.1:
 | Bottom shows only caption and comments, comments revealed by swiping up | Bottom strip and comments `Sheet`; `CommentThread` `sheet` variant | In-app browser: swipe up opened the sheet with focus on its heading; strip hidden while it is open |
 | Our Story reimagined | `src/app/(app)/story/page.tsx`, `src/components/story/story-prints.tsx`, `loadStory` enrichment, `storySummary`, `chapterLabel`, `storyExcerpt` (6 unit tests) | In-app browser at 375px and 1280px: opening, chapters, prints, excerpts, author and "Where it began"; no horizontal overflow |
 
+
+- Video thumbnails in the shared gallery/detail tile and queued files -> `src/components/entries/video-thumbnail.tsx`, `media-tile.tsx`, `photo-picker.tsx` -> `tests/e2e/video-thumbnails.spec.ts`, `docs/VIDEO_THUMBNAIL_VERIFICATION.md`. Uses authorized original reads without new Storage/schema behavior.
