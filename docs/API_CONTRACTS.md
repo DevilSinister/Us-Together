@@ -236,3 +236,7 @@ The `memory-media` request/response contract is unchanged. Failed finalization s
 `authorize_fcm_dispatch(presented_secret text)` is an internal service-role-only security-invoker RPC backed by a private, explicitly authorized definer. It returns a boolean comparison against Vault, never the stored secret. Anonymous and authenticated members cannot execute either function. The Edge dispatcher fails closed with 404 for missing/wrong headers, 503 if verification is unavailable, and validates the complete batch with Zod (maximum 200, UUID pointers, bounded strings).
 
 Authenticated internal requests may set `mode: "validate"`: FCM receives `validate_only: true`, outcomes are returned only as `{validated,unregistered,failed}` counts, and no alert is sent or settlement/device deletion performed. An empty validation batch checks OAuth without sending device data. Default mode preserves ordinary delivery/settlement. A device is retired only for an explicit typed FCM `UNREGISTERED` error; a generic HTTP 404, IAM error or invalid request cannot delete registrations.
+
+## Resumable media recovery — 2026-10-03
+
+Public server contracts are unchanged. The browser obtains a current authenticated token before each TUS request and refreshes it near expiry/after a rejection. Permanent transfer errors fail that file and continue the batch; temporary failures retry and preserve the same in-memory transfer for connection recovery. Only safe HTTP status/category copy is exposed; raw TUS responses and private upload URLs are omitted.

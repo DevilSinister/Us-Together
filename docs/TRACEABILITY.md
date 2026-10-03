@@ -211,3 +211,5 @@ Local `npm run test:rls` exited before assertions because Postgres at 127.0.0.1:
 - Video thumbnails in the shared gallery/detail tile and queued files -> `src/components/entries/video-thumbnail.tsx`, `media-tile.tsx`, `photo-picker.tsx` -> `tests/e2e/video-thumbnails.spec.ts`, `docs/VIDEO_THUMBNAIL_VERIFICATION.md`. Uses authorized original reads without new Storage/schema behavior.
 
 - Native Android push recovery -> `supabase/functions/fcm-dispatch/{index,handler}.ts`, `src/lib/notifications/fcm-dispatch.ts`, three ledgered FCM recovery migrations -> `src/lib/notifications/fcm-dispatch.test.ts`, `supabase/tests/database/0015_fcm_dispatch_recovery.test.sql`, `docs/NATIVE_PUSH_VERIFICATION.md`. Existing APK uses the repaired backend; no Android interface change.
+
+- Batch video transfer recovery -> `src/lib/entries/resumable-upload.ts`, `src/components/entries/uploader.tsx` -> real TUS fault tests in `resumable-upload.test.ts`, explicit hosted desktop/mobile `video-upload-recovery.spec.ts`, `docs/VIDEO_UPLOAD_RECOVERY_VERIFICATION.md`.

@@ -57,3 +57,7 @@ Read-only closeout checks confirmed exactly three generated fixture accounts and
 ## Later user-directed extension
 
 The original results above describe the first Phase 6 implementation. Current calendar, moment media, preview uploads, comments, reminders, free locations and additional migration/gate results are recorded in [Phase 6 extension verification](PHASE6_EXTENSION_VERIFICATION.md). The generated-account cleanup blocker is unchanged.
+
+## Batch video recovery — 2026-10-03
+
+Current credential/reconnection/failure-continuation evidence is recorded in [Video Upload Recovery Verification](VIDEO_UPLOAD_RECOVERY_VERIFICATION.md). This extends the shared memory/moment uploader without changing file limits, private Storage policy or processing leases.
