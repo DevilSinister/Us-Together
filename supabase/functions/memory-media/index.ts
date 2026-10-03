@@ -3,6 +3,7 @@ import { z } from "npm:zod@4.5.4";
 
 import { checkImageSize, inspectMedia, isImage, validateUpload, mediaTypes } from "../../../src/lib/memories/media.ts";
 import { getDecoder } from "./decoder.ts";
+import { processingFailure } from "../../../src/lib/memories/processing-failure.ts";
 
 const requestSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("prepare"), kind: z.enum(["memory","moment"]).default("memory"), memoryId: z.uuid(), filename: z.string().min(1).max(240), mime: z.enum(mediaTypes), size: z.number().int().positive(), caption: z.string().trim().max(240).default("") }),
@@ -65,6 +66,7 @@ Deno.serve(async (request: Request) => {
   const token = crypto.randomUUID();
   const { data: claimed } = await admin.from(mediaTable).update({ state: "processing", processing_at: new Date().toISOString(), processing_token: token, error_code: null }).eq("id", media.id).eq("state", media.state).select("id").maybeSingle();
   if (!claimed) return response({ error: "Processing already started. Try again shortly." }, 409);
+  let stage = "download";
   try {
     const { data: file, error } = await bucket.download(media.storage_path);
     if (error || !file) throw new Error("Upload has not finished. Resume it or try again.");
@@ -72,23 +74,30 @@ Deno.serve(async (request: Request) => {
     // disagreement about the type is treated as a mismatch.
     if (file.size !== media.size_bytes || (file.type && file.type !== "application/octet-stream" && file.type !== media.mime_type)) throw new Error("The uploaded file does not match its declared type or size.");
     const bytes = new Uint8Array(await file.arrayBuffer());
+    stage = "inspect";
     const info = inspectMedia(bytes, media.mime_type);
     let { width, height } = info;
     let derivative: string | null = null;
     if (media.media_type === "image") {
+      stage = "decoder";
       const { ImageMagick, MagickFormat } = await getDecoder();
+      stage = "decode";
       const jpg = ImageMagick.read(bytes, (decoded) => {
         // The decoder is the authority on what the file really contains. The
         // structural parse above is a cheap gate; requiring the two to agree
         // exactly rejected valid photos whose container states size differently.
         const measured = checkImageSize(decoded.width, decoded.height);
         width = measured.width; height = measured.height;
+        stage = "orient";
         decoded.autoOrient();
         const scale = Math.min(1, 960 / Math.max(decoded.width, decoded.height));
+        stage = "resize";
         decoded.resize(Math.max(1, Math.round(decoded.width * scale)), Math.max(1, Math.round(decoded.height * scale)));
+        stage = "encode";
         decoded.strip(); decoded.quality = 80;
         return decoded.write(MagickFormat.Jpeg, (result) => new Uint8Array(result));
       });
+      stage = "preview-storage";
       const { error: derivativeError } = await bucket.upload(previewPath, jpg, { contentType: "image/jpeg", upsert: false, cacheControl: "60" });
       if (derivativeError) {
         const { data: existing } = await bucket.download(previewPath);
@@ -96,12 +105,15 @@ Deno.serve(async (request: Request) => {
       }
       derivative = previewPath;
     }
+    stage = "authorization";
     const { data: stillAllowed } = await userClient.from(parentTable).select("id").eq("id", memory.id).maybeSingle();
     if (!stillAllowed) throw new Error("Your access changed. The upload was not published.");
+    stage = "publish";
     const { data: published, error: publishError } = await admin.from(mediaTable).update({ state: "ready", width, height, duration_seconds: info.duration, derivative_path: derivative, processing_token: null, error_code: null }).eq("id", media.id).eq("processing_token", token).select("id").maybeSingle();
     if (publishError || !published) throw new Error("Processing changed. Refresh and try again.");
     return response({ ok: true });
   } catch (error) {
+    console.error("media_processing_failure", processingFailure(stage, error));
     await admin.from(mediaTable).update({ state: "failed", error_code: "processing_failed", processing_token: null }).eq("id", media.id).eq("processing_token", token);
     const safe = error instanceof Error && /^(Choose|Photos|Videos|Video must|This file|The (photo|video|upload)|Upload has|Could not create|Your access)/.test(error.message) ? error.message : "Could not process this file. Retry or remove it and choose another.";
     return response({ error: safe }, 422);

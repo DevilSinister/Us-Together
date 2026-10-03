@@ -296,3 +296,7 @@ Drawings have their own navigation destination and history, separate from editab
 
 **Our Story.** An album rather than a log. The header eyebrow is the two overlapping avatars and both names. The lede is one sentence: when it began and what has been kept. Each year opens with a large wine serif numeral and an italic "Chapter …" label over a fine rule; italic serif month names mark each new month on the thread. Memories and moments show up to three photos as prints: card-paper mats, the lead photo tilted about 1.25° with a paper shadow and two more peeking behind. Alternate entries lean the other way, and hover or focus straightens the lead print. A 3xl serif title follows, then a three-line story excerpt and "Kept by" with a small avatar. Plans kept and dreams lived are quieter 2xl lines with muted markers. The last page closes, centred, on the pair of avatars, "Where it began" and the date.
 
+
+## Video thumbnails - 2026-10-03
+
+Video tiles now show an early paused frame fitted to the existing square crop. A small translucent black play mark sits at the upper right; the film mark and duration remain on the bottom gradient. The queued file uses the same frame at 56px. Loading keeps the existing skeleton, and unreadable originals show "Preview unavailable" without disabling the video action. Desktop and mobile visual evidence uses the fictional flower-video fixture.

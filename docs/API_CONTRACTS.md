@@ -225,3 +225,8 @@ Not a server route: `.github/workflows/android-release.yml` attaches `update.jso
 ```
 
 `ReleaseInfo.of` rejects a manifest unless `versionCode > 0`, `versionName` is 1–40 characters, `sha256` is 64 hex digits, and `apkUrl` is https on the manifest's own host with no credentials. The download is capped at 100 MB and refused on a digest mismatch; Android refuses any APK not signed with the installed app's key.
+
+
+## Media processing diagnostics — 2026-10-03
+
+The `memory-media` request/response contract is unchanged. Failed finalization still returns HTTP 422 with safe user copy. The worker emits `media_processing_failure` with only allow-listed processing `stage` and `category` values, using `src/lib/memories/processing-failure.ts`. Raw decoder/database errors, file names, content, identifiers, paths, URLs and tokens are never included. Stages distinguish transfer inspection, decoder work, preview storage, authorization and ready-state publication. Publication failures can be caused by database trigger work after the preview has already been stored.
