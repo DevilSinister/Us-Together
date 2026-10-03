@@ -279,3 +279,16 @@ The `avatars` bucket is unchanged and keeps its four own-folder-only policies. S
 `private.sync_dream_lived_on` (security invoker, `search_path = ''`, execute revoked from `public`, `anon`, `authenticated`) keeps a dream and the memory saved directly from it (`source_bucket_item_id` set, `source_plan_id` null) on one day in both directions; each side writes only when the day differs, so the pair terminates.
 
 `public.story_entries` now dates the dream branch by `lived_on` and leaves out a dream or completed plan once any memory references it; that memory is the single entry. `bucket_items_couple_completed_story_idx` is replaced by `bucket_items_couple_lived_story_idx (couple_id, lived_on desc, id desc) where status = 'completed'`.
+
+
+## Media notification aggregation guard (`20261003070559_media_notification_aggregation_guard.sql`)
+
+`private.validate_notification_update` remains a security-invoker trigger with an empty search path and execution revoked from PUBLIC, anon and authenticated. All notification identity and routing fields are immutable for every caller. Recipients can change only `read_at` under the existing recipient-owned SELECT and UPDATE policies. Changes to `title`, `created_at` and `activity_count` are permitted only while `current_user = postgres` and trigger depth exceeds one: the existing postgres-owned `private.partner_activity` security-definer trigger coalesces ready-photo notifications inside that trusted nested call. Direct privileged updates cannot use this exception. No RLS policy, API grant or new definer function is introduced.
+
+The old guard rejected the second photo's aggregation update with SQLSTATE 42501 and rolled back media publication. This migration resolves that conflict for both Memories and Moments. The isolated temporary-table regression in `supabase/tests/database/0014_notification_aggregation_guard.test.sql` checks recipient read-state changes, authenticated forgery denial, nested trusted aggregation, nested identity denial and direct privileged aggregation denial without creating production fixture users or rows.
+
+## FCM queue recovery - 2026-10-03
+
+Apply `20261003081819_fcm_dispatch_recovery.sql`, `20261003082022_fcm_dispatch_service_schema_access.sql`, then `20261003083004_fcm_activity_freshness.sql` before dispatcher version 6. The service-only invoker RPC calls a private definer that checks the caller's database role and compares the submitted header to Vault without returning secret data. Service-role namespace USAGE enables that wrapper; all new function execution grants remain explicit. No application/table RLS policies change.
+
+`private.fcm_retry_seconds` clamps attempts before shifting/multiplication. The worker keeps SKIP LOCKED claims, limits missing-callback retries to five, and expires read or hour-old logical activity. `private.fcm_delivery_expired` reads the notification's activity timestamp, not an older reused delivery timestamp. Thirteen hosted rollback pgTAP checks pass for arithmetic, freshness and role denial. Inbox history and registered tokens are not deleted by expiry.

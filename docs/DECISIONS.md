@@ -397,3 +397,24 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 **Decision:** A dream records `lived_on`, chosen with a date picker when it is marked lived and changeable later. A dream and its direct memory share that day through a database trigger in both directions. Once any memory references a dream or plan, Our Story shows only the memory, which already names where it began.
 
 **Consequences:** Moving the day on either the dream or its memory moves both, and can raise a partner "edited" notice for each. A memory hidden by a locked memories section leaves its dream visible to that member, and the sync cannot move a memory that member cannot see.
+
+
+## ADR-044 — Permit trusted nested notification aggregation
+
+**Status:** Accepted and applied, 2026-10-03.
+
+**Context:** Ready-photo publication invokes `private.partner_activity`, which increments the partner's unread photo notification. The older notification guard prohibited that title/time update, raising 42501 and rolling back the photo's ready state. The image transfers and decoding were valid.
+
+**Decision:** Keep notification identity immutable for every caller. Allow the display/count fields to change only within a nested trigger executing as postgres, the confirmed owner of the existing private activity trigger. Direct recipient updates remain read-state-only under RLS, including explicit protection for the newer activity count. Preserve the guard as security invoker with revoked default execution; no public bypass RPC or new security-definer function is introduced.
+
+**Consequences:** Both memory and moment photo batches can aggregate notifications without undoing file publication. Five isolated temporary-table guard checks pass before and after application, and hosted batch/foreign-account checks verify the real trigger chain. A role-ownership change to the activity trigger requires revisiting this explicit trusted-role condition. Sanitized stage diagnostics distinguish publication failures from decoder failures.
+
+## ADR-045 - One Vault secret and bounded Android delivery retries
+
+**Status:** Accepted and applied, 2026-10-03.
+
+**Context:** The scheduler sent the correct endpoint but the dispatcher rejected its header. Unsettled requests retried indefinitely; `60 * power(2, attempts)::int` overflowed before LEAST could cap it, aborting batches behind older deliveries.
+
+**Decision:** Validate the scheduler header against its Vault source through a service-only boolean RPC. Preserve default-denied execution and authorize the exceptional private definer explicitly. Bound arithmetic first, stop missing-callback retries after five attempts, expire read/stale activity using the logical notification timestamp, and preserve inbox records. Send visible Android alerts at high priority. Retire devices only for confirmed typed UNREGISTERED responses.
+
+**Consequences:** The existing APK can receive new alerts after the backend repair; no duplicated Edge dispatch-secret configuration is required for FCM. No-alert FCM validation is available to an authorized operator and cannot settle or remove registrations. Physical permission/channel display still needs device evidence.

@@ -51,6 +51,13 @@ Apply phase6_shared_calendar_moments, phase6_location_budget, phase6_shared_entr
 
 Preview reminders are derived on inbox reads and refreshed by a development-only read-only endpoint. Preview files expire after 24 hours and are removed on later access. Real-account media and reminder authorization still require hosted testing. Free location-provider setup and usage limits are documented in SETUP.
 
+
+## Ready publication versus preview access — 2026-10-03
+
+Apply `20261003070559_media_notification_aggregation_guard.sql` to resolve SQLSTATE 42501 when a second ready photo increments an unread partner notification. Successful Storage transfer and preview creation do not imply successful ready publication: downstream notification triggers run in that database transaction. An unpublished row has no `derivative_path`, so its uploader cannot retrieve a deterministic preview through ordinary Storage RLS even if the processor already created the object. A denied preview download is not evidence that preview generation failed.
+
+Processor version 13 adds fixed stage/category diagnostics. Do not log raw errors or upload identifiers. The exact-file failures were fixed by the database guard; no worker relocation was needed. The separately observed CPU-limit event remains a capacity risk for larger originals and overlapping workloads; the verified 12-file batch of representative photos did not reproduce it.
+
 ## Browser video thumbnails - 2026-10-03
 
 Videos have no stored photo-preview derivative. The web tile requests the authenticated original and displays a silent paused early frame; the upload queue uses a temporary local file URL. Near-viewport loading releases the source offscreen. The loading deadline stops after the frame is ready. Browser codec support determines whether a frame can be decoded; failures show "Preview unavailable" while preserving playback access. No backfill or re-upload is required. See `VIDEO_THUMBNAIL_VERIFICATION.md` for evidence and limits.

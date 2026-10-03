@@ -98,7 +98,7 @@ One-time configuration, in order:
 
 1. Apply `20260920195802_fcm_deliveries.sql` and run the security and performance advisors.
 2. Deploy the `fcm-dispatch` Edge Function (`verify_jwt = false` in `config.toml`; it authenticates with `x-dispatch-secret`).
-3. Set its secrets in the dashboard: `FIREBASE_SERVICE_ACCOUNT_JSON` (the full service-account JSON from Firebase → Project settings → Service accounts → Generate new private key) and `PUSH_DISPATCH_SECRET` (the same value as the Vault secret below). `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.
+3. Set its secrets in the dashboard: `FIREBASE_SERVICE_ACCOUNT_JSON` (the full service-account JSON from Firebase → Project settings → Service accounts → Generate new private key). The FCM dispatcher verifies `x-dispatch-secret` through the service-only `authorize_fcm_dispatch` RPC against Vault; no duplicated Edge `PUSH_DISPATCH_SECRET` is required. `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are injected automatically.
 4. Store the endpoint in Vault: `select vault.create_secret('https://<project-ref>.supabase.co/functions/v1/fcm-dispatch', 'fcm_endpoint_url');` and, if Web Push never created it, `select vault.create_secret('<long random secret>', 'push_dispatch_secret');`.
 
 The worker `private.dispatch_due_fcm(50)` runs every minute as `us-together-fcm-dispatch` and returns 0 until both Vault secrets exist.
@@ -139,3 +139,9 @@ It would become reachable if `net` were added to the exposed schemas, or through
 Neither exists. Removing the grant requires `supabase_admin` and therefore Supabase
 support. Track it as a Release 2 review item; re-check it after any change to
 exposed schemas.
+
+### Recovery and validation - 2026-10-03
+
+Apply the three FCM recovery migrations listed in `DATABASE.md`, then deploy dispatcher version 6. Retry delay is bounded before integer arithmetic; five missing settlements terminate retrying. Read or hour-old logical activity expires while inbox history remains. Aggregated media activity refreshes the notification timestamp used for expiry.
+
+An authorized internal `mode: "validate"` request performs Google FCM validation without displaying an alert, settling a delivery or deleting a device; output contains counts only. Validate real device tokens only with owner authorization. An empty batch in validation mode checks OAuth without device data. Generic HTTP/IAM failures preserve devices; confirmed UNREGISTERED errors retire them during normal delivery. See `NATIVE_PUSH_VERIFICATION.md`.

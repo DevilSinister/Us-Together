@@ -203,4 +203,11 @@ Local `npm run test:rls` exited before assertions because Postgres at 127.0.0.1:
 | Our Story reimagined | `src/app/(app)/story/page.tsx`, `src/components/story/story-prints.tsx`, `loadStory` enrichment, `storySummary`, `chapterLabel`, `storyExcerpt` (6 unit tests) | In-app browser at 375px and 1280px: opening, chapters, prints, excerpts, author and "Where it began"; no horizontal overflow |
 
 
+2026-10-03: Exact-file hosted TUS batch transfers passed, but two of three preview finalizations and both retries returned 422; local decoding and stored-byte comparisons passed. Processor logs separately show a CPU-limit failure. Root exception and hosted acceptance remain open. See docs/MULTI_IMAGE_UPLOAD_VERIFICATION.md. No runtime/schema change.
+
+
+2026-10-03 resolution: Hosted stage diagnostics identified ready publication, and a rolled-back update reproduced notification guard SQLSTATE 42501. Migration `20261003070559_media_notification_aggregation_guard.sql` permits trusted nested aggregation while preserving recipient read-only changes and immutable identity. Original three-file recovery, a 12-file TUS batch, 43 hosted Moments/foreign-account checks and five isolated guard checks passed. See `docs/MULTI_IMAGE_UPLOAD_VERIFICATION.md`. The earlier preview-generation diagnosis is superseded.
+
 - Video thumbnails in the shared gallery/detail tile and queued files -> `src/components/entries/video-thumbnail.tsx`, `media-tile.tsx`, `photo-picker.tsx` -> `tests/e2e/video-thumbnails.spec.ts`, `docs/VIDEO_THUMBNAIL_VERIFICATION.md`. Uses authorized original reads without new Storage/schema behavior.
+
+- Native Android push recovery -> `supabase/functions/fcm-dispatch/{index,handler}.ts`, `src/lib/notifications/fcm-dispatch.ts`, three ledgered FCM recovery migrations -> `src/lib/notifications/fcm-dispatch.test.ts`, `supabase/tests/database/0015_fcm_dispatch_recovery.test.sql`, `docs/NATIVE_PUSH_VERIFICATION.md`. Existing APK uses the repaired backend; no Android interface change.
