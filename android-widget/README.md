@@ -20,7 +20,7 @@ Everything comes from the shell at Gradle configure time. Nothing here goes into
 | `WIDGET_UPDATE_MANIFEST_URL` | The `update.json` the app checks for a newer release. CI sets it to `https://github.com/<repo>/releases/latest/download/update.json`; empty turns self-update off. Debug builds never check. |
 | `WIDGET_VERSION_CODE`, `WIDGET_VERSION_NAME` | Set by CI to `100 + run number` and `0.3.<run number>`. Local builds default to `2` and `0.2.0`, so a hand-built APK never installs over a CI one. |
 
-The service-account JSON for FCM is **never** a build variable: it is the `FIREBASE_SERVICE_ACCOUNT_JSON` secret of the `fcm-dispatch` Edge Function, next to `PUSH_DISPATCH_SECRET`. The Vault secret `fcm_endpoint_url` turns the database worker on.
+The service-account JSON for FCM is **never** a build variable: it is the `FIREBASE_SERVICE_ACCOUNT_JSON` secret of the `fcm-dispatch` Edge Function, and its dispatch header is checked against the Vault `push_dispatch_secret` through a service-only RPC. The Vault secret `fcm_endpoint_url` turns the database worker on.
 
 ## Building
 
@@ -45,7 +45,7 @@ Copy the `SHA256:` fingerprint into `public/.well-known/assetlinks.json` in the 
 ## What the native side does
 
 - Widget: latest received drawing, "From your partner · 2 h ago" caption (never a display name), a **Draw back** button that opens the native editor, a **Refresh** button, and a tap that opens the cached drawing offline. It scales to the cell the launcher gives it and re-renders when resized.
-- Notifications: every partner-update row reaches every registered device as a content-free data message. The title is the database's fixed copy saying what happened ("New memory added", "3 new photos added to a memory", "A plan was deleted"), never a user-entered title; a growing photo batch re-sends under the same tag, so the alert updates in place. Tapping opens the app at the target page, or at the inbox when the record was deleted. Drawings are high priority so the widget refreshes even in Doze.
+- Notifications: every partner-update row reaches every registered device as a content-free data message. The title is the database's fixed copy saying what happened ("New memory added", "3 new photos added to a memory", "A plan was deleted"), never a user-entered title; a growing photo batch re-sends under the same tag, so the alert updates in place. Tapping opens the app at the target page, or at the inbox when the record was deleted. All visible partner alerts are high priority; drawings also wake the widget in Doze.
 - Editor and outbox: the nine-tool native editor saves a local draft and queues PNGs per account; a sync sends what it can, sets a permanently invalid file aside as `<id>.failed.png`, and leaves transient failures for the next attempt.
 - Sign-out unregisters the FCM token, then clears the session, the outbox, the cached drawing, the inbox cache and the widget.
 

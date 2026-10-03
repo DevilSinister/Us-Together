@@ -155,3 +155,7 @@ Privacy lock configuration and bcrypt hashes live in private Postgres tables. A 
 ### Video thumbnail read path - 2026-10-03
 
 The shared web media tile and upload queue display a paused browser-decoded video frame. Existing media uses the authorized original route; videos do not request the photo-only preview derivative. Frames load near the viewport, seek to at most one second, remain muted and paused, and release their video source when leaving the viewport. No persistent poster or additional private cache is created. Unsupported originals retain an explicit preview fallback and the existing open action.
+
+### Android push recovery - 2026-10-03
+
+The database and FCM dispatcher now use one Vault dispatch secret, compared by a service-only RPC. The private verifier is an exceptional definer with explicit service-role authorization, an empty search path and revoked default execution; its public wrapper is an invoker. Queue backoff clamps before arithmetic, missing callbacks stop after five attempts, and obsolete/read activity expires without removing inbox history. Freshness follows the notification's refreshed activity timestamp so aggregated media alerts remain deliverable. All visible partner alerts use high priority. This backend repair requires no APK update.
