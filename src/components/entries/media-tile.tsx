@@ -5,6 +5,7 @@ import {Film, ImageOff, Play} from "lucide-react";
 import type {GalleryItem} from "@/lib/entries/gallery";
 import {mediaSource} from "./media-viewer";
 import {cn} from "@/lib/utils";
+import {VideoThumbnail} from "./video-thumbnail";
 
 function clock(seconds:number|null){
  const total=Math.round(Number(seconds??0));
@@ -56,7 +57,8 @@ export function MediaTile({item,label,eager=false,onOpen,ratio="square",classNam
    </span>:null}
 
    {!image?<>
-    <span aria-hidden="true" className="absolute inset-0 grid place-items-center text-primary"><Play className="size-8 fill-current"/></span>
+    <VideoThumbnail src={mediaSource(item)} eager={eager}/>
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-start justify-end p-2"><span className="grid size-8 place-items-center rounded-full bg-black/60 text-white"><Play className="size-4 fill-current"/></span></span>
     <span className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/60 to-transparent px-2 pb-1.5 pt-4 text-xs font-semibold text-white">
      <Film className="size-3.5 shrink-0" aria-hidden="true"/>{length||"Video"}
     </span>

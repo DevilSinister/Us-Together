@@ -1,11 +1,12 @@
 "use client";
-import {useEffect,useId,useMemo,useState} from "react";
+import {useEffect,useId,useState} from "react";
 import Image from "next/image";
 import {Film,Image as ImageIcon,ImagePlus,X} from "lucide-react";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {acceptAttribute,acceptedMedia,isImage,rendersInBrowser,resolveMime,validateUpload} from "@/lib/memories/media";
 import {cn} from "@/lib/utils";
+import {VideoThumbnail} from "./video-thumbnail";
 
 export type QueuedPhoto={key:string;file:File;caption:string;mime:string};
 
@@ -40,13 +41,19 @@ function weight(bytes:number){
  * fine, but no browser outside Safari can paint it before it is processed.
  */
 function Thumbnail({file,mime}:{file:File;mime:string}){
- const paintable=rendersInBrowser(mime);
- const url=useMemo(()=>paintable?URL.createObjectURL(file):"",[file,paintable]);
- useEffect(()=>()=>{if(url)URL.revokeObjectURL(url);},[url]);
+ const image=isImage(mime);
+ const paintable=rendersInBrowser(mime)||!image;
+ const [url,setUrl]=useState("");
+ useEffect(()=>{
+  if(!paintable)return;
+  const source=URL.createObjectURL(file);
+  const timer=setTimeout(()=>setUrl(source),0);
+  return()=>{clearTimeout(timer);URL.revokeObjectURL(source);};
+ },[file,paintable]);
  const Mark=isImage(mime)?ImageIcon:Film;
  return <span className="relative size-14 shrink-0 overflow-hidden rounded-control bg-secondary">
   {url
-   ?<Image src={url} alt="" fill unoptimized sizes="56px" className="object-cover"/>
+   ?!image?<VideoThumbnail src={url} eager/>:<Image src={url} alt="" fill unoptimized sizes="56px" className="object-cover"/>
    :<span aria-hidden="true" className="absolute inset-0 grid place-items-center text-primary"><Mark className="size-5"/></span>}
  </span>;
 }

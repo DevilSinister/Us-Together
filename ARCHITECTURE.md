@@ -151,3 +151,7 @@ Privacy lock configuration and bcrypt hashes live in private Postgres tables. A 
 ### PIN flow update
 
 `privacy_pin_flow` stores the length of new PINs and adds a current-PIN-verified change RPC. Existing 6–12 digit hashes remain valid for migration. The React heart keypad accepts keyboard, paste and pointer input. Only matching confirmation is sent to setup/change RPCs. A successful change rehashes the new PIN and revokes every section unlock; the browser discards its locally wrapped prior PIN.
+
+### Video thumbnail read path - 2026-10-03
+
+The shared web media tile and upload queue display a paused browser-decoded video frame. Existing media uses the authorized original route; videos do not request the photo-only preview derivative. Frames load near the viewport, seek to at most one second, remain muted and paused, and release their video source when leaving the viewport. No persistent poster or additional private cache is created. Unsupported originals retain an explicit preview fallback and the existing open action.
