@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { PartnerSync } from "@/components/providers/partner-sync";
 import { IdentitiesProvider } from "@/components/providers/identities";
 import { AppShell } from "@/components/app/app-shell";
+import { getUnreadNotificationCount } from "@/app/actions/notifications";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { loadIdentities } from "@/lib/avatar/identities";
 
@@ -14,7 +15,8 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   // a face without prop-drilling one through every workspace between here and
   // the comment thread.
   const identities = await loadIdentities();
+  const unreadCount = await getUnreadNotificationCount();
   return <PartnerSync enabled={identity.kind === "supabase"}>
-    <IdentitiesProvider value={identities}><AppShell>{children}</AppShell></IdentitiesProvider>
+    <IdentitiesProvider value={identities}><AppShell unreadCount={unreadCount}>{children}</AppShell></IdentitiesProvider>
   </PartnerSync>;
 }

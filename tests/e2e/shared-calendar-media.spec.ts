@@ -34,9 +34,12 @@ test("preview galleries keep six photos, all files, captions and file-specific c
  await expect(previewDialog.getByText("2 of 7",{exact:true})).toBeVisible();
  await page.keyboard.press("Escape");
  await page.screenshot({path:".impeccable/qa/gallery-list-"+kind+"-"+info.project.name+".png",fullPage:true});
- await card.getByRole("link",{name:/Show more/}).click();await expect(page).toHaveURL(/gallery\?kind=/);
+ await card.getByRole("link",{name:/View all \d+ files|Open gallery/}).click();await expect(page).toHaveURL(/gallery\?kind=/);
  await expect(page.getByRole("button",{name:/Open photo/})).toHaveCount(7);
- await expect(page.getByLabel("From",{exact:true})).toBeDisabled();
+ await page.getByRole("button",{name:"Gallery filters"}).click();
+ await expect(page.getByRole("dialog",{name:"Gallery filters"})).toBeVisible();
+ await expect(page.getByLabel("From",{exact:true})).toHaveCount(0);
+ await page.keyboard.press("Escape");
  await page.getByRole("button",{name:"Open photo 1",exact:true}).click();
  const dialog=page.getByRole("dialog",{name:"Media viewer"});
  await expect(dialog).toBeVisible();await expect.poll(()=>dialog.locator("img").evaluate((i:HTMLImageElement)=>i.complete&&i.naturalWidth>0)).toBe(true);
@@ -53,18 +56,18 @@ test("preview galleries keep six photos, all files, captions and file-specific c
  await page.goto(entryUrl);
  }
  await page.getByLabel("Choose photos or videos").setInputFiles("tests/fixtures/phase6-video.mp4");await page.getByRole("button",{name:"Upload selected files",exact:true}).click();
- await expect(page.getByText("7 photos · 1 videos",{exact:true})).toBeVisible({timeout:30000});await page.getByRole("link",{name:/Show more/}).click();await expect(page).toHaveURL(/gallery\?kind=moment/);await page.getByRole("button",{name:/Open video/}).click();await expect(page.getByRole("dialog").locator("video")).toHaveAttribute("preload","metadata");await page.keyboard.press("Escape");
+ await expect(page.getByText("7 photos · 1 videos",{exact:true})).toBeVisible({timeout:30000});await page.getByRole("link",{name:/View all \d+ files|Open gallery/}).click();await expect(page).toHaveURL(/gallery\?kind=moment/);await page.getByRole("button",{name:/Open video/}).click();await expect(page.getByRole("dialog").locator("video")).toHaveAttribute("preload","metadata");await page.keyboard.press("Escape");
  await page.goto("/calendar");await expect(page.getByRole("link",{name:/Memory Gallery memory/})).toBeVisible();await expect(page.getByRole("link",{name:/Moment Gallery moment/})).toBeVisible();
  await page.goto("/home");await page.getByRole("link",{name:"Open gallery",exact:true}).click();await expect(page.getByRole("heading",{name:"Your shared gallery.",exact:true})).toBeVisible();
  await expect(page.getByRole("button",{name:/Open (photo|video)/})).toHaveCount(15);
- await page.getByLabel("From",{exact:true}).selectOption("memory");await expect(page.getByRole("button",{name:/Open photo/})).toHaveCount(7);await page.getByRole("button",{name:/Open photo/}).filter({has:page.getByAltText("Edited memory caption",{exact:true})}).click();
+ await page.getByRole("button",{name:"Gallery filters"}).click();await page.getByLabel("From",{exact:true}).selectOption("memory");await page.getByRole("button",{name:"Show gallery"}).click();await expect(page.getByRole("button",{name:/Open photo/})).toHaveCount(7);await page.getByRole("button",{name:/Open photo/}).filter({has:page.getByAltText("Edited memory caption",{exact:true})}).click();
  await expect(page.getByRole("dialog").getByText("Just for the first memory photo",{exact:true})).toBeVisible();
  await page.getByRole("dialog").getByLabel("Comment on this file").fill("Added from Home gallery");await page.getByRole("dialog").getByRole("button",{name:"Post comment",exact:true}).click();await expect(page.getByText("Added from Home gallery",{exact:true})).toBeVisible();await page.keyboard.press("Escape");
- await page.getByLabel("From",{exact:true}).selectOption("all");await page.getByLabel("Group by",{exact:true}).selectOption("date");await page.getByLabel("On date",{exact:true}).fill(today);await expect(page.getByRole("button",{name:/Open (photo|video)/})).toHaveCount(15);
+ await page.getByRole("button",{name:/Gallery filters, 1 active/}).click();await page.getByLabel("From",{exact:true}).selectOption("all");await page.getByLabel("Group by",{exact:true}).selectOption("date");await page.getByLabel("On date",{exact:true}).fill(today);await page.getByRole("button",{name:"Show gallery"}).click();await expect(page.getByRole("button",{name:/Open (photo|video)/})).toHaveCount(15);
  await page.screenshot({path:".impeccable/qa/gallery-date-"+info.project.name+".png",fullPage:true});
- await page.getByLabel("Show",{exact:true}).selectOption("video");await expect(page.getByRole("button",{name:/Open video/})).toHaveCount(1);await expect(page.getByRole("button",{name:/Open photo/})).toHaveCount(0);
+ await page.getByRole("button",{name:/Gallery filters, 2 active/}).click();await page.getByLabel("Show",{exact:true}).selectOption("video");await page.getByRole("button",{name:"Show gallery"}).click();await expect(page.getByRole("button",{name:/Open video/})).toHaveCount(1);await expect(page.getByRole("button",{name:/Open photo/})).toHaveCount(0);
  await page.getByRole("button",{name:/Open video/}).click();await expect(page.getByRole("dialog").locator("video")).toBeVisible();await page.keyboard.press("Escape");
- await page.getByLabel("Show",{exact:true}).selectOption("all");await page.getByLabel("Group by",{exact:true}).selectOption("memory");await expect(page.getByRole("button",{name:/Open (photo|video)/})).toHaveCount(15);
+ await page.getByRole("button",{name:/Gallery filters, 3 active/}).click();await page.getByRole("button",{name:"Reset"}).click();await page.getByRole("button",{name:"Show gallery"}).click();await expect(page.getByRole("button",{name:/Open (photo|video)/})).toHaveCount(15);
  await page.screenshot({path:".impeccable/qa/gallery-home-"+info.project.name+".png",fullPage:true});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)).toBe(false);
  await page.getByRole("link",{name:"Open memory",exact:true}).click();await expect(page).toHaveURL(new RegExp("/memories/[0-9a-f-]+$"));await page.getByRole("button",{name:"Open photo 1",exact:true}).click();const finalViewer=page.getByRole("dialog");

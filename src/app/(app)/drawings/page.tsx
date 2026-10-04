@@ -38,7 +38,7 @@ export default async function DrawingsPage({ searchParams }: { searchParams: Pro
         </Link></li>)}
       </ul> : <div className="max-w-xl rounded-[1.25rem] bg-[#f7e2e5] p-7 dark:bg-[#49323b]">
         <div className="mb-5 grid size-12 place-items-center rounded-xl bg-white text-primary dark:bg-card"><Brush className="size-6" aria-hidden="true" /></div>
-        <p className="font-display text-3xl">Your first page is waiting.</p>
+        <p className="font-display text-section-title">Your first page is waiting.</p>
         <p className="mt-2 text-muted-foreground">Draw a quick hello for {partner} to find.</p>
         <Button asChild className="mt-5"><Link href="/drawings/new">Make the first drawing</Link></Button>
       </div>}

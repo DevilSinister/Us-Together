@@ -25,7 +25,7 @@ export default async function BucketItemPage({ params }: { params: Promise<{ id:
         <p className="text-sm text-primary">
           {item.status.replaceAll("_", " ")} · {item.priority} priority
         </p>
-        <h1 className="mt-2 break-words font-display text-5xl tracking-[-0.03em]">{item.title}</h1>
+        <h1 className="mt-2 break-words font-display text-page-title">{item.title}</h1>
         {item.description ? (
           <p className="mt-5 whitespace-pre-wrap break-words leading-8 text-muted-foreground">
             {item.description}

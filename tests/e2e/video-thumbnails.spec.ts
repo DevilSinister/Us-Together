@@ -28,7 +28,7 @@ test("video thumbnails show silent frames in the queue, entries and gallery",asy
   await tile.getByRole("button",{name:"Open video 1",exact:true}).focus();await page.keyboard.press("Enter");
   await expect(page.locator('dialog[open] video[controls]')).toBeVisible();
   await page.keyboard.press("Escape");
-  await page.getByRole("link",{name:/Show more/}).click();
+  await page.getByRole("link",{name:/^Open gallery/}).click();
   await expect(page).toHaveURL(/\/gallery\?kind=/);
   await page.getByRole("button",{name:"Open video 1",exact:true}).scrollIntoViewIfNeeded();
   await expect(page.locator('[data-video-thumbnail="ready"]')).toBeVisible();

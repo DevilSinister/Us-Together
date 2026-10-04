@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Bell, Brush, CalendarDays, CalendarHeart, Camera, CheckCircle2, Gift, Images, ListChecks, LockKeyhole, NotebookPen, Plus, Sparkles } from "lucide-react";
+import { ArrowRight, Brush, CalendarDays, CalendarHeart, Camera, CheckCircle2, Gift, Images, ListChecks, LockKeyhole, NotebookPen, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { InlineLink } from "@/components/ui/inline-link";
 import { PageHeader } from "@/components/app/page-header";
@@ -19,7 +19,6 @@ export const metadata: Metadata = { title: "Home" };
 type PlanRow = { id: string; title: string; starts_at: string; location: string | null };
 type MemoryRow = { id: string; title: string; memory_date: string };
 type MilestoneRow = { id: string; title: string; milestone_date: string; is_featured: boolean };
-type NotificationRow = { id: string; title: string; read_at: string | null };
 type NoteRow = { id: string; title: string; type: string; mine: boolean };
 type DrawingRow = { id: string; mine: boolean; sent_at: string | null };
 
@@ -36,7 +35,6 @@ export default async function HomePage() {
   let featuredMilestone: MilestoneRow | null = null;
   let bucketTotal = 0;
   let bucketCompleted = 0;
-  let notifications: NotificationRow[] = [];
   let recentNote: NoteRow | null = null;
   let recentDrawing: DrawingRow | null = null;
   let wishlistCount = 0;
@@ -59,7 +57,6 @@ export default async function HomePage() {
     const bucket = await bucketPreview(state.bucketSessionId);
     bucketTotal = bucket.items.length;
     bucketCompleted = bucket.items.filter((item) => item.status === "completed").length;
-    notifications = state.notifications.slice(0, 5).map((item) => ({ id: item.id, title: item.title, read_at: item.readAt }));
   } else if (identity?.kind === "supabase") {
     const supabase = await createServerSupabaseClient();
     const [{ data: profile }, { data: membership }] = await Promise.all([
@@ -75,14 +72,13 @@ export default async function HomePage() {
       const { count } = await supabase.from("couple_memberships").select("id", { count: "exact", head: true }).eq("couple_id", membership.couple_id).is("left_at", null);
       if (count === 2) {
         coupleStatus = "paired";
-        const [{ data: couple }, { data: plans }, { data: memories }, { data: milestones }, { count: totalIdeas }, { count: completedIdeas }, { data: notificationRows }, { data: noteRows }, { count: wishCount }, { data: drawingRows }] = await Promise.all([
+        const [{ data: couple }, { data: plans }, { data: memories }, { data: milestones }, { count: totalIdeas }, { count: completedIdeas }, { data: noteRows }, { count: wishCount }, { data: drawingRows }] = await Promise.all([
           supabase.from("couples").select("relationship_started_on").eq("id", membership.couple_id).maybeSingle(),
           supabase.from("plans").select("id,title,starts_at,location").eq("couple_id", membership.couple_id).eq("status", "planned").gte("starts_at", new Date().toISOString()).order("starts_at", { ascending: true }).limit(1),
           supabase.from("memories").select("id,title,memory_date").eq("couple_id", membership.couple_id).order("memory_date", { ascending: false }).order("id", { ascending: false }).limit(1),
           supabase.from("milestones").select("id,title,milestone_date,is_featured").eq("couple_id", membership.couple_id).order("is_featured", { ascending: false }).order("milestone_date", { ascending: false }).order("id", { ascending: false }).limit(1),
           supabase.from("bucket_list_items").select("id", { count: "exact", head: true }).eq("couple_id", membership.couple_id),
           supabase.from("bucket_list_items").select("id", { count: "exact", head: true }).eq("couple_id", membership.couple_id).eq("status", "completed"),
-          supabase.from("notifications").select("id,title,read_at").eq("recipient_id", identity.userId).order("created_at", { ascending: false }).limit(5),
           // Row level security decides which notes are visible; a partner private note never arrives.
           supabase.from("notes").select("id,title,type,author_id").eq("couple_id", membership.couple_id).order("updated_at", { ascending: false }).limit(1),
           supabase.from("wishlist_items").select("id", { count: "exact", head: true }).eq("couple_id", membership.couple_id),
@@ -95,7 +91,6 @@ export default async function HomePage() {
         featuredMilestone = (milestones?.[0] ?? null) as MilestoneRow | null;
         bucketTotal = totalIdeas ?? 0;
         bucketCompleted = completedIdeas ?? 0;
-        notifications = (notificationRows ?? []) as NotificationRow[];
         const note = noteRows?.[0];
         recentNote = note ? { id: note.id, title: note.title, type: note.type, mine: note.author_id === identity.userId } : null;
         const drawing = drawingRows?.[0];
@@ -123,19 +118,19 @@ export default async function HomePage() {
   const dayCount = relationshipStartedOn ? relationshipDayCount(relationshipStartedOn, timezone) : null;
   const dateFormatter = new Intl.DateTimeFormat("en", { timeZone: timezone, month: "long", day: "numeric", year: "numeric" });
   const planFormatter = new Intl.DateTimeFormat("en", { timeZone: timezone, weekday: "long", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
-  const unreadCount = notifications.filter((item) => !item.read_at).length;
   const daysUntilPlan = upcomingPlan ? Math.max(0, Math.ceil((new Date(upcomingPlan.starts_at).getTime() - new Date().getTime()) / 86_400_000)) : null;
   const planLead = daysUntilPlan === null ? "Coming up" : daysUntilPlan === 0 ? "Coming up · today" : `Coming up · in ${daysUntilPlan} ${daysUntilPlan === 1 ? "day" : "days"}`;
 
   return (
     <div className="reveal-on-load">
       <PageHeader
+        scale="compact"
+        className="pb-5 sm:pb-8"
         eyebrow={coupleStatus === "paired"
           ? <span className="inline-flex items-center gap-2.5"><AvatarPair me={identities.me} partner={identities.partner} size="sm" />{name ? `Good to see you, ${name}` : "Welcome back"}</span>
           : name ? `Good to see you, ${name}` : "Welcome to Us Together"}
         title={dayCount === null ? "Your shared story has room for its first date." : `${dayCount.toLocaleString()} days of us—and counting.`}
         lede="What comes next, what you have kept, and the dates that hold the thread together."
-        actions={<InlineLink href="/notifications"><Bell className="size-4" aria-hidden="true" />{unreadCount ? `${unreadCount} unread` : "Notifications"}</InlineLink>}
       />
 
       {coupleStatus !== "paired" ? (
@@ -145,10 +140,10 @@ export default async function HomePage() {
           cta="View connection"
         />
       ) : (
-        <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_21rem]">
+        <div className="mt-6 grid gap-8 lg:mt-10 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-12">
           <section aria-labelledby="thread-title">
             <div className="flex items-end justify-between gap-4">
-              <h2 id="thread-title" className="font-display text-3xl">Today in your shared journal</h2>
+              <h2 id="thread-title" className="font-display text-section-title">Today in your shared journal</h2>
               <span className="hidden text-sm text-muted-foreground sm:block">Shown in {timezone}</span>
             </div>
             <div className="relationship-thread mt-5 space-y-1">
@@ -156,7 +151,7 @@ export default async function HomePage() {
                 <ThreadMarker icon={CalendarDays} muted={!upcomingPlan} />
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-primary">{planLead}</p>
-                  <h3 className="mt-1 font-display text-3xl">{upcomingPlan?.title ?? "Give yourselves one thing to look forward to."}</h3>
+                  <h3 className="mt-1 text-entry-title">{upcomingPlan?.title ?? "Give yourselves one thing to look forward to."}</h3>
                   {upcomingPlan ? (
                     <>
                       <p className="mt-2 leading-7 text-muted-foreground">{planFormatter.format(new Date(upcomingPlan.starts_at))}{upcomingPlan.location ? ` · ${upcomingPlan.location}` : ""}</p>
@@ -174,13 +169,13 @@ export default async function HomePage() {
                   {featuredMilestone ? (
                     <>
                       <p className="text-sm font-semibold text-primary">{featuredMilestone.is_featured ? "Featured moment" : "Latest moment"}</p>
-                      <h3 className="mt-1 font-display text-2xl">{featuredMilestone.title}</h3>
+                      <h3 className="mt-1 text-entry-title">{featuredMilestone.title}</h3>
                       <p className="mt-2 leading-7 text-muted-foreground">{dateFormatter.format(new Date(`${featuredMilestone.milestone_date}T00:00:00Z`))}</p>
                       <InlineLink href={`/milestones/${featuredMilestone.id}`} className="mt-3">Open moment <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
                     </>
                   ) : (
                     <>
-                      <h3 className="font-display text-2xl">Mark the date that began a chapter.</h3>
+                      <h3 className=" text-entry-title">Mark the date that began a chapter.</h3>
                       <Button asChild variant="outline" className="mt-4"><Link href="/milestones/new">Add a moment</Link></Button>
                     </>
                   )}
@@ -192,7 +187,7 @@ export default async function HomePage() {
                   <ThreadMarker icon={Images} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-primary">Recently kept</p>
-                    <h3 className="mt-1 font-display text-2xl">{recentMemory.title}</h3>
+                    <h3 className="mt-1 text-entry-title">{recentMemory.title}</h3>
                     <p className="mt-2 leading-7 text-muted-foreground">{dateFormatter.format(new Date(`${recentMemory.memory_date}T00:00:00Z`))}</p>
                     <InlineLink href={`/memories/${recentMemory.id}`} className="mt-3">Open memory <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
                   </div>
@@ -204,7 +199,7 @@ export default async function HomePage() {
                   <ThreadMarker icon={NotebookPen} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-primary">{recentNote.type === "private" ? "Your private note" : recentNote.mine ? "You shared a note" : partnerLabel + " left a note"}</p>
-                    <h3 className="mt-1 break-words font-display text-2xl">{recentNote.title}</h3>
+                    <h3 className="mt-1 break-words text-entry-title">{recentNote.title}</h3>
                     <InlineLink href={`/notes/${recentNote.id}`} className="mt-3">Open note <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
                   </div>
                 </article>
@@ -215,7 +210,7 @@ export default async function HomePage() {
                   <ThreadMarker icon={Brush} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-primary">{recentDrawing.mine ? "You sent a drawing" : partnerLabel + " sent a drawing"}</p>
-                    <h3 className="mt-1 font-display text-2xl">A little something, drawn by hand.</h3>
+                    <h3 className="mt-1 text-entry-title">A little something, drawn by hand.</h3>
                     <Link href={`/drawings/${recentDrawing.id}`} className="mt-3 block w-56 overflow-hidden rounded-panel bg-white shadow-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={`/api/drawing-notes/${recentDrawing.id}/image`} alt={recentDrawing.mine ? "The drawing you sent" : "The drawing " + partnerLabel + " sent"} className="aspect-[4/3] w-full object-contain" />
@@ -233,7 +228,7 @@ export default async function HomePage() {
                   <ThreadMarker icon={CheckCircle2} />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-primary">Bucket progress</p>
-                    <h3 className="mt-1 text-xl font-semibold">{bucketCompleted} of {bucketTotal} dreams completed.</h3>
+                    <h3 className="mt-1 font-semibold text-entry-title">{bucketCompleted} of {bucketTotal} dreams completed.</h3>
                     <p className="mt-2 leading-7 text-muted-foreground">Only shared bucket items contribute to this count.</p>
                     <InlineLink href="/bucket" className="mt-3">Open bucket lists <ArrowRight className="size-4" aria-hidden="true" /></InlineLink>
                   </div>
@@ -245,7 +240,7 @@ export default async function HomePage() {
           <aside className="space-y-8">
             <section>
               <p className="text-sm font-semibold text-primary">Start something</p>
-              <h2 className="mt-2 font-display text-3xl">Keep the thread moving.</h2>
+              <h2 className="mt-2 font-display text-section-title">Keep the thread moving.</h2>
               {/* One filled wine button, then a two-column grid of outline
                   actions: same capability in roughly half the height, and the
                   accent stays singular instead of leading a stack of seven. */}
@@ -269,7 +264,7 @@ export default async function HomePage() {
               <div className="flex gap-3">
                 <LockKeyhole className="mt-1 size-5 shrink-0 text-primary" aria-hidden="true" />
                 <div>
-                  <h2 className="font-display text-2xl">Safe projections only.</h2>
+                  <h2 className="font-display text-section-title">Safe projections only.</h2>
                   {/* The promise in one sentence, the full accounting one tap
                       away. Same honesty, without a wall of text in the rail. */}
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">Home only ever shows what both of you can already see.</p>

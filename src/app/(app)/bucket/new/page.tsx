@@ -20,7 +20,7 @@ export default async function NewBucketItemPage({ searchParams }: { searchParams
       <Link className="inline-flex min-h-11 items-center font-semibold text-primary hover:underline" href={selectedList ? `/bucket/lists/${selectedList.id}` : "/bucket"}>
         {selectedList ? "Back to list" : "Back to bucket lists"}
       </Link>
-      <h1 className="mt-4 font-display text-5xl">Leave room for someday.</h1>
+      <h1 className="mt-4 font-display text-page-title">Leave room for someday.</h1>
       <p className="mt-4 leading-7 text-muted-foreground">Start with an idea. You can work out the little steps together.</p>
       <section className="mt-8">
         {lists.length ? <ItemEditor lists={lists} defaultListId={selectedList?.id} categories={categories} /> : <p>Create a list on the bucket lists page first.</p>}

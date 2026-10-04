@@ -11,12 +11,17 @@ import {MediaTile} from "./media-tile";
 import {Button} from "@/components/ui/button";
 import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
+import {SlidersHorizontal} from "lucide-react";
+import {Dialog,DialogContent,DialogDescription,DialogFooter,DialogHeader,DialogTitle} from "@/components/ui/dialog";
+type GalleryFilters={kind:string;media:string;date:string;group:"memory"|"date"};
 /** A refresh that returns the same files should not replace every tile. */
 function same(a:GalleryItem[],b:GalleryItem[]){
  return a.length===b.length&&a.every((item,i)=>item.sortKey===b[i].sortKey&&item.caption===b[i].caption&&item.state===b[i].state);
 }
 export function GalleryWorkspace({initial,scope}:{initial:GalleryPage;scope?:{kind:"memory"|"moment";entry:string}}){
  const [items,setItems]=useState(initial.items),[next,setNext]=useState(initial.next),[error,setError]=useState(initial.error??""),[pending,setPending]=useState(false),[kind,setKind]=useState<string>(scope?.kind??"all"),[media,setMedia]=useState("all"),[date,setDate]=useState(""),[group,setGroup]=useState<"memory"|"date">("memory"),[selected,setSelected]=useState<string|null>(null);
+ const [filtersOpen,setFiltersOpen]=useState(false);
+ const [draft,setDraft]=useState<GalleryFilters>({kind:scope?.kind??"all",media:"all",date:"",group:"memory"});
  const scopeEntry=scope?.entry;
  const urls=useRef<string[]>([]),generation=useRef(0),count=useRef(initial.items.length);
  useEffect(()=>{count.current=items.length;},[items.length]);
@@ -31,16 +36,33 @@ export function GalleryWorkspace({initial,scope}:{initial:GalleryPage;scope?:{ki
  useEffect(()=>()=>{for(const u of urls.current)URL.revokeObjectURL(u);},[]);
  usePartnerRefresh(() => reload(true),pending);
  const visible=items.filter(m=>(kind==="all"||m.access.kind===kind)&&(media==="all"||m.media_type===media)&&(!date||m.entryDate===date)),groups=groupGallery(visible,group),ordered=groups.flatMap(g=>g.items),index=ordered.findIndex(m=>m.sortKey===selected);
+ const activeFilterCount=Number(kind!==(scope?.kind??"all"))+Number(media!=="all")+Number(!!date)+Number(group!=="memory");
+ function openFilters(){setDraft({kind,media,date,group});setFiltersOpen(true);}
+ function applyFilters(){if(draft.kind!==kind||draft.media!==media||draft.date!==date)count.current=0;setKind(draft.kind);setMedia(draft.media);setDate(draft.date);setGroup(draft.group);setFiltersOpen(false);}
  async function more(){if(!next)return;setPending(true);try{const p=await loadGallery({kind,entry:scopeEntry,media,date,cursor:next});if(p.error)throw Error(p.error);setItems(old=>[...old,...p.items.filter(m=>!old.some(o=>o.sortKey===m.sortKey))]);setNext(p.next);setError("");}catch(e){setError(e instanceof Error?e.message:"Could not load more.");}finally{setPending(false);}}
- return <div><div className="mt-7 grid grid-cols-2 items-end gap-3 rounded-panel bg-secondary p-4 sm:grid-cols-4 sm:p-5">
- <div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-group">Group by</Label><select id="gallery-group" value={group} onChange={e=>setGroup(e.target.value as "memory"|"date")} className="min-h-11 w-full min-w-0 rounded-control border bg-field px-3 text-sm"><option value="memory">Memory / moment</option><option value="date">Date</option></select></div>
- <div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-kind">From</Label><select id="gallery-kind" disabled={pending||!!scope} value={kind} onChange={e=>{count.current=0;setKind(e.target.value);}} className="min-h-11 w-full min-w-0 rounded-control border bg-field px-3 text-sm"><option value="all">All entries</option><option value="memory">Memories</option><option value="moment">Moments</option></select></div>
- <div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-media">Show</Label><select id="gallery-media" disabled={pending} value={media} onChange={e=>{count.current=0;setMedia(e.target.value);}} className="min-h-11 w-full min-w-0 rounded-control border bg-field px-3 text-sm"><option value="all">Photos + videos</option><option value="image">Photos</option><option value="video">Videos</option></select></div>
- <div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-date">On date</Label><Input id="gallery-date" type="date" disabled={pending} value={date} onChange={e=>{count.current=0;setDate(e.target.value);}}/></div>{date?<Button variant="ghost" disabled={pending} onClick={()=>setDate("")}>Clear date</Button>:null}</div>
+ return <div>
+ <div className="mt-5 flex min-h-11 items-center gap-3">
+  <Button variant="outline" onClick={openFilters} aria-label={activeFilterCount?`Gallery filters, ${activeFilterCount} active`:"Gallery filters"} aria-haspopup="dialog" aria-expanded={filtersOpen}>
+   <SlidersHorizontal aria-hidden="true" className="size-4"/> Filters{activeFilterCount?<span aria-hidden="true" className="inline-flex min-w-5 justify-center rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground">{activeFilterCount}</span>:null}
+  </Button>
+  {activeFilterCount?<span className="min-w-0 truncate text-sm text-muted-foreground">{media==="all"?"Photos + videos":media==="image"?"Photos":"Videos"}{kind!==(scope?.kind??"all")?` · ${kind==="memory"?"Memories":"Moments"}`:""}{date?` · ${date}`:""}{group==="date"?" · By date":""}</span>:null}
+ </div>
+ <Dialog open={filtersOpen} onOpenChange={setFiltersOpen}>
+  <DialogContent title="Gallery filters" className="max-w-md">
+   <DialogHeader><DialogTitle>Gallery filters</DialogTitle><DialogDescription>Choose how to see the photos and videos you kept.</DialogDescription></DialogHeader>
+   <div className="grid gap-4 sm:grid-cols-2">
+    <div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-group">Group by</Label><select id="gallery-group" value={draft.group} onChange={e=>setDraft(current=>({...current,group:e.target.value as GalleryFilters["group"]}))} className="min-h-11 w-full min-w-0 rounded-control border bg-field px-3 text-sm"><option value="memory">Memory / moment</option><option value="date">Date</option></select></div>
+    {!scope?<div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-kind">From</Label><select id="gallery-kind" value={draft.kind} onChange={e=>setDraft(current=>({...current,kind:e.target.value}))} className="min-h-11 w-full min-w-0 rounded-control border bg-field px-3 text-sm"><option value="all">All entries</option><option value="memory">Memories</option><option value="moment">Moments</option></select></div>:null}
+    <div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-media">Show</Label><select id="gallery-media" value={draft.media} onChange={e=>setDraft(current=>({...current,media:e.target.value}))} className="min-h-11 w-full min-w-0 rounded-control border bg-field px-3 text-sm"><option value="all">Photos + videos</option><option value="image">Photos</option><option value="video">Videos</option></select></div>
+    <div className="min-w-0 space-y-2"><Label className="block" htmlFor="gallery-date">On date</Label><Input id="gallery-date" type="date" value={draft.date} onChange={e=>setDraft(current=>({...current,date:e.target.value}))}/></div>
+   </div>
+   <DialogFooter><Button variant="ghost" onClick={()=>setDraft({kind:scope?.kind??"all",media:"all",date:"",group:"memory"})}>Reset</Button><Button onClick={applyFilters}>Show gallery</Button></DialogFooter>
+  </DialogContent>
+ </Dialog>
  {error?<div className="mt-5"><p role="alert" className="status-message status-error">{error}</p><Button variant="outline" onClick={()=>void reload()}>Try again</Button></div>:null}
  {pending?<p role="status" className="mt-5 text-sm text-muted-foreground">Loading your gallery…</p>:null}
- {!pending&&!error&&!visible.length?<section className="py-16"><h2 className="font-display text-3xl">Room for your favorite moments.</h2><p className="mt-3 text-muted-foreground">{kind!=="all"||media!=="all"||date?"No files match these filters. Try another date or show everything.":"Add photos or videos to a memory or moment and they will appear here."}</p><Button asChild variant="outline" className="mt-5"><Link href="/memories/new">Add a memory</Link></Button></section>:null}
- {groups.map(g=><section key={group==="date"?g.date:g.items[0].access.kind+g.items[0].access.id} className="mt-10"><div className="mb-4 flex flex-wrap items-baseline justify-between gap-2"><h2 className="break-words font-display text-3xl">{group==="date"?new Intl.DateTimeFormat("en",{dateStyle:"long",timeZone:"UTC"}).format(new Date(g.date+"T00:00:00Z")):g.title}</h2>{group==="memory"?<Link href={(g.items[0].access.kind==="memory"?"/memories/":"/milestones/")+g.items[0].access.id} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline">Open {g.items[0].access.kind}</Link>:null}</div>
+ {!pending&&!error&&!visible.length?<section className="py-16"><h2 className="font-display text-section-title">Room for your favorite moments.</h2><p className="mt-3 text-muted-foreground">{kind!=="all"||media!=="all"||date?"No files match these filters. Try another date or show everything.":"Add photos or videos to a memory or moment and they will appear here."}</p><Button asChild variant="outline" className="mt-5"><Link href="/memories/new">Add a memory</Link></Button></section>:null}
+ {groups.map((g,groupIndex)=><section key={group==="date"?g.date:g.items[0].access.kind+g.items[0].access.id} className={groupIndex===0?"mt-6":"mt-10"}><div className="mb-4 flex flex-wrap items-baseline justify-between gap-2"><h2 className="break-words font-display text-section-title">{group==="date"?new Intl.DateTimeFormat("en",{dateStyle:"long",timeZone:"UTC"}).format(new Date(g.date+"T00:00:00Z")):g.title}</h2>{group==="memory"?<Link href={(g.items[0].access.kind==="memory"?"/memories/":"/milestones/")+g.items[0].access.id} className="inline-flex min-h-11 items-center text-sm font-semibold text-primary hover:underline">Open {g.items[0].access.kind}</Link>:null}</div>
  <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 xl:grid-cols-6">{g.items.map(m=>{const position=ordered.indexOf(m);return <MediaTile key={m.sortKey} item={m} eager={position<6} label={"Open "+(m.media_type==="image"?"photo":"video")+" "+(position+1)} onOpen={()=>setSelected(m.sortKey)}/>;})}</div></section>)}
  {next?<Button variant="outline" disabled={pending} onClick={()=>void more()} className="mt-8">Load more photos and videos</Button>:null}
  {/* The viewer swipes in the order the grid reads, group by group. */}

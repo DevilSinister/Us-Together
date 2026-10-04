@@ -172,7 +172,7 @@ export function CommentThread({ access, mediaId, variant = "page", partnerName, 
     aria-label={mediaId ? "Photo comments" : kind === "memory" ? "Memory comments" : "Moment comments"}
     className={sheet ? "mt-5" : panel ? "mt-6 border-t pt-5" : "mt-10 border-t pt-8"}
   >
-    <h2 className={sheet ? "sr-only" : panel ? "font-display text-xl" : "font-display text-2xl"}>
+    <h2 className={sheet ? "sr-only" : panel ? "text-entry-title" : "font-display text-section-title"}>
       {mediaId ? "Comments" : "What you remember"}
     </h2>
 

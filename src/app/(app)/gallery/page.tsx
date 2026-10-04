@@ -21,9 +21,10 @@ export default async function GalleryPage({ searchParams }: { searchParams: Prom
   return (
     <div className="reveal-on-load">
       <PageHeader
-        eyebrow={scope ? undefined : "Everything you kept"}
         title={scope ? `${scopeLabel === "memory" ? "Memory" : "Moment"} gallery.` : "Your shared gallery."}
         lede={scope ? `Every photo and video from this ${scopeLabel}.` : "Photos, videos and the little things you kept."}
+        scale="compact"
+        className="gap-4 pb-5"
         back={
           <>
             <InlineLink href={scope ? `${scope.kind === "memory" ? "/memories/" : "/milestones/"}${scope.entry}` : "/home"}>

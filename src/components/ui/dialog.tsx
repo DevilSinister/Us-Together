@@ -183,7 +183,7 @@ export function DialogTitle({
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
-    <h2 className={cn("font-display text-2xl sm:text-3xl tracking-[-0.02em]", className)} {...props}>
+    <h2 className={cn("font-display text-section-title", className)} {...props}>
       {children}
     </h2>
   );

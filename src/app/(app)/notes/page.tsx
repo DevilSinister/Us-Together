@@ -20,6 +20,8 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
   return (
     <div className="reveal-on-load">
       <PageHeader
+        scale="compact"
+        rule={false}
         eyebrow="Words worth keeping"
         title="Notes between you."
         lede="Write something to share, or something only you will ever read."
@@ -38,7 +40,7 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
       {view.paired ? (
         view.notes.length ? (
           <>
-            <ul className="mt-10 divide-y border-y">
+            <ul className="mt-8 divide-y border-y">
               {view.notes.map((note) => {
                 const shared = note.type === "shared";
                 const Icon = shared ? Users : Lock;
@@ -55,15 +57,15 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-start gap-2">
-                          <span className="min-w-0 flex-1 truncate font-display text-2xl leading-tight transition-colors group-hover:text-primary motion-reduce:transition-none">{note.title}</span>
+                          <span className="min-w-0 flex-1 truncate text-entry-title transition-colors group-hover:text-primary motion-reduce:transition-none">{note.title}</span>
                           {!shared ? <span className="mt-1 shrink-0 rounded-control bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">Private</span> : null}
                           {shared && !note.read ? <span className="mt-1 shrink-0 rounded-control bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">New</span> : null}
                         </span>
                         <span className="mt-1 block text-xs font-semibold text-muted-foreground">
                           {note.mine ? "You" : partner} · <time dateTime={note.updated_at} title={absoluteTime(note.updated_at)}>{relativeTime(note.updated_at)}</time>
                         </span>
-                        {/* The first words in the note's own voice: serif italic, like a line read off the page. */}
-                        <span className="mt-2 line-clamp-2 break-words font-display text-lg italic leading-7 text-muted-foreground">{noteExcerpt(note.body)}</span>
+                        {/* A quiet excerpt keeps the entry title in charge. */}
+                        <span className="mt-2 line-clamp-2 break-words text-base leading-6 text-muted-foreground">{noteExcerpt(note.body)}</span>
                       </span>
                     </Link>
                   </li>

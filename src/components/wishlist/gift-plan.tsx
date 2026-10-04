@@ -36,7 +36,7 @@ export function GiftPlan({ itemId, secret, ownerName }: { itemId: string; secret
         <div className="flex gap-3">
           <Gift className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
           <div>
-            <h3 id={"gift-" + itemId} className="font-display text-2xl">Your gift plan</h3>
+            <h3 id={"gift-" + itemId} className=" text-entry-title">Your gift plan</h3>
             <p className="mt-1 flex items-start gap-1.5 text-sm leading-6 text-muted-foreground">
               <EyeOff className="mt-1 size-4 shrink-0" aria-hidden="true" />
               Only you can see this. {ownerName ?? "Your partner"} has no way to tell whether a plan exists.

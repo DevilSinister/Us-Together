@@ -68,7 +68,7 @@ export default async function NotificationsPage() {
       <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_21rem]">
         <section aria-labelledby="inbox-title">
           <div className="flex items-center justify-between gap-4">
-            <h2 id="inbox-title" className="font-display text-3xl">Inbox</h2>
+            <h2 id="inbox-title" className="font-display text-section-title">Inbox</h2>
             <span className="text-sm text-muted-foreground">{unread} unread</span>
           </div>
           {notifications.length ? (

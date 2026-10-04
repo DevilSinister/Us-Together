@@ -162,7 +162,7 @@ export function DeviceAlerts() {
   if (androidShell) {
     return (
       <section className="space-y-3">
-        <h2 className="font-display text-2xl">This device</h2>
+        <h2 className="font-display text-section-title">This device</h2>
         <p className="flex items-center gap-2 text-sm text-muted-foreground"><CircleCheck className="size-4 shrink-0 text-primary" aria-hidden="true" />You are using the Us Together app.</p>
         <p className="text-sm leading-6 text-muted-foreground">
           Notifications on Android come from the app itself. To turn them on or set up the home-screen widget, long-press the app icon and choose <strong className="font-semibold text-foreground">Widget &amp; notifications</strong>.
@@ -174,7 +174,7 @@ export function DeviceAlerts() {
   return (
     <section className="space-y-5">
       <div>
-        <h2 className="font-display text-2xl">This device</h2>
+        <h2 className="font-display text-section-title">This device</h2>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
           Install the app to keep it one tap away, and choose whether this device shows an alert when something shared changes.
         </p>

@@ -13,7 +13,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
   return (
     <>
       <p className="text-sm font-semibold text-primary">Welcome back</p>
-      <h1 className="mt-3 font-display text-4xl tracking-[-0.025em] sm:text-5xl">Come back to your little world.</h1>
+      <h1 className="mt-3 font-display text-page-title">Come back to your little world.</h1>
       <p className="mt-4 mb-8 leading-7 text-muted-foreground">Sign in with the email and password you chose.</p>
       {error ? <p className="status-message status-error mb-5" role="alert">{error}</p> : null}
       <AuthForm action={signInAction} mode="sign-in" />

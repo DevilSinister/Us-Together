@@ -79,7 +79,7 @@ export function PrivacySettings({ configured, initialAreas, pinLength, userId }:
   const flowLength = flow === "setup-create" || flow === "setup-confirm" || flow === "change-create" || flow === "change-confirm" ? newLength : currentLength;
   return <div className="space-y-6">
     <section className="rounded-panel border bg-card p-6 shadow-paper sm:p-8">
-      <div className="flex items-start gap-3"><LockKeyhole aria-hidden="true" className="mt-1 size-6 text-primary" /><div><h2 className="font-serif text-2xl">Choose what to lock.</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Your PIN belongs to your account. Your partner can choose their own locks.</p></div></div>
+      <div className="flex items-start gap-3"><LockKeyhole aria-hidden="true" className="mt-1 size-6 text-primary" /><div><h2 className="font-serif text-section-title">Choose what to lock.</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Your PIN belongs to your account. Your partner can choose their own locks.</p></div></div>
       <details className="mt-7 rounded-control border bg-background">
         <summary className="cursor-pointer px-4 py-4 font-medium focus-visible:outline-2 focus-visible:outline-ring">Sections to lock <span className="ml-2 text-sm text-muted-foreground">{areas.length} selected</span></summary>
         <div className="grid gap-1 border-t p-3 sm:grid-cols-2">
@@ -92,7 +92,7 @@ export function PrivacySettings({ configured, initialAreas, pinLength, userId }:
     {flow ? <section className="rounded-panel border bg-card px-5 py-8 text-center shadow-paper sm:px-8">
       <Heart aria-hidden="true" className="mx-auto mb-3 size-8 fill-primary/20 text-primary" />
       {flowStep ? <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Step {flowStep} of 3</p> : null}
-      <h2 className="mt-2 font-serif text-2xl">{flowTitle[flow]}</h2>
+      <h2 className="mt-2 font-serif text-section-title">{flowTitle[flow]}</h2>
       {flow === "setup-length" || flow === "change-length" ? <div className="mt-7 flex justify-center gap-4">{([4, 6] as const).map((length) => <button type="button" key={length} onClick={() => chooseLength(length)} className="relative flex size-28 items-center justify-center rounded-full focus-visible:outline-2 focus-visible:outline-ring"><Heart aria-hidden="true" className="absolute size-28 fill-primary/15 text-primary/70" /><span className="relative pt-3 font-semibold">{length} digits</span></button>)}</div>
         : <><div className="mt-4"><PinPad value={entry} onChange={setEntry} length={flowLength} label={flowTitle[flow]} disabled={busy} /></div>
           <Button className="mt-4 w-full max-w-[19rem]" disabled={!valid || busy} onClick={() => void next()}>{flow === "setup-confirm" ? "Create PIN" : flow === "change-confirm" ? "Change PIN" : flow === "areas-current" ? "Save choices" : flow === "device-current" ? "Set up device unlock" : "Continue"}</Button></>}
@@ -105,12 +105,12 @@ export function PrivacySettings({ configured, initialAreas, pinLength, userId }:
       {message ? <p role="alert" className="mt-4 text-sm text-destructive">{message}</p> : null}
     </section> : null}
     {ready && flow === null ? <section className="rounded-panel border bg-card p-6 shadow-paper sm:p-8">
-      <h2 className="font-serif text-2xl">Your PIN</h2>
+      <h2 className="font-serif text-section-title">Your PIN</h2>
       <p className="mt-2 text-sm text-muted-foreground">Use a 4- or 6-digit PIN. Keep it somewhere safe; there is no recovery yet.</p>
       <Button className="mt-5" variant="outline" onClick={() => start("change-current")}>Change PIN</Button>
     </section> : null}
     {ready && flow === null ? <section className="rounded-panel border bg-card p-6 shadow-paper sm:p-8">
-      <div className="flex items-start gap-3"><Fingerprint aria-hidden="true" className="mt-1 size-6 text-primary" /><div><h2 className="font-serif text-2xl">Device unlock</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Where supported, use your device’s fingerprint, face or screen lock. Your PIN stays encrypted in this browser and is checked by the server.</p></div></div>
+      <div className="flex items-start gap-3"><Fingerprint aria-hidden="true" className="mt-1 size-6 text-primary" /><div><h2 className="font-serif text-section-title">Device unlock</h2><p className="mt-1 text-sm leading-6 text-muted-foreground">Where supported, use your device’s fingerprint, face or screen lock. Your PIN stays encrypted in this browser and is checked by the server.</p></div></div>
       {deviceReady ? <div className="mt-5"><p className="text-sm">Ready on this browser.</p><Button className="mt-3" variant="outline" onClick={() => { removeDeviceUnlock(userId); setDeviceReady(false); setMessage("Device unlock removed from this browser."); }}>Remove from this browser</Button></div>
         : <Button className="mt-5" variant="outline" onClick={() => start("device-current")}>Set up device unlock</Button>}
     </section> : null}

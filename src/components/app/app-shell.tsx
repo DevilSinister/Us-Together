@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { signOutAction } from "@/app/actions/auth";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AppNavigation } from "@/components/app/app-navigation";
+import { NotificationBell } from "@/components/app/notification-bell";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+export function AppShell({ children, unreadCount }: { children: React.ReactNode; unreadCount: number }) {
   return (
     <div className="min-h-screen bg-background md:grid md:grid-cols-[16rem_1fr] md:items-start">
       <a
@@ -27,8 +28,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </aside>
       <div className="min-w-0 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
         <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-card px-5 py-4 md:hidden">
-          <Link href="/home" className="rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><BrandMark /></Link>
+          <Link href="/home" className="shrink-0 rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><BrandMark className="gap-1.5 whitespace-nowrap text-base sm:gap-2 sm:text-xl" /></Link>
           <div className="flex items-center gap-1">
+            <NotificationBell count={unreadCount} />
             <ThemeToggle />
             <form action={signOutAction}><Button variant="ghost" size="sm" aria-label="Sign out"><LogOut className="size-4" /></Button></form>
           </div>

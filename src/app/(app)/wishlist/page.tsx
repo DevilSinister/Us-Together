@@ -34,7 +34,7 @@ export default async function WishlistPage() {
       {view.paired ? (
         <div className="mt-10 grid gap-12 lg:grid-cols-2">
           <section aria-labelledby="my-wishes">
-            <h2 id="my-wishes" className="font-display text-3xl">Yours</h2>
+            <h2 id="my-wishes" className="font-display text-section-title">Yours</h2>
             <p className="mt-2 text-sm text-muted-foreground">{partnerLabel} can read these.</p>
             {view.mine.length ? (
               <div className="mt-6 space-y-8">{view.mine.map((item) => <WishlistCard key={item.id} item={item} />)}</div>
@@ -50,7 +50,7 @@ export default async function WishlistPage() {
           </section>
 
           <section aria-labelledby="their-wishes">
-            <h2 id="their-wishes" className="font-display text-3xl">{partnerLabel}</h2>
+            <h2 id="their-wishes" className="font-display text-section-title">{partnerLabel}</h2>
             <p className="mt-2 text-sm text-muted-foreground">Open a wish to plan a gift privately.</p>
             {view.partner.length ? (
               <div className="mt-6 space-y-8">{view.partner.map((item) => <WishlistCard key={item.id} item={item} secret={view.secrets[item.id]} />)}</div>

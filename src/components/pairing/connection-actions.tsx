@@ -26,7 +26,7 @@ export function WaitingConnectionActions() {
   return (
     <div className="space-y-8">
       <section>
-        <h2 className="font-display text-2xl">Invitation controls</h2>
+        <h2 className="font-display text-section-title">Invitation controls</h2>
         <p className="mt-2 leading-7 text-muted-foreground">Create a fresh short-lived code or revoke the current one. Creating a code automatically retires the previous code.</p>
         <form action={createAction} className="mt-4"><SubmitButton>Create fresh invitation</SubmitButton></form>
         <Message state={createState} />
@@ -34,7 +34,7 @@ export function WaitingConnectionActions() {
         <Message state={revokeState} />
       </section>
       <section className="border-t pt-8">
-        <h2 className="font-display text-2xl">Delete this empty space</h2>
+        <h2 className="font-display text-section-title">Delete this empty space</h2>
         <p className="mt-2 leading-7 text-muted-foreground">This is only available before a partner joins and before shared plans or memories exist.</p>
         <form action={deleteAction} className="mt-4 space-y-4">
           <div className="space-y-2"><Label htmlFor="delete-confirmation">Type DELETE to confirm</Label><Input id="delete-confirmation" name="confirmation" autoComplete="off" required /></div>
@@ -50,7 +50,7 @@ export function PairedConnectionActions() {
   const [state, action] = useActionState(leaveCoupleAction, initialActionState);
   return (
     <section className="border-t pt-8">
-      <h2 className="font-display text-2xl">Leave this shared space</h2>
+      <h2 className="font-display text-section-title">Leave this shared space</h2>
       <p className="mt-2 leading-7 text-muted-foreground">You immediately lose access. Shared plans and memories stay with the remaining partner.</p>
       <form action={action} className="mt-4 space-y-4">
         <div className="space-y-2"><Label htmlFor="leave-confirmation">Type LEAVE to confirm</Label><Input id="leave-confirmation" name="confirmation" autoComplete="off" required /></div>

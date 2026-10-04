@@ -156,7 +156,7 @@ export function PhotoPicker({value,onChange,disabled=false,legend="Photos and vi
  disabled?:boolean;
 }){
  return <fieldset className="space-y-4" disabled={disabled}>
-  <legend className="font-display text-2xl">{legend}</legend>
+  <legend className="font-display text-section-title">{legend}</legend>
   <PhotoChooser value={value} onChange={onChange} disabled={disabled}/>
   <PhotoQueue value={value} onChange={onChange} disabled={disabled}/>
  </fieldset>;

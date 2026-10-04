@@ -19,7 +19,7 @@ const fieldClass = "min-h-12 w-full rounded-control border border-border bg-fiel
 export function MilestoneForm({previewSession,defaultDate}:{previewSession?:string;defaultDate?:string}) {
   const [files,setFiles]=useState<QueuedPhoto[]>([]);
   const [state, action] = useActionState(createMilestoneAction, initialActionState);
-  if(state.savedId)return <section><h2 className="font-display text-3xl">Your moment is saved.</h2><MediaCollection access={{kind:"moment",id:state.savedId,previewSession}} initial={files}/><Button asChild className="mt-6"><Link href={"/milestones/"+state.savedId}>View moment</Link></Button></section>;
+  if(state.savedId)return <section><h2 className="font-display text-section-title">Your moment is saved.</h2><MediaCollection access={{kind:"moment",id:state.savedId,previewSession}} initial={files}/><Button asChild className="mt-6"><Link href={"/milestones/"+state.savedId}>View moment</Link></Button></section>;
   return <form action={action} className="space-y-6" noValidate>
     <input type="hidden" name="returnCreated" value={files.length?"true":"false"}/>
     <div className="space-y-2"><Label htmlFor="title">Moment name</Label><Input id="title" name="title" placeholder="The day we chose us" required aria-invalid={Boolean(state.fields?.title)} />{state.fields?.title ? <p className="field-error">{state.fields.title[0]}</p> : null}</div>
