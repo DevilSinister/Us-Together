@@ -106,7 +106,7 @@ Use Node.js 22 or newer (this phase was verified with Node 24); current Supabase
 
 Apply all Phase 5 migrations by their verified names/SQL, respecting existing hosted/local timestamp correspondence. The migration enables pg_cron and registers `us-together-plan-reminders`. Verify its active state and successful runs in the Cron dashboard. The private plan-attachments bucket and policies are migration-managed. See [Phase 5 operations](PHASE5_OPERATIONS.md).
 
-Developer preview supports calendar/checklist editing. Memory and moment galleries, captions and file comments can be tested with real browser-local files. Reminders remain in Plans. Plan attachment binaries still require an authenticated account.
+Developer preview supports calendar/checklist editing. Memory and moment galleries, captions and file comments can be tested with real browser-local files. Reminders remain in Plans. Plan attachment binaries still require an authenticated account. Set `DEV_SEED_CONTENT=true` alongside `DEV_LOGIN_ENABLED=true` for a fictional paired dataset: a plan, two memories, two moments, and generated browser-local photo tiles. It is non-production only; it does not connect to Supabase, upload files, or simulate partner activity.
 
 ## Phase 6 setup
 

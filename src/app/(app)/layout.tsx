@@ -5,6 +5,8 @@ import { AppShell } from "@/components/app/app-shell";
 import { getUnreadNotificationCount } from "@/app/actions/notifications";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { loadIdentities } from "@/lib/avatar/identities";
+import { isDeveloperSeedEnabled, readDeveloperState } from "@/lib/auth/dev-session";
+import { PreviewSampleMedia } from "@/components/dev/preview-sample-media";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +18,8 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   // the comment thread.
   const identities = await loadIdentities();
   const unreadCount = await getUnreadNotificationCount();
+  const previewState = identity.kind === "developer" && isDeveloperSeedEnabled() ? await readDeveloperState() : null;
   return <PartnerSync enabled={identity.kind === "supabase"}>
-    <IdentitiesProvider value={identities}><AppShell unreadCount={unreadCount}>{children}</AppShell></IdentitiesProvider>
+    <IdentitiesProvider value={identities}><AppShell unreadCount={unreadCount}>{previewState ? <PreviewSampleMedia sessionId={previewState.bucketSessionId} /> : null}{children}</AppShell></IdentitiesProvider>
   </PartnerSync>;
 }

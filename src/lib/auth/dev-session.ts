@@ -86,9 +86,33 @@ export type DevState = {
   };
 };
 
+const previewSamples = {
+  plan: { id: "00000000-0000-4000-8000-000000000401", title: "Coffee, a long walk, and no rush", description: "A slow Saturday for catching up with each other.", type: "date", status: "planned" as const, startsAt: "2026-10-18T13:00:00.000Z", endsAt: null, timezone: "Asia/Karachi", location: "F-6 Markaz" },
+  memories: [
+    { id: "00000000-0000-4000-8000-000000000402", title: "Rainy chai after work", description: "We stayed out a little longer because neither of us wanted the evening to end.", memoryDate: "2026-10-02", location: "Home", rating: 5, favorite: true, sourcePlanId: null },
+    { id: "00000000-0000-4000-8000-000000000403", title: "Sunday breakfast experiment", description: "The pancakes were uneven, the laughter was not.", memoryDate: "2026-09-21", location: "Kitchen", rating: 4, favorite: false, sourcePlanId: null },
+  ],
+  milestones: [
+    { id: "00000000-0000-4000-8000-000000000404", title: "First little trip together", description: "A whole weekend made from a train ride, too many photos, and one very good view.", type: "travel", milestoneDate: "2025-12-14", location: "Murree", featured: false },
+    { id: "00000000-0000-4000-8000-000000000405", title: "The night we made a promise", description: "One quiet conversation that changed the shape of everything after it.", type: "relationship", milestoneDate: "2024-08-14", location: "Islamabad", featured: false },
+  ],
+};
+
+function pairedPreviewSamples(state: DevState): DevState {
+  if (process.env.DEV_SEED_CONTENT !== "true" || state.coupleStatus !== "paired") return state;
+  return {
+    ...state,
+    plans: state.plans.length ? state.plans : [previewSamples.plan],
+    memories: state.memories.length ? state.memories : previewSamples.memories,
+    milestones: state.milestones.some((item) => item.id === previewSamples.milestones[0].id)
+      ? state.milestones
+      : [...state.milestones, ...previewSamples.milestones],
+  };
+}
+
 function createDeveloperState(fixture: "paired" | "solo" = "solo"): DevState {
   if (fixture === "paired") {
-    return {
+    const paired: DevState = {
       bucketSessionId: crypto.randomUUID(),
       displayName: "Alex",
       timezone: "Asia/Karachi",
@@ -103,6 +127,7 @@ function createDeveloperState(fixture: "paired" | "solo" = "solo"): DevState {
       notifications: [{ id: "00000000-0000-4000-8000-000000000302", title: "A milestone was added", category: "milestone", targetType: "milestone", targetId: "00000000-0000-4000-8000-000000000301", readAt: null, createdAt: "2026-08-31T12:00:00.000Z" }],
       notificationPreferences: { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true, onThisDayEnabled: true, bucketEnabled: true, wishlistEnabled: true, drawingsEnabled: true },
     };
+    return pairedPreviewSamples(paired);
   }
   return {
     bucketSessionId: crypto.randomUUID(),
@@ -122,6 +147,10 @@ function createDeveloperState(fixture: "paired" | "solo" = "solo"): DevState {
 
 export function isDeveloperLoginEnabled() {
   return process.env.NODE_ENV !== "production" && process.env.DEV_LOGIN_ENABLED === "true";
+}
+
+export function isDeveloperSeedEnabled() {
+  return isDeveloperLoginEnabled() && process.env.DEV_SEED_CONTENT === "true";
 }
 
 export async function hasDeveloperSession() {
@@ -160,7 +189,7 @@ export async function readDeveloperState(): Promise<DevState> {
   const raw = (await cookies()).get(DEV_STATE_COOKIE)?.value;
   if (!raw) return fallback;
   try {
-    return { ...fallback, ...JSON.parse((raw.startsWith("z.") ? inflateSync(Buffer.from(raw.slice(2), "base64url"), { maxOutputLength: 262144 }) : Buffer.from(raw, "base64url")).toString("utf8")) } as DevState;
+    return pairedPreviewSamples({ ...fallback, ...JSON.parse((raw.startsWith("z.") ? inflateSync(Buffer.from(raw.slice(2), "base64url"), { maxOutputLength: 262144 }) : Buffer.from(raw, "base64url")).toString("utf8")) } as DevState);
   } catch {
     return fallback;
   }
