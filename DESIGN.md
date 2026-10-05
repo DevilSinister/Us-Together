@@ -26,10 +26,21 @@ typography:
     letterSpacing: "-0.03em"
   headline:
     fontFamily: '"Iowan Old Style", Baskerville, "Times New Roman", serif'
-    fontSize: "3rem"
+    fontSize: "1.875rem"
     fontWeight: 400
-    lineHeight: 1.02
-    letterSpacing: "-0.03em"
+    lineHeight: 1.2
+    letterSpacing: "-0.02em"
+  headline-wide:
+    fontSize: "2.25rem"
+    lineHeight: 1.2
+  section-compact:
+    fontSize: "1.375rem"
+    lineHeight: 1.3
+  entry:
+    fontFamily: 'Aptos, "Segoe UI Variable", "Segoe UI", sans-serif'
+    fontSize: "1.125rem"
+    fontWeight: 600
+    lineHeight: 1.4
   title:
     fontFamily: '"Iowan Old Style", Baskerville, "Times New Roman", serif'
     fontSize: "1.5rem"
@@ -153,9 +164,10 @@ The palette is a warm paper-and-wine system: deep wine carries action and emphas
 ### Hierarchy
 
 - **Display** (regular, fluid 3–5.4rem, 0.98 line-height): First-view headlines and major narrative statements; use tight tracking only at this scale.
-- **Headline** (regular, 3rem, 1.02 line-height): Page-level signed-in headings.
-- **Title** (regular, 1.5rem, 1.25 line-height): Journey steps, panels, and content groups.
-- **Body** (regular, 1rem, 1.75 line-height): Explanations and form support; long introductory passages stay near 66–68 characters.
+- **Page title** (`text-page-title`, serif regular, 1.875rem mobile / 2.25rem wide, 1.2 line-height): One consistent scale for app pages, detail pages, forms, and authentication.
+- **Section title** (`text-section-title`, serif regular, 1.375rem mobile / 1.5rem wide, 1.3 line-height): Panels, content groups, calendars, and dialogs.
+- **Entry title** (`text-entry-title`, sans-serif semibold, 1.125rem, 1.4 line-height): Moments, memories, notes, ideas, wishes, and Home entries. Long titles wrap safely; compact list rows retain their existing truncation.
+- **Body** (regular, 1rem, 1.5–1.75 line-height): Explanations and form support; introductory passages stay within 65 characters per line. Page introductions use 1rem with a shorter heading-to-copy gap.
 - **Label** (semibold, 0.875rem, 1.25 line-height): Fields, compact actions, section eyebrows, and navigation.
 
 ### Named Rules
@@ -167,6 +179,8 @@ The palette is a warm paper-and-wine system: deep wine carries action and emphas
 The core spatial model is one narrative path with supporting context, not a collection of equal cards. Public landing and authentication surfaces sit within a bounded paper sheet; wide screens use an asymmetric two-column split, while narrow screens collapse to a single reading column without changing content order. The signed-in shell uses a persistent 16rem sidebar from the medium breakpoint upward and five bottom destinations on smaller screens: Home, Calendar, Lists, Memories, and More. The sidebar lists Home on its own, then three labelled groups that follow the product loop: Plan together (Calendar, Plans, Bucket lists), Keep together (Memories, Gallery, Moments, Notes, Wishlists), and Your account (Notifications, Profile, Partner). More opens a focused destination dialog carrying the same groups for every destination outside the phone bar. A skip-to-content link precedes the sidebar, the sidebar scrolls independently at full viewport height, and the phone header stays pinned to the top.
 
 Content containers use generous outer gutters that grow from 1.25rem on phones to 2rem on larger screens. The product body is capped at 72rem, auth and landing sheets extend to 90–92rem, and form content stays near 29rem. Spacing follows the recurring 0.5rem, 0.75rem, 1rem, 1.25rem, 1.5rem, and 2rem rhythm, with larger page-level gaps composed from it.
+
+The Gallery uses the compact heading scale and a single 44px filter trigger before the media. Grouping, source, media type, and date live in one keyboard-accessible dialog rather than an always-visible four-field panel. The trigger shows an active-filter count and a short applied summary; dialog edits are staged until Show gallery, while Escape leaves the current gallery intact. Scoped galleries omit the fixed source control. The first media group follows the trigger with one small gap.
 
 **The One Narrative Path Rule.** A page should make the next meaningful relationship step visually dominant. Supporting material may sit beside it, but must not flatten the story into an equal-card dashboard.
 
@@ -242,6 +256,8 @@ Two components carry the states a partner meets most often, so they read identic
 
 Desktop navigation lives in the warm card-paper sidebar and uses quiet blush to mark the active destination. Mobile navigation is fixed to the bottom safe area, uses the same paper tone with a fine top rule, and pairs icons with compact labels. All navigation targets meet the 44px minimum touch height. Five evenly spaced mobile targets prevent cramped labels; Lists is the short mobile label for Bucket lists. More uses the shared modal focus and Escape behavior. Bottom content padding reserves navigation height plus the device safe area.
 
+The mobile top bar includes a notification bell before appearance and sign-out controls. Its badge shows the signed-in recipient's unread count, capped visually at 99+, while the accessible name states the full count. At narrow phone widths the brand uses a smaller single-line serif label so all three controls retain their 44px targets. Home uses the compact page-header scale; its intro leads directly into the journal section without a separate notification action row.
+
 Every route a partner can reach is reachable from navigation; no destination depends on a link that happens to sit on Home. Each destination carries its own icon, so no two adjacent items read as the same thing.
 
 ### Calendar Day Markers
@@ -262,7 +278,11 @@ A memory with no photograph wears its own initial in the thumbnail square: the f
 
 ### Notes as Letters
 
-A shared note is a letter: card paper with the paper shadow and no border, the author's avatar and "From … to …" at its head, the body on the one-pixel note thread, and the author's name signed in serif italic at the foot. A private note is a journal page: flat muted paper with an "Only you" seal. The notes list leads each row with the author's avatar and a small visibility badge pinned to it, a one-line serif title, and a two-line serif-italic excerpt.
+A shared note is a letter: card paper with the paper shadow and no border, the author's avatar and "From … to …" at its head, the body on the one-pixel note thread, and the author's name signed in serif italic at the foot. A private note is a journal page: flat muted paper with an "Only you" seal. The notes list leads each row with the author's avatar and a small visibility badge pinned to it, an 18px sans-serif entry title, and a quiet 16px two-line excerpt.
+
+### Compact Moments
+
+Moments use full-width reading rows separated by fine rules, without the old timeline gutter. Titles use the shared entry role, followed by one date/type line and a two-line story preview. Up to six photos sit in a horizontally scrollable strip; the partially visible next tile signals more photos. Every tile opens the viewer. The title opens the moment, and View all N files appears only when the scoped gallery contains files beyond the preview. Detail media controls use the explicit label Open gallery.
 
 ## Do's and Don'ts
 

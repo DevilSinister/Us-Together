@@ -80,12 +80,12 @@ export function ConnectStepForms() {
   return (
     <div className="space-y-8">
       <section className="border-b pb-8">
-        <div className="flex items-start gap-4"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-primary"><Link2 className="size-5" /></span><div><h2 className="font-display text-2xl">Invite your partner</h2><p className="mt-1 leading-7 text-muted-foreground">Create your shared space and get a private six-digit code.</p></div></div>
+        <div className="flex items-start gap-4"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-primary"><Link2 className="size-5" /></span><div><h2 className="font-display text-section-title">Invite your partner</h2><p className="mt-1 leading-7 text-muted-foreground">Create your shared space and get a private six-digit code.</p></div></div>
         <form action={createAction} className="mt-5"><SubmitButton>Create invitation code</SubmitButton></form>
         <FormMessage state={createState} />
       </section>
       <section>
-        <div className="flex items-start gap-4"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-primary"><UsersRound className="size-5" /></span><div><h2 className="font-display text-2xl">I have a code</h2><p className="mt-1 leading-7 text-muted-foreground">Join the private space your partner already created.</p></div></div>
+        <div className="flex items-start gap-4"><span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-primary"><UsersRound className="size-5" /></span><div><h2 className="font-display text-section-title">I have a code</h2><p className="mt-1 leading-7 text-muted-foreground">Join the private space your partner already created.</p></div></div>
         <form action={joinAction} className="mt-5 space-y-4" noValidate>
           <div className="space-y-2"><Label htmlFor="pairingCode">Pairing code</Label><Input id="pairingCode" name="pairingCode" inputMode="numeric" autoComplete="one-time-code" maxLength={6} placeholder="000000" className="text-center font-display text-2xl tracking-[0.3em]" aria-invalid={Boolean(joinState.fields?.pairingCode)} />{joinState.fields?.pairingCode ? <p className="field-error">{joinState.fields.pairingCode[0]}</p> : null}</div>
           <Button type="submit" variant="outline" className="w-full">Join shared space</Button>

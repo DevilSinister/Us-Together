@@ -329,7 +329,7 @@ export function DrawingEditor({ partnerName, canSend }: { partnerName: string | 
             className={"grid min-h-12 place-items-center gap-1 rounded-xl border-2 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none " +
               (tool === item.id ? "border-primary bg-primary text-primary-foreground" : "border-transparent bg-secondary/70 text-foreground hover:border-border hover:bg-secondary")}>
             <Icon className="size-5" aria-hidden="true" />
-            <span aria-hidden="true" className="hidden text-[11px] font-semibold leading-none sm:block">{item.short}</span>
+            <span aria-hidden="true" className="hidden text-xs font-semibold leading-none sm:block">{item.short}</span>
           </button>; })}
         </div>
         <div className="mt-4 border-t pt-4">
@@ -374,7 +374,7 @@ export function DrawingEditor({ partnerName, canSend }: { partnerName: string | 
     <div hidden={review === null} className="space-y-5">
       <div className="text-center">
         <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">One last look</p>
-        <h2 ref={reviewHeading} tabIndex={-1} className="mt-2 font-display text-3xl outline-none">Ready for {partner}?</h2>
+        <h2 ref={reviewHeading} tabIndex={-1} className="mt-2 font-display outline-none text-section-title">Ready for {partner}?</h2>
       </div>
       <div className="rounded-[1.5rem] bg-[#f5dfe2] p-3 dark:bg-[#4b303a] sm:p-5">
         <div className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.12em] text-[#713143] dark:text-[#f5c9d3]">Your finished drawing</div>

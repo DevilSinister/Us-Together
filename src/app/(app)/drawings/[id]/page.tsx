@@ -20,7 +20,7 @@ export default async function DrawingPage({ params, searchParams }: { params: Pr
     {sent === "1" && note.mine ? <p role="status" className="status-message status-success mt-3"><CircleCheck className="size-5 shrink-0" aria-hidden="true" />Sent to {partner}. It is on their drawings page and their widget.</p> : null}
     <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
       <div><p className="text-xs font-bold uppercase tracking-[0.13em] text-primary">{note.mine ? "Sent to " + partner : "From " + partner}</p>
-        <h1 className="mt-2 font-display text-4xl tracking-[-0.03em] sm:text-5xl">A little drawing.</h1></div>
+        <h1 className="mt-2 font-display text-page-title">A little drawing.</h1></div>
       <Button asChild className="gap-2"><Link href="/drawings/new"><Brush className="size-4" aria-hidden="true" />{note.mine ? "Draw another" : "Draw back"}</Link></Button>
     </div>
     <div className="mt-7 rounded-[1.5rem] bg-[#f5dfe2] p-3 dark:bg-[#4b303a] sm:p-5">

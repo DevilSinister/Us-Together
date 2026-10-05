@@ -44,7 +44,7 @@ export default async function ProfilePage() {
 
       <section aria-labelledby="profile-you" className="mt-9 rounded-panel bg-card p-6 shadow-paper sm:p-8">
         {/* The photo editor below carries the face, so the heading does not repeat it. */}
-        <h2 id="profile-you" className="font-display text-2xl">You</h2>
+        <h2 id="profile-you" className="font-display text-section-title">You</h2>
         <div className="mt-6">
           <ProfileForm displayName={profile?.display_name ?? ""} timezone={profile?.timezone ?? "UTC"} avatarSrc={identities.me.src} />
         </div>
@@ -59,7 +59,7 @@ export default async function ProfilePage() {
       <section aria-labelledby="profile-partner" id="partner" className="mt-8 rounded-panel bg-card p-6 shadow-paper sm:p-8">
         <div>
           <div className="min-w-0">
-            <h2 id="profile-partner" className="font-display text-2xl">Your partner</h2>
+            <h2 id="profile-partner" className="font-display text-section-title">Your partner</h2>
             <p className="mt-1 text-sm text-muted-foreground">
               {partner.name
                 ? "This is how they appear to you everywhere in the app. It is yours, not theirs: they never see the name or picture you chose."

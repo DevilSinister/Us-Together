@@ -95,7 +95,7 @@ export default async function StoryPage({ searchParams }: { searchParams: Promis
               return (
                 <section key={group.year} className="mt-12 first:mt-10" aria-labelledby={`year-${group.year}`}>
                   <header className="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b pb-3">
-                    <h2 id={`year-${group.year}`} className="font-display text-6xl leading-none tracking-[-0.03em] text-primary sm:text-7xl">{group.year}</h2>
+                    <h2 id={`year-${group.year}`} className="font-display text-primary text-section-title">{group.year}</h2>
                     {chapter ? <p className="font-display text-xl italic text-muted-foreground">{chapter}</p> : null}
                   </header>
 
@@ -134,8 +134,8 @@ export default async function StoryPage({ searchParams }: { searchParams: Promis
                               ) : null}
                               <h3 className={
                                 kept
-                                  ? "mt-1 break-words font-display text-3xl leading-tight transition-colors group-hover:text-primary motion-reduce:transition-none"
-                                  : "break-words font-display text-2xl leading-tight transition-colors group-hover:text-primary motion-reduce:transition-none"
+                                  ? "mt-1 break-words text-entry-title transition-colors group-hover:text-primary motion-reduce:transition-none"
+                                  : "break-words text-entry-title transition-colors group-hover:text-primary motion-reduce:transition-none"
                               }>
                                 {entry.title}
                               </h3>
@@ -216,7 +216,7 @@ function StoryBeginning({ startedOn, identities, fromTop }: { startedOn: string 
         <>
           <AvatarPair me={identities.me} partner={identities.partner} size="lg" />
           <p className="mt-5 text-sm font-semibold text-primary">Where it began</p>
-          <p className="mt-2 font-display text-4xl leading-tight sm:text-5xl"><time dateTime={startedOn}>{longFormat.format(at(startedOn))}</time></p>
+          <p className="mt-2 font-display text-section-title"><time dateTime={startedOn}>{longFormat.format(at(startedOn))}</time></p>
           <p className="mx-auto mt-3 max-w-[46ch] text-pretty leading-7 text-muted-foreground">The first page. Everything above grew from here.</p>
         </>
       ) : (

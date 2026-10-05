@@ -259,7 +259,7 @@ export function MediaViewer({items,index,onIndex,onClose,onChange}:{items:Galler
   {/* The bottom carries only the caption and the way up into the comments. */}
   {!sheet?<div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-14" style={{opacity:1-pull}}>
    <div className="mx-auto max-w-2xl">
-    {item.caption?<p className="line-clamp-3 whitespace-pre-wrap break-words text-[0.95rem] leading-6 text-white/95">{item.caption}</p>:null}
+    {item.caption?<p className="line-clamp-3 whitespace-pre-wrap break-words text-base leading-6 text-white/95">{item.caption}</p>:null}
     <button ref={commentsButton} type="button" onClick={()=>openSheet("comments")} className="pointer-events-auto mx-auto mt-1 flex min-h-11 flex-col items-center justify-center px-6 text-sm font-semibold text-white/85 hover:text-white focus-visible:outline-2 focus-visible:outline-white">
      <ChevronUp className="size-5" aria-hidden="true"/>Comments
     </button>
@@ -379,7 +379,7 @@ function Sheet({kind,item,onClose,onEditCaption,onSaved}:{kind:"comments"|"capti
    >
     <span aria-hidden="true" className="mx-auto block h-1.5 w-10 rounded-full bg-border"/>
     <div className="flex items-center gap-3 pb-3 pt-3">
-     <h2 id="viewer-sheet-title" ref={heading} tabIndex={-1} className="min-w-0 flex-1 font-display text-2xl focus:outline-none">{kind==="caption"?(item.caption?"Edit caption":"Add a caption"):"Comments"}</h2>
+     <h2 id="viewer-sheet-title" ref={heading} tabIndex={-1} className="min-w-0 flex-1 font-display focus:outline-none text-section-title">{kind==="caption"?(item.caption?"Edit caption":"Add a caption"):"Comments"}</h2>
      <button type="button" onClick={onClose} aria-label="Close" className="grid size-11 shrink-0 place-items-center rounded-control text-muted-foreground hover:bg-secondary hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring"><X className="size-5" aria-hidden="true"/></button>
     </div>
    </div>

@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, CalendarHeart, Flag, Star } from "lucide-react";
+import { ArrowRight, Flag, Star } from "lucide-react";
 import { EntryPreview } from "@/components/entries/entry-preview";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/app/page-header";
 import { EmptyState, PairingNotice } from "@/components/app/states";
-import { ThreadMarker } from "@/components/app/thread";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState } from "@/lib/auth/dev-session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -58,22 +57,21 @@ export default async function MilestonesPage() {
           action={<Button asChild><Link href="/milestones/new">Keep the first moment</Link></Button>}
         />
       ) : (
-        <section className="relationship-thread mt-10 space-y-2" aria-label="Moment timeline">
+        <section className="mt-5 max-w-3xl divide-y" aria-label="Moment timeline">
           {milestones.map((milestone) => (
-            <article id={milestone.id} key={milestone.id} className="relative flex gap-5 py-5">
-              <ThreadMarker icon={CalendarHeart} />
+            <article id={milestone.id} key={milestone.id} className="py-5">
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-display text-3xl"><Link href={`/milestones/${milestone.id}`} className="hover:underline">{milestone.title}</Link></h2>
+                  <h2 className="text-entry-title"><Link href={`/milestones/${milestone.id}`} className="hover:text-primary hover:underline">{milestone.title}</Link></h2>
                   {milestone.is_featured ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
                       <Star className="size-3.5 fill-current" aria-hidden="true" />Featured
                     </span>
                   ) : null}
                 </div>
-                <p className="mt-2 text-sm font-semibold text-primary">{formatter.format(new Date(`${milestone.milestone_date}T00:00:00Z`))} · {milestone.type.replaceAll("_", " ")}</p>
-                {milestone.description ? <p className="mt-3 max-w-[65ch] leading-7 text-muted-foreground">{milestone.description}</p> : null}
-                <div className="max-w-lg">
+                <p className="mt-1 text-sm text-muted-foreground"><time dateTime={milestone.milestone_date}>{formatter.format(new Date(`${milestone.milestone_date}T00:00:00Z`))}</time> · {milestone.type.replaceAll("_", " ")}</p>
+                {milestone.description ? <p className="mt-2 line-clamp-2 max-w-[65ch] text-base leading-6 text-muted-foreground">{milestone.description}</p> : null}
+                <div className="max-w-2xl">
                   <EntryPreview access={{ kind: "moment", id: milestone.id, previewSession }} entryTitle={milestone.title} entryDate={milestone.milestone_date} />
                 </div>
               </div>

@@ -418,3 +418,13 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 **Decision:** Validate the scheduler header against its Vault source through a service-only boolean RPC. Preserve default-denied execution and authorize the exceptional private definer explicitly. Bound arithmetic first, stop missing-callback retries after five attempts, expire read/stale activity using the logical notification timestamp, and preserve inbox records. Send visible Android alerts at high priority. Retire devices only for confirmed typed UNREGISTERED responses.
 
 **Consequences:** The existing APK can receive new alerts after the backend repair; no duplicated Edge dispatch-secret configuration is required for FCM. No-alert FCM validation is available to an authorized operator and cannot settle or remove registrations. Physical permission/channel display still needs device evidence.
+
+## ADR-046 — Fresh credentials and bounded recovery for resumable media
+
+**Status:** Accepted, 2026-10-03.
+
+**Context:** Large multi-chunk videos outlive the token captured at transfer start, and all TUS failures previously paused an unsettled file under generic connection copy.
+
+**Decision:** Authenticate each TUS request from the current browser session, proactively refresh near expiry, refresh rejected credentials once per credential, and use bounded backoff for temporary network/service errors. Resume connection pauses when online/foreground; preserve deliberate manual pause. Settle permanent rejections so remaining files can finish and keep the failed selection/allocation. Expose safe categories/statuses only.
+
+**Consequences:** Recovery uses the same live TUS URL and server byte offset without duplicate allocation. Page closure still loses local selection/resume state. Existing Storage ownership and immutable-original policies stay enforced.

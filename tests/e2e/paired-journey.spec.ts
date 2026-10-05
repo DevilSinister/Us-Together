@@ -6,11 +6,46 @@ async function enterPairedPreview(page: import("@playwright/test").Page) {
   await expect(page).toHaveURL(/\/home$/);
 }
 
-test("paired fixture exposes a named partner and completes the plan-to-memory loop", async ({ page }) => {
+test("mobile Home keeps unread notifications in the header", async ({ page }, testInfo) => {
+  test.skip(!testInfo.project.name.startsWith("mobile"), "mobile header only");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await enterPairedPreview(page);
+  const bell = page.getByRole("link", { name: "Notifications, 1 unread" });
+  await expect(bell).toBeVisible();
+  const box = await bell.boundingBox();
+  expect(box?.width).toBeGreaterThanOrEqual(44);
+  expect(box?.height).toBeGreaterThanOrEqual(44);
+  const gap = await page.evaluate(() => {
+    const header = document.querySelector("main > div > header");
+    const journal = document.getElementById("thread-title");
+    return header && journal ? journal.getBoundingClientRect().top - header.getBoundingClientRect().bottom : null;
+  });
+  expect(gap).not.toBeNull();
+  expect(gap!).toBeLessThanOrEqual(40);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await page.screenshot({ path: `test-results/home-bell-${testInfo.project.name}.png`, fullPage: true });
+  await page.setViewportSize({ width: 320, height: 700 });
+  await page.emulateMedia({ colorScheme: "dark", reducedMotion: "reduce" });
+  await expect(bell).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth)).toBe(false);
+  await page.screenshot({ path: `test-results/home-bell-dark-narrow-${testInfo.project.name}.png` });
+
+  await bell.click();
+  await expect(page).toHaveURL(/\/notifications$/);
+  await page.getByRole("button", { name: "Mark read" }).click();
+  await expect(page.getByRole("link", { name: "Notifications", exact: true }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Notifications, .* unread/ })).toHaveCount(0);
+});
+
+test("paired fixture exposes a named partner and completes the plan-to-memory loop", async ({ page }, testInfo) => {
   await enterPairedPreview(page);
   await expect(page.getByRole("heading", { name: /days of us—and counting/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: "The day we chose us" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "1 unread" })).toBeVisible();
+  if (testInfo.project.name.startsWith("mobile")) {
+    await expect(page.getByRole("link", { name: "Notifications, 1 unread" })).toBeVisible();
+  } else {
+    await expect(page.getByRole("navigation", { name: "Main navigation" }).getByRole("link", { name: "Notifications" })).toBeVisible();
+  }
   await page.goto("/pairing");
   await expect(page.getByRole("heading", { name: "Maya" })).toBeVisible();
   await expect(page.getByText("Shared access is granted only while both memberships are active.")).toBeVisible();

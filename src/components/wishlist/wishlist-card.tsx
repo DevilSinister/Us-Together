@@ -20,7 +20,7 @@ export function WishlistCard({ item, secret }: { item: WishlistItem; secret?: Pu
           </span>
         ) : null}
       </div>
-      <h3 className="mt-2 break-words font-display text-2xl sm:text-3xl">
+      <h3 className="mt-2 break-words text-entry-title">
         <Link href={"/wishlist/" + item.id} className="underline-offset-4 hover:text-primary hover:underline">{item.title}</Link>
       </h3>
       {item.description ? <p className="mt-3 line-clamp-3 break-words leading-7 text-muted-foreground">{item.description}</p> : null}

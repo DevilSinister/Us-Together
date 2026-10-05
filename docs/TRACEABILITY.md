@@ -19,7 +19,7 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 7 | Invite link and six-digit code | [Features](FEATURES.md), [Security](SECURITY.md) | Phase 2, hardened | Attempt-limit/revoke/used-code pgTAP; local execution pending runtime |
 | 8 | Onboarding | [UX Flows](UX_FLOWS.md), [Design Brief](DESIGN_BRIEF.md) | Phase 2 | Paired/solo fixture and desktop/mobile browser tests; real-account journey open |
 | 9 | Navigation | [Design Brief](DESIGN_BRIEF.md), [Design System](../DESIGN.md) | Phase 1 plus mobile and consistency follow-ups | Five destinations, More keyboard/destination checks and 320px–767px browser coverage; grouped sidebar reaching every route including Gallery and Notifications, per-destination icons and a skip-to-content link; [mobile verification](MOBILE_LISTS_VERIFICATION.md), [consistency verification](UI_CONSISTENCY_VERIFICATION.md) |
-| 10 | Home dashboard | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 3, implemented | Empty/populated/mixed-privacy and two-timezone unit cases; paired desktop/mobile browser journey |
+| 10 | Home dashboard | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 3, implemented | Empty/populated/mixed-privacy and two-timezone unit cases; mobile Home uses the compact header and tighter journal spacing; focused 320px/Pixel 7 dark/light browser check passed on 2026-10-04 |
 | 11 | Plans/date planner | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 5 implemented | Full CRUD/calendar/checklist/reminder browser flow; hosted 40-assertion suite; [integration boundaries](PHASE5_VERIFICATION.md) |
 | 12 | Plan details/checklist | [Features](FEATURES.md), [API Contracts](API_CONTRACTS.md) | Phase 5 implemented | Versioned checklist CRUD/reorder, details, map/budget persistence; keyboard/reduced-motion browser coverage |
 | 13 | Calendar views | [Features](FEATURES.md), [Design Brief](DESIGN_BRIEF.md) | Phase 5 implemented | Month/week/upcoming, multi-day timezone and DST tests; desktop/mobile calendar journey |
@@ -47,7 +47,7 @@ This matrix maps every numbered section of the source master prompt to its canon
 | 35 | Private vault storage | [Vault](VAULT.md), [Security](SECURITY.md) | R2 | URL/storage negatives |
 | 36 | Vault encryption boundary | [Vault](VAULT.md), [Decisions](DECISIONS.md) | R2/Later | Claim/security review |
 | 37 | File upload security | [Security](SECURITY.md), [API Contracts](API_CONTRACTS.md) | Phase 5 plan attachments; Phase 6 memory media/R2 | Plan signature/size and path authorization verified; memory binary round trip verified with 34 hosted checks; plan binary round trip remains integration |
-| 38 | In-app notifications | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3 foundation implemented | Generic-envelope trigger, recipient/membership RLS, preference suppression pgTAP specification, browser read/preferences journey |
+| 38 | In-app notifications | [Features](FEATURES.md), [Database](DATABASE.md) | Phase 3 foundation implemented | Generic-envelope trigger, recipient/membership RLS, preference suppression pgTAP specification; mobile header bell uses an exact recipient unread count and mark-read refresh passed in focused browser check on 2026-10-04 |
 | 39 | Push notifications | [Features](FEATURES.md) | R2 | Opt-in/secret exclusion |
 | 40 | Couple activity feed | [Features](FEATURES.md), [Security](SECURITY.md) | R2 candidate | Inference tests before enablement |
 | 41 | Rule-based date generator | [Features](FEATURES.md) | Later | Input/output/conversion tests |
@@ -106,8 +106,8 @@ A source requirement is covered only when its canonical specification contains b
 
 | Gallery follow-up | Requested behavior | Implementation | Verification |
 | --- | --- | --- | --- |
-| Six-photo previews | Six images per entry on Memories/Moments listings and details | Lazy EntryPreview and MediaCollection; Show more routes to scoped Gallery; touch swipe and keyboard viewer | Desktop/mobile seven-photo listing, swipe, scoped gallery and file-comment journey |
-| Home gallery | Browse all files by memory or date | /gallery, Home link, shared_gallery invoker view, 48-file cursor, filters | Desktop/mobile grouping, media/date filters; foreign/former/anon RLS |
+| Six-photo previews | Six images per entry on Memories/Moments listings and details | Lazy EntryPreview and MediaCollection; listing photo strip with conditional View all N files, explicit Open gallery on details | Desktop/mobile one/seven-photo listing, keyboard viewer and scoped-gallery checks; [compact typography verification](COMPACT_TYPOGRAPHY_VERIFICATION.md) |
+| Home gallery | Browse all files by memory or date | /gallery, Home link, shared_gallery invoker view, 48-file cursor; compact filter trigger and staged dialog for grouping, source, media and date | Focused desktop/mobile filter dialog, reset, Escape and overflow checks passed 2026-10-04; the older full-media journey timed out before Gallery at its upload caption selector. Foreign/former/anon RLS evidence remains separate. |
 | File conversations | Caption and partner comments on each photo/video | Shared MediaViewer and media_comments; IndexedDB equivalent in preview | Per-file isolation, cross-gallery persistence, partner author rules, cascade and quota checks |
 
 ## Owner-directed release transition — 2026-09-05
@@ -186,7 +186,7 @@ Local `npm run test:rls` exited before assertions because Postgres at 127.0.0.1:
 | Delete behind a confirmation modal everywhere | `src/components/ui/confirm-delete.tsx`; used for memories, notes, plans, wishes, ideas, lists, comments, gallery files, plan attachments, gift plans | Keyboard: Enter opens, focus on Keep it, Tab to Delete, Escape closes, focus returns to trigger; plan deletion ran end to end in preview with pending state |
 | Bucket ideas separated by status; Organize by status, category or priority | `src/lib/bucket/grouping.ts` (7 unit tests), `src/components/bucket/idea-tile.tsx`, `bucket-workspace.tsx` | Unit tests; in-app browser status/category/priority grouping, persistence and no overflow at 375px; desktop two-column grid |
 | Plan a bucket-list idea from the new-plan page | `src/app/(app)/plans/new/page.tsx`, `loadPlannableIdeas` in `src/lib/bucket/data.ts`, `PlanForm` `source` | In-app browser: idea prefilled title, kind (Trip), date, budget, currency, story; saved plan linked; map link hidden |
-| Notes with more character | `src/app/(app)/notes/page.tsx` (author avatars, serif excerpts), `notes/[id]/page.tsx` (letter vs journal page, signature) | Lint, typecheck and build only; the developer preview has no notes, so no visual check ran |
+| Notes with more character | `src/app/(app)/notes/page.tsx` (author avatars, serif excerpts, compact mobile header and one list boundary), `notes/[id]/page.tsx` (letter vs journal page, signature) | Lint, typecheck, unit suite, build, and changed-file Impeccable detector passed on 2026-10-04; the developer preview has no notes, so the populated-list visual check remains open |
 | No form puts its fields in the URL before hydration | `method="post"` on all 17 script-handled forms; `src/lib/forms-guard.test.ts` fails on any `<form>` without `action` or `method` | Guard failed before the fix and passes after; in the in-app browser a native `form.submit()` on `/bucket/new` sent a POST and left the probe title out of the URL |
 | A memory without photos gets a warm placeholder | `MemoryMonogram` in `src/components/memories/gallery.tsx`; `src/lib/memories/initial.ts` (2 unit tests) | In-app browser: a photo-less memory shows its serif initial on blush |
 
@@ -211,3 +211,7 @@ Local `npm run test:rls` exited before assertions because Postgres at 127.0.0.1:
 - Video thumbnails in the shared gallery/detail tile and queued files -> `src/components/entries/video-thumbnail.tsx`, `media-tile.tsx`, `photo-picker.tsx` -> `tests/e2e/video-thumbnails.spec.ts`, `docs/VIDEO_THUMBNAIL_VERIFICATION.md`. Uses authorized original reads without new Storage/schema behavior.
 
 - Native Android push recovery -> `supabase/functions/fcm-dispatch/{index,handler}.ts`, `src/lib/notifications/fcm-dispatch.ts`, three ledgered FCM recovery migrations -> `src/lib/notifications/fcm-dispatch.test.ts`, `supabase/tests/database/0015_fcm_dispatch_recovery.test.sql`, `docs/NATIVE_PUSH_VERIFICATION.md`. Existing APK uses the repaired backend; no Android interface change.
+
+- Batch video transfer recovery -> `src/lib/entries/resumable-upload.ts`, `src/components/entries/uploader.tsx` -> real TUS fault tests in `resumable-upload.test.ts`, explicit hosted desktop/mobile `video-upload-recovery.spec.ts`, `docs/VIDEO_UPLOAD_RECOVERY_VERIFICATION.md`.
+
+- Local paired preview seed -> `src/lib/auth/dev-session.ts`, `src/components/dev/preview-sample-media.tsx` -> `DEV_SEED_CONTENT=true` adds fictional records and IndexedDB-only generated photo tiles; lint, typecheck, and 249 unit tests pass. It never calls Supabase or represents partner activity.

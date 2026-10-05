@@ -103,7 +103,7 @@ export function MemoryGallery({ initial }: { initial: MemoryPage }) {
     <p className="sr-only" role="status">{pending ? "Loading memories" : page.memories.length + " memories shown"}</p>
 
     {!page.memories.length ? <div className="py-12">
-      <h2 className="font-display text-3xl">
+      <h2 className="font-display text-section-title">
         {filtered ? "No memories match just yet." : "Start with the detail you never want to lose."}
       </h2>
       <p className="mt-4 max-w-prose leading-7 text-muted-foreground">
@@ -135,7 +135,7 @@ export function MemoryGallery({ initial }: { initial: MemoryPage }) {
 
                 <span className="min-w-0 flex-1">
                   <span className="flex items-start gap-2">
-                    <span className="min-w-0 truncate font-display text-xl leading-tight transition-colors group-hover:text-primary motion-reduce:transition-none sm:text-2xl">
+                    <span className="min-w-0 truncate text-entry-title transition-colors group-hover:text-primary motion-reduce:transition-none">
                       {m.title}
                     </span>
                     {m.is_favorite ? <>

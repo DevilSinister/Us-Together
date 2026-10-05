@@ -43,7 +43,7 @@ export default async function PairingPage() {
   return (
     <div className="mx-auto max-w-2xl reveal-on-load">
       <p className="text-sm font-semibold text-primary">Partner connection</p>
-      <h1 className="mt-3 font-display text-5xl tracking-[-0.03em]">{paired ? "You’re connected." : waiting ? "Your invitation is waiting." : "Bring your two accounts together."}</h1>
+      <h1 className="mt-3 font-display text-page-title">{paired ? "You’re connected." : waiting ? "Your invitation is waiting." : "Bring your two accounts together."}</h1>
       <p className="mt-5 mb-9 max-w-[62ch] leading-7 text-muted-foreground">{paired ? "This private space has reached its two-partner limit." : waiting ? "Your shared space is ready for its second account." : "One person creates the invitation; the other joins with its short-lived code."}</p>
       {paired ? (
         <div className="paper-surface rounded-[1.25rem] border bg-card p-6 sm:p-9">
@@ -52,7 +52,7 @@ export default async function PairingPage() {
               <Avatar name={identities.partner.name} src={identities.partner.src} style={identities.partner.style} size="lg" eager />
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-primary">Connected partner</p>
-                <h2 className="mt-1 break-words font-display text-3xl">{identities.partner.name}</h2>
+                <h2 className="mt-1 break-words font-display text-section-title">{identities.partner.name}</h2>
               </div>
             </div>
             <p className="mt-4 leading-7 text-muted-foreground">Timezone: {partner?.timezone ?? "Not provided"}. Shared access is granted only while both memberships are active.</p>

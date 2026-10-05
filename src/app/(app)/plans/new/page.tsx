@@ -39,12 +39,12 @@ export default async function NewPlanPage({ searchParams }: { searchParams: Prom
     <Link href={source ? `/bucket/${source.item.id}` : "/plans"} className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-primary hover:underline"><ArrowLeft className="size-4" />{source ? "Back to the idea" : "Back to plans"}</Link>
     <header className="mt-5">
       <p className="text-sm font-semibold text-primary">{source ? "From your bucket list" : "Something to look forward to"}</p>
-      <h1 className="mt-2 font-display text-5xl tracking-[-0.03em] sm:text-6xl">{source ? "Give someday a date." : "Make room for the moment."}</h1>
+      <h1 className="mt-2 font-display text-page-title">{source ? "Give someday a date." : "Make room for the moment."}</h1>
       <p className="mt-4 max-w-[65ch] text-lg leading-8 text-muted-foreground">{source ? "Everything your idea already knew is filled in. Add the time, and it stays linked to the idea." : "Start with the time and intention. The checklist, reminder, and memory can grow from here."}</p>
     </header>
 
     {ideas.length || source ? <section aria-labelledby="from-bucket" className="mt-8 rounded-panel bg-secondary p-5 sm:p-6">
-      <h2 id="from-bucket" className="flex items-center gap-2 font-display text-2xl">
+      <h2 id="from-bucket" className="flex items-center gap-2 font-display text-section-title">
         <Sparkles className="size-5 shrink-0 text-primary" aria-hidden="true" />
         {source ? <span className="min-w-0 break-words">Planning “{source.item.title}”</span> : "Plan something from your bucket list"}
       </h2>

@@ -140,7 +140,7 @@ export function ItemDetail({
       <div className="mt-6 flex flex-wrap items-center gap-3">
         {item.status === "completed" ? (
           <section className="w-full rounded-panel bg-secondary p-6">
-            <h2 className="font-display text-3xl">One more dream lived.</h2>
+            <h2 className="font-display text-section-title">One more dream lived.</h2>
             <p className="mt-2 leading-7 text-muted-foreground">
               {item.lived_on
                 ? <>You lived it on <time dateTime={item.lived_on} className="font-semibold text-foreground">{livedFormat.format(new Date(`${item.lived_on}T00:00:00Z`))}</time>, and that is where it sits in your story.</>
@@ -176,7 +176,7 @@ export function ItemDetail({
               submit({ operation: "completeItem", id: item.id, version: item.version, livedOn }, "One more dream lived. Completion saved.", () => setCompleting(false));
             }}
           >
-            <h2 className="font-display text-3xl">When did you live it?</h2>
+            <h2 className="font-display text-section-title">When did you live it?</h2>
             <p className="mt-2 leading-7 text-muted-foreground">Our Story places it on this day. You can change it later.</p>
             <label className="mt-5 block space-y-1.5 text-sm font-semibold sm:max-w-xs">
               <span className="block">The day you lived it</span>
@@ -210,7 +210,7 @@ export function ItemDetail({
       {/* Little Steps Section */}
       <section className="mt-7 border-t pt-7" aria-labelledby="steps-title">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2 id="steps-title" className="font-display text-3xl">
+          <h2 id="steps-title" className="font-display text-section-title">
             Little steps
           </h2>
           <p className="text-sm text-muted-foreground">

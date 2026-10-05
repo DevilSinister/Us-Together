@@ -62,7 +62,7 @@ export function IdeaTile({ item, groupedBy }: { item: BucketItem; groupedBy: Buc
         ) : null}
       </div>
 
-      <h3 className="mt-4 line-clamp-2 break-words font-display text-2xl leading-tight transition-colors group-hover:text-primary motion-reduce:transition-none">
+      <h3 className="mt-4 line-clamp-2 break-words transition-colors group-hover:text-primary motion-reduce:transition-none text-entry-title">
         {item.title}
       </h3>
       {item.description ? <p className="mt-1.5 line-clamp-2 break-words text-sm leading-6 text-muted-foreground">{item.description}</p> : null}

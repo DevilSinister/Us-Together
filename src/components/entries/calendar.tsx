@@ -99,7 +99,7 @@ export function SharedCalendar({ initial }: { initial: SharedCalendarPage }) {
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div className="flex items-center gap-2">
         <Button variant="outline" disabled={pending} aria-label="Previous period" onClick={() => move(-1)}><ChevronLeft className="size-4"/></Button>
-        <h2 className="min-w-0 font-display text-2xl sm:text-3xl">
+        <h2 className="min-w-0 font-display text-section-title">
           {new Intl.DateTimeFormat("en", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(page.date + "T12:00:00Z"))}
         </h2>
         <Button variant="outline" disabled={pending} aria-label="Next period" onClick={() => move(1)}><ChevronRight className="size-4"/></Button>
@@ -164,12 +164,12 @@ export function SharedCalendar({ initial }: { initial: SharedCalendarPage }) {
       : null}
 
     <div className="mt-8" aria-live="polite">
-      <h3 className="font-display text-3xl">{fullDate(selected)}</h3>
+      <h3 className=" text-entry-title">{fullDate(selected)}</h3>
       {/* True and worth keeping, but it explains this agenda rather than being
           a precondition for looking at the month. */}
       <p className="mt-1 text-xs text-muted-foreground">Plan times use {page.timezone}. Memories and moments stay on their saved date.</p>
 
-      {onDay.length ? <ul className="mt-4 divide-y border-y">
+      {onDay.length ? <ul className="mt-4 divide-y border-t">
         {onDay.map(e => {
           const Icon = icons[e.kind];
           return <li key={e.kind + e.id}>
@@ -186,7 +186,7 @@ export function SharedCalendar({ initial }: { initial: SharedCalendarPage }) {
         Nothing saved for this date{active.size < calendarKinds.length ? " in what you are showing" : ""}. Choose another day or add something to remember.
       </p>}
 
-      <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-1 border-t pt-4">
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 border-t pt-4">
         <InlineLink href={"/memories/new?date=" + selected}>Keep a memory from this day</InlineLink>
         <InlineLink href={"/milestones/new?date=" + selected}>Mark a moment</InlineLink>
         <InlineLink href="/plans">Manage plans</InlineLink>

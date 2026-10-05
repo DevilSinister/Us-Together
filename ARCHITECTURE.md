@@ -159,3 +159,5 @@ The shared web media tile and upload queue display a paused browser-decoded vide
 ### Android push recovery - 2026-10-03
 
 The database and FCM dispatcher now use one Vault dispatch secret, compared by a service-only RPC. The private verifier is an exceptional definer with explicit service-role authorization, an empty search path and revoked default execution; its public wrapper is an invoker. Queue backoff clamps before arithmetic, missing callbacks stop after five attempts, and obsolete/read activity expires without removing inbox history. Freshness follows the notification's refreshed activity timestamp so aggregated media alerts remain deliverable. All visible partner alerts use high priority. This backend repair requires no APK update.
+
+Batch media TUS requests obtain fresh credentials per request; temporary failures use bounded backoff and connection/foreground resume, while permanent rejection settles the current file so later queue items can proceed. User pauses remain manual. Upload URLs remain in memory only. See `docs/VIDEO_UPLOAD_RECOVERY_VERIFICATION.md`.

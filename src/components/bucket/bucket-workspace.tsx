@@ -255,12 +255,12 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
         {lists.length ? <ul className="divide-y divide-border">
           {lists.map((list) => <li key={list.id}>
             <Link href={`/bucket/lists/${list.id}`} className="group flex min-h-24 items-center justify-between gap-4 rounded-lg px-3 py-5 hover:bg-secondary/50 focus-visible:outline-2 focus-visible:outline-ring">
-              <div className="min-w-0"><h2 className="break-words font-display text-2xl sm:text-3xl">{list.title}</h2><p className="mt-2 text-sm text-muted-foreground">Open ideas</p></div>
+              <div className="min-w-0"><h2 className="break-words font-display text-section-title">{list.title}</h2><p className="mt-2 text-sm text-muted-foreground">Open ideas</p></div>
               <ArrowRight aria-hidden="true" className="size-5 shrink-0 text-primary" />
             </Link>
           </li>)}
         </ul> : <div className="rounded-panel border border-dashed border-border bg-card/50 px-6 py-12 text-center">
-          <h2 className="font-display text-2xl sm:text-3xl">What would you love to do together?</h2>
+          <h2 className="font-display text-section-title">What would you love to do together?</h2>
           <p className="mx-auto mt-3 max-w-prose text-sm leading-6 text-muted-foreground">Add your first list for a weekend ritual, a faraway place, or a small adventure close to home.</p>
         </div>}
       </section> : <section aria-label="Bucket ideas" className="mt-5 min-w-0">
@@ -298,7 +298,7 @@ export function BucketWorkspace({ lists, initialPage, listId = "", categories = 
           </div>
         ) : (
           <div className="rounded-panel border border-dashed border-border bg-card/50 px-6 py-12 text-center">
-            <h2 className="font-display text-2xl sm:text-3xl">{lists.length ? "Room for your next idea." : "What would you love to do together?"}</h2>
+            <h2 className="font-display text-section-title">{lists.length ? "Room for your next idea." : "What would you love to do together?"}</h2>
             <p className="mx-auto mt-3 max-w-prose text-sm leading-6 text-muted-foreground">{lists.length ? "No ideas match this view. Try another filter, or add something you've been talking about." : "Make a list first. It can hold a weekend ritual, a faraway place, or a small adventure close to home."}</p>
             {lists.length ? <Button asChild className="mt-6"><Link href={`/bucket/new?list=${listId}`}>Add idea</Link></Button> : <Button className="mt-6" onClick={() => showOptions("create")}><Plus className="size-4" />Create your first list</Button>}
           </div>

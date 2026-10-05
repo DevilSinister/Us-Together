@@ -28,7 +28,7 @@ export function UnlockPanel({ area, userId, pinLength }: { area: LockArea; userI
   return <div className="mx-auto flex min-h-[65vh] max-w-md flex-col justify-center px-4 py-10">
     <div className="rounded-panel border bg-card px-5 py-8 text-center shadow-paper sm:px-9">
       <Heart aria-hidden="true" className="mx-auto mb-4 size-9 fill-primary/20 text-primary" />
-      <h1 className="font-serif text-3xl">{label} is locked.</h1>
+      <h1 className="font-serif text-page-title">{label} is locked.</h1>
       <p className="mt-3 text-sm leading-6 text-muted-foreground">A little privacy, just for you. Enter your PIN to open this section for five minutes.</p>
       <form method="post" className="mt-5" onSubmit={(event) => { event.preventDefault(); if (pinValid) void submit(pin); }}>
         <PinPad value={pin} onChange={setPin} length={pinLength} label="Privacy PIN" disabled={busy} />
