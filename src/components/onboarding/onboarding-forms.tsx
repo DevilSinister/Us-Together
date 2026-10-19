@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { SubmitButton } from "@/components/auth/submit-button";
 import { AvatarField } from "@/components/profile/avatar-field";
 import { cn } from "@/lib/utils";
+import { DeviceTimeZoneField } from "@/components/profile/device-time-zone-field";
 
 // The four colours moved to lib/avatar/styles so the Avatar, this picker and
 // the profile editor cannot drift, and so they finally carry dark-mode pairs.
@@ -48,11 +49,7 @@ export function ProfileStepForm({ displayName, timezone, avatarStyle, avatarSrc 
         <Input id="displayName" name="displayName" value={name} onChange={(event) => setName(event.target.value)} autoComplete="name" required aria-invalid={Boolean(state.fields?.displayName)} />
         {state.fields?.displayName ? <p className="field-error">{state.fields.displayName[0]}</p> : null}
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="timezone">Timezone</Label>
-        <Input id="timezone" name="timezone" defaultValue={timezone} required aria-invalid={Boolean(state.fields?.timezone)} />
-        <p className="text-xs leading-5 text-muted-foreground">Used to show plans and reminders at the right local time.</p>
-      </div>
+      <DeviceTimeZoneField saved={timezone} />
       <FormMessage state={state} />
       <SubmitButton>Continue</SubmitButton>
     </form>

@@ -194,7 +194,18 @@ export function MediaViewer({items,index,onIndex,onClose,onChange}:{items:Galler
   ref={dialog}
   aria-label={"Photo viewer, "+entryLabel(item)}
   onCancel={e=>{e.preventDefault();if(confirming)return;if(menu){setMenu(false);return;}if(sheet){closeSheet();return;}onClose();}}
+  // Should the browser close the dialog itself, the viewer must not stay mounted behind it.
+  onClose={e=>{if(e.currentTarget.isConnected)onClose();}}
   onKeyDown={e=>{
+   // Escape closes the innermost layer here rather than through `cancel`:
+   // Chrome stops letting a page prevent `cancel` after a couple of uses, and
+   // the whole viewer would then close when someone meant only the comments.
+   if(e.key==="Escape"&&!e.nativeEvent.isComposing&&e.currentTarget.contains(e.target as Node)){
+    e.preventDefault();
+    if(confirming)return;
+    if(menu)setMenu(false);else if(sheet)closeSheet();else onClose();
+    return;
+   }
    if(e.target instanceof Element&&e.target.closest("video,input,textarea,select,[role=menu]"))return;
    if(e.key==="ArrowLeft"){e.preventDefault();go(-1);}
    else if(e.key==="ArrowRight"){e.preventDefault();go(1);}

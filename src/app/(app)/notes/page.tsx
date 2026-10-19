@@ -9,10 +9,12 @@ import { loadNotes } from "@/lib/notes/data";
 import { loadIdentities } from "@/lib/avatar/identities";
 import { noteExcerpt } from "@/lib/notes/schema";
 import { absoluteTime, relativeTime } from "@/lib/time/relative";
+import { getViewerTimeZone } from "@/lib/time/viewer";
 
 export const metadata: Metadata = { title: "Notes" };
 
 export default async function NotesPage({ searchParams }: { searchParams: Promise<{ after?: string }> }) {
+  const timeZone = await getViewerTimeZone();
   const { after } = await searchParams;
   const [view, identities] = await Promise.all([loadNotes(after), loadIdentities()]);
   const partner = view.partner ?? "Your partner";
@@ -62,7 +64,7 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
                           {shared && !note.read ? <span className="mt-1 shrink-0 rounded-control bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">New</span> : null}
                         </span>
                         <span className="mt-1 block text-xs font-semibold text-muted-foreground">
-                          {note.mine ? "You" : partner} · <time dateTime={note.updated_at} title={absoluteTime(note.updated_at)}>{relativeTime(note.updated_at)}</time>
+                          {note.mine ? "You" : partner} · <time dateTime={note.updated_at} title={absoluteTime(note.updated_at, timeZone)}>{relativeTime(note.updated_at, undefined, timeZone)}</time>
                         </span>
                         {/* A quiet excerpt keeps the entry title in charge. */}
                         <span className="mt-2 line-clamp-2 break-words text-base leading-6 text-muted-foreground">{noteExcerpt(note.body)}</span>

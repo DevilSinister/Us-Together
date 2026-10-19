@@ -428,3 +428,33 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 **Decision:** Authenticate each TUS request from the current browser session, proactively refresh near expiry, refresh rejected credentials once per credential, and use bounded backoff for temporary network/service errors. Resume connection pauses when online/foreground; preserve deliberate manual pause. Settle permanent rejections so remaining files can finish and keep the failed selection/allocation. Expose safe categories/statuses only.
 
 **Consequences:** Recovery uses the same live TUS URL and server byte offset without duplicate allocation. Page closure still loses local selection/resume state. Existing Storage ownership and immutable-original policies stay enforced.
+
+## ADR-047 — Local time follows the device; UTC-typed plans keep their wall clock
+
+**Status:** Accepted, 2026-10-19.
+
+**Context:** Every profile began on `UTC` and onboarding asked for a typed IANA name, so in practice every account stayed on UTC. Plans, comments, notes, drawings and notifications therefore showed UTC, the On this day job fired at 09:00 UTC, and a plan typed as 7:00 PM was stored as 19:00Z. Server components also formatted some instants with no zone, which on Vercel is UTC regardless of the profile.
+
+**Decision:** The device zone is the person's zone. `TimeZoneSync` in the signed-in layout compares `Intl` on the device with the rendered profile zone and calls `syncDeviceTimeZoneAction`, which validates the IANA name, updates only the caller's profile, and refreshes. Profile and onboarding show the detected zone instead of a text field. Server pages that print an instant read `getViewerTimeZone()`. The first time a real zone replaces the `UTC` default, the caller's own plans whose `originating_timezone` is `UTC` are re-anchored to the same wall-clock time in the new zone through `update_plan_details`, so versions bump and the existing trigger moves pending reminders. Later zone changes (travel) change display only. Memory and moment dates are calendar dates and are not shifted.
+
+**Consequences:** Times and the On this day hour follow the device without a setting to maintain. The re-anchor writes each moved plan once, which emits the ordinary partner "plan changed" activity for it. A person using two devices in different zones sees the zone of the device they used last. A plan's own timezone field remains editable for trips planned in another zone.
+
+## ADR-048 — Uploads start on choice, live in the grid, and hide the transport
+
+**Status:** Accepted, 2026-10-19.
+
+**Context:** Adding photos showed a filename-and-size list with caption fields, required a separate "Upload N files" step, and exposed tus concepts: Pause/Resume/Stop upload, HTTP status codes, and "Unfinished upload · Status: uploading" cards with Finish processing. Unfinished rows were returned to both partners, so a partner saw the other's in-flight file with controls that could not finish it (only the uploader may) and could remove it mid-transfer. The uploader was one component mixing transport, server calls, batch state and UI.
+
+**Decision:** Choosing files sends them immediately, one at a time. Each file is a tile in the entry's grid that develops from muted grey to full colour with its transfer, then becomes the saved tile; a failed file stays on its own tile with Try again and remove. One status line carries the batch and a single Pause/Continue. A dropped connection is "Waiting for a connection" and resumes by itself. Captions are written afterwards in the viewer. `entryMedia` returns `mine`, and only the uploader sees their own unfinished files. Structure: `upload-queue.ts` (pure model), `media-transfer.ts` (tus controller), `use-entry-uploads.ts` (queue driver), `upload-tiles.tsx` (presentation); `uploader.tsx` and the batch loop it used are removed.
+
+**Consequences:** No server, schema, Storage or Edge change. Pre-upload captions are gone from creation forms. Removing a file that was reserved gives its row back through the existing `remove` operation. Closing the page mid-batch still loses the remaining local selection; the browser asks before leaving while files are sending.
+
+## ADR-049 — Escape is handled on keydown, and dialogs follow a native close
+
+**Status:** Accepted, 2026-10-19.
+
+**Context:** The photo viewer and the shared `DialogContent` relied on the native `<dialog>` `cancel` event, calling `preventDefault()` to close an inner layer (the comments or caption sheet, a menu) or to keep a non-dismissible dialog open. Chromium stops letting a page prevent `cancel` after a couple of uses: in a probe, the third Escape in one viewer session arrived with `cancelable=false` even with clicks in between, and the browser closed the whole viewer. React state was not told, so the viewer stayed mounted behind a closed dialog and the next "Open photo" did nothing.
+
+**Decision:** Escape is handled in the dialog's `keydown` (ignored during IME composition): the viewer closes the menu, then the sheet, then itself; `DialogContent` closes when dismissible and stops the event from reaching a parent dialog. Cancelling the keydown means the browser never turns that Escape into a close request. `cancel` handling stays for other close requests, such as Android back. Both listen for `close` and, while still connected, bring React state in line when the browser closes a dialog itself.
+
+**Consequences:** Escape behaves the same however often it is pressed. A non-keyboard close request the browser refuses to let the page cancel can still close a whole dialog, but the page now follows it instead of sticking. Covered by `tests/e2e/viewer-escape.spec.ts`.
