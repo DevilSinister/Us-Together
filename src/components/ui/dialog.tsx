@@ -120,7 +120,20 @@ export function DialogContent({
         event.stopPropagation();
         if (dismissible) setOpen(false);
       }}
+      // If the browser closes the dialog without a cancelable `cancel`, follow it.
+      onClose={(event) => {
+        if (event.currentTarget.isConnected) setOpen(false);
+      }}
       onKeyDown={(event) => {
+        // Escape is handled here rather than through `cancel`, which Chrome
+        // stops letting a page prevent after a couple of uses; a dialog that
+        // must stay open (dismissible false) would otherwise close anyway.
+        if (event.key === "Escape" && !event.nativeEvent.isComposing) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (dismissible) setOpen(false);
+          return;
+        }
         if (event.key !== "Tab") return;
         // Same reason: a nested dialog's Tab belongs to its own focus trap.
         if (!event.currentTarget.contains(event.target as Node)) return;

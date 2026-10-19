@@ -448,3 +448,13 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 **Decision:** Choosing files sends them immediately, one at a time. Each file is a tile in the entry's grid that develops from muted grey to full colour with its transfer, then becomes the saved tile; a failed file stays on its own tile with Try again and remove. One status line carries the batch and a single Pause/Continue. A dropped connection is "Waiting for a connection" and resumes by itself. Captions are written afterwards in the viewer. `entryMedia` returns `mine`, and only the uploader sees their own unfinished files. Structure: `upload-queue.ts` (pure model), `media-transfer.ts` (tus controller), `use-entry-uploads.ts` (queue driver), `upload-tiles.tsx` (presentation); `uploader.tsx` and the batch loop it used are removed.
 
 **Consequences:** No server, schema, Storage or Edge change. Pre-upload captions are gone from creation forms. Removing a file that was reserved gives its row back through the existing `remove` operation. Closing the page mid-batch still loses the remaining local selection; the browser asks before leaving while files are sending.
+
+## ADR-049 — Escape is handled on keydown, and dialogs follow a native close
+
+**Status:** Accepted, 2026-10-19.
+
+**Context:** The photo viewer and the shared `DialogContent` relied on the native `<dialog>` `cancel` event, calling `preventDefault()` to close an inner layer (the comments or caption sheet, a menu) or to keep a non-dismissible dialog open. Chromium stops letting a page prevent `cancel` after a couple of uses: in a probe, the third Escape in one viewer session arrived with `cancelable=false` even with clicks in between, and the browser closed the whole viewer. React state was not told, so the viewer stayed mounted behind a closed dialog and the next "Open photo" did nothing.
+
+**Decision:** Escape is handled in the dialog's `keydown` (ignored during IME composition): the viewer closes the menu, then the sheet, then itself; `DialogContent` closes when dismissible and stops the event from reaching a parent dialog. Cancelling the keydown means the browser never turns that Escape into a close request. `cancel` handling stays for other close requests, such as Android back. Both listen for `close` and, while still connected, bring React state in line when the browser closes a dialog itself.
+
+**Consequences:** Escape behaves the same however often it is pressed. A non-keyboard close request the browser refuses to let the page cancel can still close a whole dialog, but the page now follows it instead of sticking. Covered by `tests/e2e/viewer-escape.spec.ts`.
