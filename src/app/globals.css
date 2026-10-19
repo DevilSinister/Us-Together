@@ -157,6 +157,16 @@ body:has(dialog[open]) { overflow: hidden; }
   }
 }
 
+/* A file the server is finishing: the full wine line breathes rather than
+   pretending to a percentage nobody can measure. Still when motion is reduced. */
+@media (prefers-reduced-motion: no-preference) {
+  .upload-finishing { animation: upload-finishing 1200ms ease-in-out infinite; }
+  @keyframes upload-finishing {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.35; }
+  }
+}
+
 .relationship-thread {
   position: relative;
 }

@@ -49,12 +49,12 @@ export function uploadFailure(error: Error): { status: number; recoverable: bool
   const detail = error as Error & { originalResponse?: { getStatus: () => number }; causingError?: Error };
   const status = detail.originalResponse?.getStatus() ?? 0;
   if (error instanceof UploadSessionError || detail.causingError instanceof UploadSessionError) {
-    return { status, recoverable: false, message: "Your session expired. Sign in again before retrying the remaining files." };
+    return { status, recoverable: false, message: "You were signed out. Sign in again, then tap to try again." };
   }
-  if (status === 401 || status === 403) return { status, recoverable: false, message: "Upload authorization was rejected. Sign in again before retrying the remaining files." };
-  if (status === 413) return { status, recoverable: false, message: "The upload was rejected because the file is too large." };
+  if (status === 401 || status === 403) return { status, recoverable: false, message: "You were signed out. Sign in again, then tap to try again." };
+  if (status === 413) return { status, recoverable: false, message: "This file is too large to add." };
   const recoverable = status === 0 || status === 408 || status === 409 || status === 423 || status === 429 || status >= 500;
   return { status, recoverable, message: recoverable
-    ? "Upload paused while the connection or upload service is unavailable" + (status ? " (HTTP " + status + ")." : ".") + " It will resume when your connection returns. You can also resume or stop this batch."
-    : "The upload was rejected (HTTP " + status + "). Retry the remaining files; remove and reselect any expired unfinished upload." };
+    ? "Waiting for a connection. It will carry on by itself."
+    : "This one couldn't be added. Tap to try again, or remove it and choose it again." };
 }

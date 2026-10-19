@@ -139,7 +139,7 @@ Reminder controls choose offsets relative to plan start. Cancel/complete stops p
 
 - createMemoryAction and createMilestoneAction accept validated returnCreated=true to return a savedId for subsequent file uploads; ordinary submissions redirect to detail. Ownership remains derived server-side. File blobs never travel in these Server Action forms.
 - memoryMediaAction / memory-media accept kind=memory|moment (default memory) and prepare/finalize/remove/caption. Caption edits authorize the parent and bounded text before privileged metadata writes.
-- entryMedia and entryComments reauthorize the UUID/kind, return bounded safe DTOs, and never expose storage paths. commentAction validates add/remove, derives author from the session and permits removal only by that author.
+- entryMedia and entryComments reauthorize the UUID/kind, return bounded safe DTOs, and never expose storage paths. `entryMedia` adds `mine` (row `created_by` equals the session user) so the client shows unfinished files only to their uploader; `created_by` itself is not returned. commentAction validates add/remove, derives author from the session and permits removal only by that author.
 - Entry-reminder actions are removed. The database RPC is revoked from authenticated callers; the retired worker returns zero and its cron job is unscheduled. Plan reminder interfaces are unchanged.
 - loadSharedCalendar validates month/week/date and independent per-source cursors. Each request reads at most 251 candidates per source and returns 250 with explicit lookahead; all rows remain under parent RLS.
 - searchPlaces accepts status, search (3–200 characters), or nearby (bounded numeric geolocation). The selected place name is stored; coordinates and provider responses are not. The provider base is server-configured, not client-controlled. Errors are generic and request content is not logged.
@@ -242,3 +242,9 @@ Authenticated internal requests may set `mode: "validate"`: FCM receives `valida
 ## Resumable media recovery — 2026-10-03
 
 Public server contracts are unchanged. The browser obtains a current authenticated token before each TUS request and refreshes it near expiry/after a rejection. Permanent transfer errors fail that file and continue the batch; temporary failures retry and preserve the same in-memory transfer for connection recovery. Only safe HTTP status/category copy is exposed; raw TUS responses and private upload URLs are omitted.
+
+## Device time zone (2026-10-19)
+
+- `syncDeviceTimeZoneAction(zone)` accepts one IANA zone string (Zod, 1-64 chars, must resolve in `Intl`). Identity comes from the session; it updates only the caller's `profiles.timezone`. When the previous value was `UTC` and the new one is not, it re-anchors the caller's own `originating_timezone = 'UTC'` plans to the same wall-clock time through `update_plan_details` with each plan's current version. Returns `{ changed, moved }`; failures log only the provider error code.
+- `getViewerTimeZone()` is server-only and request-cached: the developer-state zone, the profile zone, or `UTC` when signed out.
+- `updateProfile` and onboarding still accept `timezone`; the forms now submit the device zone rather than typed text.

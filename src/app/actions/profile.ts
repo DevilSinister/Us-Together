@@ -8,6 +8,79 @@ import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState, writeDeveloperState } from "@/lib/auth/dev-session";
 import { avatarObjectPath, validateAvatarFile } from "@/lib/avatar/upload";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { isValidTimeZone } from "@/lib/dream/schema";
+import { planColumns } from "@/lib/plans/data";
+import { reanchorWallClock } from "@/lib/time/zone";
+
+const deviceZoneSchema = z.string().trim().min(1).max(64).refine(isValidTimeZone);
+
+/**
+ * Follow the zone the person's device reports.
+ *
+ * Profiles began on UTC and the app never asked, so a plan typed as 7:00 PM
+ * was stored as 7:00 PM UTC. The first time a real zone replaces that default,
+ * the person's own UTC-anchored plans move to the same wall-clock time in the
+ * new zone, through the ordinary plan update path so versions bump and pending
+ * reminders follow. Later moves (travel) change the display only: those plans
+ * already carry the zone they were typed in.
+ */
+export async function syncDeviceTimeZoneAction(zone: string): Promise<{ changed: boolean; moved: number }> {
+  const parsed = deviceZoneSchema.safeParse(zone);
+  const identity = await getCurrentIdentity();
+  if (!parsed.success || !identity) return { changed: false, moved: 0 };
+  const next = parsed.data;
+
+  if (identity.kind === "developer") {
+    const state = await readDeveloperState();
+    if (state.timezone === next) return { changed: false, moved: 0 };
+    const repair = state.timezone === "UTC" && next !== "UTC";
+    const moved = new Map<string, string>();
+    const plans = state.plans.map(plan => {
+      if (!repair || plan.timezone !== "UTC") return plan;
+      const startsAt = reanchorWallClock(plan.startsAt, "UTC", next);
+      moved.set(plan.id, startsAt);
+      return { ...plan, startsAt, endsAt: plan.endsAt ? reanchorWallClock(plan.endsAt, "UTC", next) : null, timezone: next, version: (plan.version ?? 1) + 1 };
+    });
+    const planReminders = (state.planReminders ?? []).map(reminder => {
+      const start = moved.get(reminder.plan_id);
+      if (!start || reminder.state !== "pending") return reminder;
+      const due = Date.parse(start) - reminder.offset_minutes * 60000;
+      return { ...reminder, due_at: new Date(due).toISOString(), state: due > Date.now() ? "pending" : "cancelled" };
+    });
+    await writeDeveloperState({ ...state, timezone: next, plans, planReminders });
+    revalidatePath("/", "layout");
+    return { changed: true, moved: moved.size };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: profile } = await supabase.from("profiles").select("timezone").eq("user_id", identity.userId).maybeSingle();
+  if (!profile || profile.timezone === next) return { changed: false, moved: 0 };
+  const { error } = await supabase.from("profiles").update({ timezone: next }).eq("user_id", identity.userId);
+  if (error) {
+    console.error("timezone sync failed", { code: error.code });
+    return { changed: false, moved: 0 };
+  }
+
+  let moved = 0;
+  if (profile.timezone === "UTC" && next !== "UTC") {
+    const { data: plans, error: readError } = await supabase.from("plans").select(planColumns).eq("created_by", identity.userId).eq("originating_timezone", "UTC");
+    if (readError) console.error("timezone plan read failed", { code: readError.code });
+    for (const plan of plans ?? []) {
+      const { data, error: updateError } = await supabase.rpc("update_plan_details", { input: {
+        planId: plan.id, version: plan.version, title: plan.title, description: plan.description, type: plan.type,
+        starts_at: reanchorWallClock(plan.starts_at, "UTC", next),
+        ends_at: plan.ends_at ? reanchorWallClock(plan.ends_at, "UTC", next) : null,
+        timezone: next, location: plan.location, latitude: plan.latitude, longitude: plan.longitude,
+        external_map_url: plan.external_map_url, budget_minor: plan.budget_minor, currency: plan.currency,
+      } });
+      if (updateError) console.error("timezone plan update failed", { code: updateError.code });
+      else if ((data as { ok?: boolean } | null)?.ok) moved += 1;
+    }
+  }
+  revalidatePath("/", "layout");
+  return { changed: true, moved };
+}
 
 export async function updateProfileAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
   const parsed = profileSchema.safeParse(Object.fromEntries(formData));

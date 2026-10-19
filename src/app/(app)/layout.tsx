@@ -7,6 +7,8 @@ import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { loadIdentities } from "@/lib/avatar/identities";
 import { isDeveloperSeedEnabled, readDeveloperState } from "@/lib/auth/dev-session";
 import { PreviewSampleMedia } from "@/components/dev/preview-sample-media";
+import { TimeZoneSync } from "@/components/providers/time-zone-sync";
+import { getViewerTimeZone } from "@/lib/time/viewer";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +21,9 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   const identities = await loadIdentities();
   const unreadCount = await getUnreadNotificationCount();
   const previewState = identity.kind === "developer" && isDeveloperSeedEnabled() ? await readDeveloperState() : null;
+  const timeZone = await getViewerTimeZone();
   return <PartnerSync enabled={identity.kind === "supabase"}>
+    <TimeZoneSync current={timeZone} />
     <IdentitiesProvider value={identities}><AppShell unreadCount={unreadCount}>{previewState ? <PreviewSampleMedia sessionId={previewState.bucketSessionId} /> : null}{children}</AppShell></IdentitiesProvider>
   </PartnerSync>;
 }

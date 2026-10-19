@@ -7,9 +7,11 @@ import { InlineLink } from "@/components/ui/inline-link";
 import { DrawingActions } from "@/components/drawings/drawing-actions";
 import { loadDrawing } from "@/lib/drawings/data";
 import { absoluteTime, relativeTime } from "@/lib/time/relative";
+import { getViewerTimeZone } from "@/lib/time/viewer";
 
 export const metadata = { title: "Drawing" };
 export default async function DrawingPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ sent?: string }> }) {
+  const timeZone = await getViewerTimeZone();
   const [{ id }, { sent }] = await Promise.all([params, searchParams]);
   if (!z.uuid().safeParse(id).success) notFound();
   const note = await loadDrawing(id);
@@ -31,7 +33,7 @@ export default async function DrawingPage({ params, searchParams }: { params: Pr
     </div>
     <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
       <p className="text-sm text-muted-foreground">
-        {note.sent_at ? <time dateTime={note.sent_at} title={absoluteTime(note.sent_at)}>{relativeTime(note.sent_at)} · {absoluteTime(note.sent_at)}</time> : null}
+        {note.sent_at ? <time dateTime={note.sent_at} title={absoluteTime(note.sent_at, timeZone)}>{relativeTime(note.sent_at, undefined, timeZone)} · {absoluteTime(note.sent_at, timeZone)}</time> : null}
         {" · "}Finished drawings stay as sent.
       </p>
       <DrawingActions id={id} />

@@ -11,6 +11,7 @@ import { DeleteNote } from "@/components/notes/delete-note";
 import { loadNote } from "@/lib/notes/data";
 import { loadIdentities } from "@/lib/avatar/identities";
 import { absoluteTime, relativeTime } from "@/lib/time/relative";
+import { getViewerTimeZone } from "@/lib/time/viewer";
 import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Note" };
@@ -22,6 +23,7 @@ export const metadata = { title: "Note" };
  * a lock, so the two can never be mistaken for each other.
  */
 export default async function NotePage({ params }: { params: Promise<{ id: string }> }) {
+  const timeZone = await getViewerTimeZone();
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const [note, identities] = await Promise.all([loadNote(id), loadIdentities()]);
@@ -51,7 +53,7 @@ export default async function NotePage({ params }: { params: Promise<{ id: strin
           <Avatar name={author.name} src={author.src} style={author.style} size="md" />
           <p className="min-w-0 flex-1 text-sm leading-6">
             <span className="block font-semibold">{note.mine ? "From you" : "From " + partner}{shared ? (note.mine ? " to " + partner : " to you") : ""}</span>
-            <time className="text-muted-foreground" dateTime={note.updated_at} title={absoluteTime(note.updated_at)}>{relativeTime(note.updated_at)}</time>
+            <time className="text-muted-foreground" dateTime={note.updated_at} title={absoluteTime(note.updated_at, timeZone)}>{relativeTime(note.updated_at, undefined, timeZone)}</time>
           </p>
           <span className="inline-flex shrink-0 items-center gap-1.5 rounded-control bg-secondary px-2.5 py-1 text-xs font-semibold text-secondary-foreground">
             <Icon className="size-3.5" aria-hidden="true" />{shared ? "Shared" : "Only you"}

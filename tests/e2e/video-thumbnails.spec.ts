@@ -11,7 +11,7 @@ test("video thumbnails show silent frames in the queue, entries and gallery",asy
   await page.getByLabel(kind==="memory"?"Memory title":"Moment name",{exact:true}).fill("Fictional video thumbnail "+kind);
   await page.getByLabel("Date",{exact:true}).fill("2026-10-03");
   await page.locator('input[type="file"]').setInputFiles("tests/fixtures/phase6-video.mp4");
-  await page.getByRole("button",{name:"Remove phase6-video.mp4",exact:true}).scrollIntoViewIfNeeded();
+  await page.getByRole("button",{name:"Remove video 1",exact:true}).scrollIntoViewIfNeeded();
   await expect(page.locator('[data-video-thumbnail="ready"]')).toHaveCount(1,{timeout:20000});
   await page.getByRole("button",{name:kind==="memory"?"Save the memory":"Save the moment",exact:true}).click();
   await expect(page.getByText("1 video",{exact:true})).toBeVisible();

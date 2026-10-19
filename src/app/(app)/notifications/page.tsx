@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/app/states";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState } from "@/lib/auth/dev-session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { getViewerTimeZone } from "@/lib/time/viewer";
 
 export const metadata: Metadata = { title: "Notifications" };
 type NotificationRow = { id: string; title: string; category: string; target_type: string | null; target_id: string | null; read_at: string | null; created_at: string };
@@ -55,7 +56,7 @@ export default async function NotificationsPage() {
     notifications = (rows ?? []) as NotificationRow[];
     if (row) preferences = { inAppEnabled: row.in_app_enabled, plansEnabled: row.plans_enabled, memoriesEnabled: row.memories_enabled, milestonesEnabled: row.milestones_enabled, notesEnabled: row.notes_enabled, onThisDayEnabled: row.on_this_day_enabled, bucketEnabled: row.bucket_enabled, wishlistEnabled: row.wishlist_enabled, drawingsEnabled: row.drawings_enabled };
   }
-  const formatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" });
+  const formatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short", timeZone: await getViewerTimeZone() });
   const unread = notifications.filter((item) => !item.read_at).length;
 
   return (

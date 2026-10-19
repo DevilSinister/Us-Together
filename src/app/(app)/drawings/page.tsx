@@ -5,10 +5,12 @@ import { PairingNotice } from "@/components/app/states";
 import { Button } from "@/components/ui/button";
 import { loadDrawings } from "@/lib/drawings/data";
 import { absoluteTime, relativeTime } from "@/lib/time/relative";
+import { getViewerTimeZone } from "@/lib/time/viewer";
 
 export const metadata = { title: "Drawings" };
 const mats = ["bg-[#f7e2e5] dark:bg-[#49323b]", "bg-[#e6f0ed] dark:bg-[#2e4141]", "bg-[#f6ecd3] dark:bg-[#49402d]"];
 export default async function DrawingsPage({ searchParams }: { searchParams: Promise<{ after?: string }> }) {
+  const timeZone = await getViewerTimeZone();
   const { after } = await searchParams;
   const view = await loadDrawings(after);
   const partner = view.partner ?? "your partner";
@@ -34,7 +36,7 @@ export default async function DrawingsPage({ searchParams }: { searchParams: Pro
             </span>
             <ArrowUpRight className="size-4 shrink-0 text-primary transition-transform group-hover:translate-x-0.5 motion-reduce:transform-none" aria-hidden="true" />
           </span>
-          {note.sent_at ? <time dateTime={note.sent_at} title={absoluteTime(note.sent_at)} className="block px-1 pt-1 text-xs text-muted-foreground">{relativeTime(note.sent_at)}</time> : null}
+          {note.sent_at ? <time dateTime={note.sent_at} title={absoluteTime(note.sent_at, timeZone)} className="block px-1 pt-1 text-xs text-muted-foreground">{relativeTime(note.sent_at, undefined, timeZone)}</time> : null}
         </Link></li>)}
       </ul> : <div className="max-w-xl rounded-[1.25rem] bg-[#f7e2e5] p-7 dark:bg-[#49323b]">
         <div className="mb-5 grid size-12 place-items-center rounded-xl bg-white text-primary dark:bg-card"><Brush className="size-6" aria-hidden="true" /></div>
