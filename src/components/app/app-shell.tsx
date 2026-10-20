@@ -2,7 +2,7 @@ import Link from "next/link";
 import { LogOut } from "lucide-react";
 import { BrandMark } from "@/components/brand/brand-mark";
 import { Button } from "@/components/ui/button";
-import { signOutAction } from "@/app/actions/auth";
+import { UploadSignOutForm } from "@/components/providers/upload-owner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AppNavigation } from "@/components/app/app-navigation";
 import { NotificationBell } from "@/components/app/notification-bell";
@@ -21,9 +21,9 @@ export function AppShell({ children, unreadCount }: { children: React.ReactNode;
         <AppNavigation />
         <div className="mt-auto flex items-center gap-2 pt-8">
           <ThemeToggle />
-          <form action={signOutAction} className="flex-1">
+          <UploadSignOutForm className="flex-1">
             <Button variant="ghost" className="w-full justify-start"><LogOut className="size-4" />Sign out</Button>
-          </form>
+          </UploadSignOutForm>
         </div>
       </aside>
       <div className="min-w-0 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
@@ -32,7 +32,7 @@ export function AppShell({ children, unreadCount }: { children: React.ReactNode;
           <div className="flex items-center gap-1">
             <NotificationBell count={unreadCount} />
             <ThemeToggle />
-            <form action={signOutAction}><Button variant="ghost" size="sm" aria-label="Sign out"><LogOut className="size-4" /></Button></form>
+            <UploadSignOutForm><Button variant="ghost" size="sm" aria-label="Sign out"><LogOut className="size-4" /></Button></UploadSignOutForm>
           </div>
         </header>
         <main id="main" className="mx-auto max-w-6xl px-5 py-8 sm:px-8 lg:py-12">{children}</main>

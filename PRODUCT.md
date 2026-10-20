@@ -117,3 +117,7 @@ The existing web product now offers Privacy locks under Your account. Each user 
 ## PIN flow refinement — 2026-09-17
 
 Initial setup asks for PIN length, PIN entry and confirmation before saving lock choices. Changing a PIN requires the current PIN, then a new length, new PIN and confirmation. A change revokes active section unlocks and removes this browser’s device-unlock wrapper. Existing longer codes remain usable only to authenticate and migrate to a 4- or 6-digit PIN.
+
+## Reliable bulk media — 2026-10-21
+
+Selected photos/videos are saved to this device before sending and recover when the same signed-in person reopens the entry, for up to 24 hours subject to browser storage availability. Manual pauses survive reload/navigation. Temporary failures retry independently; rejected files can be retried together or removed. Progress distinguishes files saved, uploading, finishing and waiting. Sign-out removes local queued copies. Continuous transfer with the app closed is not promised. Source is implemented under ADR-050; deployment/device acceptance is separate.

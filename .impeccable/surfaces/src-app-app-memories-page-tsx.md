@@ -33,3 +33,7 @@ The thumbnail is the memory's earliest photograph, falling back to its earliest 
 Index rows are strictly one line of title and one line of story: both `truncate`, and the story's own line breaks fold to spaces. The previous `block line-clamp-1` pairing let `display: block` win, so long stories wrapped to three lines on phones. The tag filter field takes its own row below `sm`.
 
 A memory with no photographs shows a monogram instead of the image-off glyph: its initial in the display serif on the blush square, with a faint rose corner (heart when the title has no lettered word). The glyph remains for a photo that failed to load.
+
+## Durable upload states — 2026-10-21
+
+The existing developing tiles and wine/blush progress line are preserved. The line now distinguishes saved/uploading/finishing counts, offers Retry remaining for stopped/deferred files, and keeps Pause/Continue as the primary batch control. Supporting copy explains device retention/reopening and keeping the app open. Storage failures/other-tab ownership have explicit messages and an opening-retry control. Tiles, keyboard controls, reduced-motion behavior and mobile wrapping were exercised in the focused durable-upload browser suite; evidence is recorded in docs/DURABLE_UPLOADS_VERIFICATION.md.

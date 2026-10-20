@@ -6,6 +6,33 @@ import { AuthRetryableFetchError } from "@supabase/supabase-js";
 import { resumableAuthOptions, uploadFailure } from "./resumable-upload";
 
 describe("real resumable transfer recovery", () => {
+  it("resumes a new transport instance from a persisted URL without creating a second original", async () => {
+    const input = Buffer.alloc(8 * 1024 * 1024, 39), accepted: Buffer[] = [];
+    let offset = 0, creations = 0, saved = "";
+    const methods: string[] = [];
+    const server = createServer(async (request, response) => {
+      methods.push(request.method!); response.setHeader("Tus-Resumable", "1.0.0");
+      if (request.method === "HEAD") { response.writeHead(200, { "Upload-Offset": String(offset), "Upload-Length": String(input.length) }).end(); return; }
+      const chunks: Buffer[] = []; for await (const chunk of request) chunks.push(chunk);
+      const bytes = Buffer.concat(chunks); accepted.push(bytes); offset += bytes.length;
+      if (request.method === "POST") { creations++; response.writeHead(201, { Location: "/upload/persisted", "Upload-Offset": String(offset) }).end(); }
+      else response.writeHead(204, { "Upload-Offset": String(offset) }).end();
+    });
+    server.listen(0, "127.0.0.1"); await once(server, "listening");
+    const address = server.address(); if (!address || typeof address === "string") throw Error("Test server unavailable");
+    const endpoint = `http://127.0.0.1:${address.port}/upload`;
+    try {
+      await new Promise<void>((resolve, reject) => {
+        const first = new Upload(input, { endpoint, chunkSize: 6 * 1024 * 1024, uploadDataDuringCreation: true, storeFingerprintForResuming: false,
+          onUploadUrlAvailable: () => { saved = first.url!; void first.abort().then(resolve, reject); }, onError: reject });
+        first.start();
+      });
+      expect(offset).toBe(6 * 1024 * 1024);
+      await new Promise<void>((resolve, reject) => new Upload(input, { endpoint, uploadUrl: saved, chunkSize: 6 * 1024 * 1024,
+        storeFingerprintForResuming: false, onSuccess: () => resolve(), onError: reject }).start());
+      expect(creations).toBe(1); expect(methods).toContain("HEAD"); expect(Buffer.concat(accepted).equals(input)).toBe(true);
+    } finally { server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve())); }
+  });
   it("refreshes expired credentials, recovers a lost PATCH response from server offset, and respects throttling", async () => {
     let token = "first", offset = 0, creations = 0, refreshed = 0, lostResponse = false, throttled = false;
     const input = Buffer.alloc(13 * 1024 * 1024, 42);
