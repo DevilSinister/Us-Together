@@ -458,3 +458,13 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 **Decision:** Escape is handled in the dialog's `keydown` (ignored during IME composition): the viewer closes the menu, then the sheet, then itself; `DialogContent` closes when dismissible and stops the event from reaching a parent dialog. Cancelling the keydown means the browser never turns that Escape into a close request. `cancel` handling stays for other close requests, such as Android back. Both listen for `close` and, while still connected, bring React state in line when the browser closes a dialog itself.
 
 **Consequences:** Escape behaves the same however often it is pressed. A non-keyboard close request the browser refuses to let the page cancel can still close a whole dialog, but the page now follows it instead of sticking. Covered by `tests/e2e/viewer-escape.spec.ts`.
+
+## ADR-050 — Durable, bounded bulk upload recovery
+
+**Status:** Accepted, 2026-10-21; implementation on codex/durable-bulk-uploads, deployment pending.
+
+**Context:** The resumable transport and fresh credentials did not make the queue durable. Selection/checkpoints disappeared with the mounted page; exhausted retries depended on online/foreground events, which need not fire after a weak connection recovers. Stage requests could also hold Next's serial Server Action dispatcher.
+
+**Decision:** Save individual file blobs and normalized job/batch metadata before sending, scoped to the server-derived user and entry. Retain for 24 hours with count/byte caps, one Web Lock writer, manual-pause persistence, sign-out purge and explicit storage errors. Use bounded per-attempt transport retry, an inactivity watchdog and periodic capped-backoff scheduling that defers one file while others proceed. Separate transfer from processing, reconcile lost responses with a stable UUID and stored-original check, and use an abortable same-origin stage endpoint. Preserve fresh credentials, binary validation, private Storage, quotas and RLS; renew only an authenticated uploader's unfinished allocation.
+
+**Consequences:** Reload/navigation recovery and processing-only retries become possible without duplicates. A closed/background web page cannot guarantee continuous transfer; the person reopens the entry. Local site-data removal can remove unsent copies. The Edge Function must deploy before the matching web client; no migration or APK update is required. Existing page-session-only statements in ADR-046 are superseded for this queue.

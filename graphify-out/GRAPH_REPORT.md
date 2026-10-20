@@ -1,5 +1,7 @@
 # Graph Report - D:\Projects\Uss  (2026-09-02)
 
+2026-10-21 supplement: `graphify update . --no-cluster` refreshed `graph.json` to 2929 nodes / 6835 edges and preserved the prior semantic corpus. Upload session/store nodes are present. `design.json` and `assetlinks.json` produced zero nodes. The historical community statistics below and `graph.html` were not regenerated; new prose was not semantically re-extracted. See `docs/DURABLE_UPLOADS_VERIFICATION.md` for the scoped change and gates.
+
 ## Corpus Check
 - 224 files · ~96,359 words
 - Verdict: corpus is large enough that graph structure adds value.

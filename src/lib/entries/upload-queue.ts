@@ -10,7 +10,7 @@
 
 export type QueuedPhoto = { key: string; file: File; caption: string; mime: string };
 
-export type UploadStatus = "queued" | "sending" | "processing" | "failed";
+export type UploadStatus = "queued" | "sending" | "processing" | "waiting" | "failed";
 
 /** `stored` is the server row reserved for this file, once there is one. */
 export type UploadItem = QueuedPhoto & { status: UploadStatus; progress: number; error: string; stored?: string };

@@ -4,9 +4,10 @@ import { z } from "npm:zod@4.5.4";
 import { checkImageSize, inspectMedia, isImage, validateUpload, mediaTypes } from "../../../src/lib/memories/media.ts";
 import { getDecoder } from "./decoder.ts";
 import { processingFailure } from "../../../src/lib/memories/processing-failure.ts";
+import { matchesUploadAllocation } from "../../../src/lib/memories/upload-allocation.ts";
 
 const requestSchema = z.discriminatedUnion("operation", [
-  z.object({ operation: z.literal("prepare"), kind: z.enum(["memory","moment"]).default("memory"), memoryId: z.uuid(), filename: z.string().min(1).max(240), mime: z.enum(mediaTypes), size: z.number().int().positive(), caption: z.string().trim().max(240).default("") }),
+  z.object({ operation: z.literal("prepare"), id: z.uuid().optional(), kind: z.enum(["memory","moment"]).default("memory"), memoryId: z.uuid(), filename: z.string().min(1).max(240), mime: z.enum(mediaTypes), size: z.number().int().positive(), caption: z.string().trim().max(240).default("") }),
   z.object({ operation: z.literal("caption"), kind: z.enum(["memory","moment"]).default("memory"), memoryId: z.uuid(), id: z.uuid(), caption: z.string().trim().max(240) }),
   z.object({ operation: z.enum(["finalize", "remove"]), kind: z.enum(["memory","moment"]).default("memory"), memoryId: z.uuid(), id: z.uuid() }),
 ]);
@@ -38,10 +39,36 @@ Deno.serve(async (request: Request) => {
   const bucket = admin.storage.from(input.kind==="moment"?"moment-media":"memory-media");
   if (input.operation === "prepare") {
     try { validateUpload(input.filename, input.mime, input.size); } catch (error) { return response({ error: (error as Error).message }, 400); }
-    const id = crypto.randomUUID(), path = memory.couple_id + "/" + memory.id + "/" + id + "/original";
+    const id = input.id ?? crypto.randomUUID(), path = memory.couple_id + "/" + memory.id + "/" + id + "/original";
+    // Retrying after a lost response must return the exact same allocation.
+    // Both the parent and uploader are freshly authorized before any reuse.
+    const recover = async () => {
+      const {data: existing,error: lookupError} = await admin.from(mediaTable).select("*").eq("id",id).eq(parentColumn,memory.id).maybeSingle();
+      if(lookupError)return response({error:"Could not recover this upload. Try again shortly.",retryable:true},503);
+      if(!existing)return null;
+      if(!matchesUploadAllocation(existing,user.id,input))return response({error:"Upload unavailable. Choose the file again.",retryable:false},403);
+      if(existing.state==="deleting")return response({error:"Finish removing this upload.",retryable:false},409);
+      const {data: object,error: objectError}=await bucket.info(path);
+      if(objectError && String(objectError.statusCode)!=="404")return response({error:"Could not check the stored file. Try again shortly.",retryable:true},503);
+      const uploaded=!!object;
+      if(!uploaded && existing.state==="processing")return response({error:"This file is still processing. Try again shortly.",retryable:true},409);
+      // Renew only this uploader's unfinished allocation. Never overwrite an
+      // original and never reset a live processing lease or a published row.
+      let expiresAt=existing.upload_expires_at;
+      if(!uploaded && existing.state!=="ready"){
+        expiresAt=new Date(Date.now()+3600000).toISOString();
+        const {data: renewed,error: renewError}=await admin.from(mediaTable).update({state:"pending",upload_expires_at:expiresAt}).eq("id",id).eq("state",existing.state).select("id").maybeSingle();
+        if(renewError||!renewed)return response({error:"This upload changed. Try again shortly.",retryable:true},409);
+      }
+      return response({id,path,expiresAt,uploaded});
+    };
+    if(input.id){const recovered=await recover();if(recovered)return recovered;}
     const { error } = await admin.from(mediaTable).insert({ id, [parentColumn]: memory.id, created_by: user.id, storage_path: path, media_type: isImage(input.mime) ? "image" : "video", mime_type: input.mime, size_bytes: input.size, caption: input.caption });
-    if (error) return response({ error: "Could not start upload. Each memory allows 30 files and 300 MB in total." }, 409);
-    return response({ id, path, expiresAt: new Date(Date.now() + 3600000).toISOString() });
+    if (error) {
+      if(error.code==="23505"&&input.id){const recovered=await recover();if(recovered)return recovered;}
+      return response({ error: "Could not start upload. Each memory allows 30 files and 300 MB in total.",retryable:!["23505","23514","42501"].includes(error.code) }, ["23505","23514","42501"].includes(error.code)?409:503);
+    }
+    return response({ id, path, expiresAt: new Date(Date.now() + 3600000).toISOString(),uploaded:false });
   }
   const { data: media } = await admin.from(mediaTable).select("*").eq("id", input.id).eq(parentColumn, memory.id).maybeSingle();
   if (!media) return response({ error: "Media unavailable." }, 404);
@@ -50,8 +77,9 @@ Deno.serve(async (request: Request) => {
     return error?response({error:"Could not save caption."},503):response({ok:true});
   }
   const previewPath = media.storage_path.replace(/\/original$/, "/preview.jpg");
-  if (media.state === "processing" && Date.parse(media.processing_at) > Date.now() - 300000) return response({ error: "This file is still processing. Try again shortly." }, 409);
+  if (media.state === "processing" && Date.parse(media.processing_at) > Date.now() - 300000) return response({ error: "This file is still processing. Try again shortly.",retryable:true }, 409);
   if (input.operation === "remove") {
+    if(media.state!=="ready"&&media.created_by!==user.id)return response({error:"Only the uploader can remove an unfinished file."},403);
     const { data: claimed } = await admin.from(mediaTable).update({ state: "deleting", processing_token: null }).eq("id", media.id).eq("state", media.state).select("id").maybeSingle();
     if (!claimed) return response({ error: "This file changed. Refresh and try again." }, 409);
     const { error: removeError } = await bucket.remove([media.storage_path, previewPath]);
@@ -62,10 +90,11 @@ Deno.serve(async (request: Request) => {
   if (media.state === "ready") return response({ ok: true });
   if (media.state === "deleting") return response({ error: "Finish removing this upload." }, 409);
   if (media.created_by !== user.id) return response({ error: "Only the uploader can finish this file." }, 403);
-  if (Date.parse(media.upload_expires_at) < Date.now()) return response({ error: "This upload expired. Remove it and choose the file again." }, 409);
+  // A fully stored original can finish after its upload authorization expires;
+  // expiry still prevents the client from sending any new bytes through RLS.
   const token = crypto.randomUUID();
   const { data: claimed } = await admin.from(mediaTable).update({ state: "processing", processing_at: new Date().toISOString(), processing_token: token, error_code: null }).eq("id", media.id).eq("state", media.state).select("id").maybeSingle();
-  if (!claimed) return response({ error: "Processing already started. Try again shortly." }, 409);
+  if (!claimed) return response({ error: "Processing already started. Try again shortly.",retryable:true }, 409);
   let stage = "download";
   try {
     const { data: file, error } = await bucket.download(media.storage_path);
@@ -116,6 +145,7 @@ Deno.serve(async (request: Request) => {
     console.error("media_processing_failure", processingFailure(stage, error));
     await admin.from(mediaTable).update({ state: "failed", error_code: "processing_failed", processing_token: null }).eq("id", media.id).eq("processing_token", token);
     const safe = error instanceof Error && /^(Choose|Photos|Videos|Video must|This file|The (photo|video|upload)|Upload has|Could not create|Your access)/.test(error.message) ? error.message : "Could not process this file. Retry or remove it and choose another.";
-    return response({ error: safe }, 422);
+    const retryable=stage==="decoder"||stage==="preview-storage"||stage==="publish"||(stage==="download"&&safe.startsWith("Upload has not finished"));
+    return response({ error: safe,retryable }, 422);
   }
 });
