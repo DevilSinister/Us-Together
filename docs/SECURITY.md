@@ -115,3 +115,9 @@ Preview files/comments are local IndexedDB records keyed by developer session an
 ## Forms and URLs — 2026-09-25
 
 Every `<form>` declares how it submits: a server `action`, or `method="post"` when a client `onSubmit` handles it. Without one, a submit that lands before hydration is a native GET and writes every field into the URL, which reaches history, logs and referrers. `src/lib/forms-guard.test.ts` enforces this for all of `src`.
+
+## Local upload recovery — ADR-050
+
+Selected originals and captions now temporarily live in account/entry-scoped IndexedDB, with a 24-hour selection lifetime and explicit byte/count caps. No credentials, signed read URLs or service keys are persisted there. Private authenticated TUS references are stored only alongside their own queued file; restored references must match the configured direct Storage origin/path before receiving credentials. A Web Lock prevents concurrent tab writers. Sign-out stops/broadcasts to writers and clears upload data; a different authenticated owner purges prior-owner jobs. Server operations compare the expected user with the authenticated identity, and all parent/ownership checks remain server-side.
+
+This storage is browser site data, not encryption at rest or an extension of the PIN lock's guarantees. Browser eviction/site-data deletion can remove local copies. Missing file bytes are reported without blocking the remaining queue. No private filenames, captions, content or transfer references are added to logs/analytics.

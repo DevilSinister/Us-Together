@@ -9,6 +9,7 @@ import { isDeveloperSeedEnabled, readDeveloperState } from "@/lib/auth/dev-sessi
 import { PreviewSampleMedia } from "@/components/dev/preview-sample-media";
 import { TimeZoneSync } from "@/components/providers/time-zone-sync";
 import { getViewerTimeZone } from "@/lib/time/viewer";
+import { UploadOwnerProvider } from "@/components/providers/upload-owner";
 
 export const dynamic = "force-dynamic";
 
@@ -22,8 +23,8 @@ export default async function ProtectedLayout({ children }: { children: React.Re
   const unreadCount = await getUnreadNotificationCount();
   const previewState = identity.kind === "developer" && isDeveloperSeedEnabled() ? await readDeveloperState() : null;
   const timeZone = await getViewerTimeZone();
-  return <PartnerSync enabled={identity.kind === "supabase"}>
+  return <UploadOwnerProvider owner={identity.userId}><PartnerSync enabled={identity.kind === "supabase"}>
     <TimeZoneSync current={timeZone} />
     <IdentitiesProvider value={identities}><AppShell unreadCount={unreadCount}>{previewState ? <PreviewSampleMedia sessionId={previewState.bucketSessionId} /> : null}{children}</AppShell></IdentitiesProvider>
-  </PartnerSync>;
+  </PartnerSync></UploadOwnerProvider>;
 }

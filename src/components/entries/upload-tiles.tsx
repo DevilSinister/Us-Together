@@ -35,7 +35,7 @@ export function UploadTile({item,position,total,paused,waiting,onRetry,onRemove}
  const kind=isImage(item.mime)?"photo":"video";
  const name=kind+" "+position+" of "+total;
  const failed=item.status==="failed",finishing=item.status==="processing",sending=item.status==="sending";
- const held=(paused||waiting)&&!failed&&!finishing;
+ const held=(paused||waiting||item.status==="waiting")&&!failed&&!finishing;
  const developed=failed?0.15:finishing?1:item.progress/100;
  const label=failed?"Couldn't add":finishing?"Finishing…":held?(paused?"Paused":"Waiting"):sending?(item.progress?item.progress+"%":"Starting"):"Up next";
  const state=failed?"couldn't be added. "+item.error:finishing?"finishing":held?(paused?"paused":"waiting for a connection"):sending?(item.progress?item.progress+" percent sent":"starting"):"waiting its turn";
@@ -88,20 +88,25 @@ export function UnfinishedTile({media,busy,onRetry,onRemove}:{media:EntryMedia;b
 }
 
 /** One line for the whole batch, and the one control a person needs: Pause. */
-export function UploadProgress({items,paused,waiting,onPause,onResume}:{items:UploadItem[];paused:boolean;waiting:boolean;onPause:()=>void;onResume:()=>void}){
+export function UploadProgress({items,paused,waiting,completed=0,total=items.length,onPause,onResume,onRetry}:{items:UploadItem[];paused:boolean;waiting:boolean;completed?:number;total?:number;onPause:()=>void;onResume:()=>void;onRetry:()=>void}){
  const summary=summarize(items,{paused,waiting});
  if(!items.length)return null;
  const heading=summary.title||summary.detail;
- return <div className="mt-4 flex items-center gap-3 rounded-panel bg-secondary/60 py-2 pl-4 pr-2">
+ const deferred=items.filter(item=>item.status==="waiting").length;
+ return <div className="mt-4 flex flex-wrap items-center gap-3 rounded-panel bg-secondary/60 py-2 pl-4 pr-2">
   <div role="status" className="min-w-0 flex-1 py-1">
    <p className="text-sm font-semibold leading-5">{heading}</p>
+   <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{completed} of {total} saved · {items.filter(item=>item.status==="sending").length} uploading · {items.filter(item=>item.status==="processing").length} finishing{deferred?` · ${deferred} waiting to retry`:""}</p>
    {summary.title&&summary.detail?<p className="mt-0.5 text-xs leading-5 text-muted-foreground">{summary.detail}</p>:null}
    {summary.active?<span aria-hidden="true" className="mt-2 block h-1 overflow-hidden rounded-full bg-primary/15"><span className="block h-full rounded-full bg-primary transition-[width] duration-300 ease-out motion-reduce:transition-none" style={{width:summary.progress+"%"}}/></span>:null}
   </div>
+  <div className="flex flex-wrap gap-2">
+  {summary.failed||deferred?<Button type="button" size="sm" variant="outline" className="h-11" onClick={onRetry}>Retry remaining</Button>:null}
   {summary.active
    ?paused
     ?<Button type="button" size="sm" className="h-11 shrink-0" onClick={onResume}><Play className="size-4 fill-current" aria-hidden="true"/>Continue</Button>
     :<Button type="button" size="sm" variant="outline" className="h-11 shrink-0" onClick={onPause}><Pause className="size-4" aria-hidden="true"/>Pause</Button>
    :null}
+  </div>
  </div>;
 }

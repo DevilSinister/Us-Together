@@ -7,6 +7,7 @@ import { writeDeveloperState } from "@/lib/auth/dev-session";
 import { planContext } from "@/lib/plans/data";
 import { loadMemories } from "@/lib/memories/data";
 import { editMemorySchema, mediaRequest } from "@/lib/memories/schema";
+import { getCurrentIdentity } from "@/lib/auth/current-user";
 
 function refresh(id: string) { revalidatePath("/calendar"); revalidatePath("/milestones/"+id); revalidatePath("/memories"); revalidatePath("/memories/"+id); revalidatePath("/home"); }
 export async function filterMemories(input: unknown) {
@@ -48,21 +49,26 @@ export async function deleteMemory(input: unknown) {
     refresh(v.id);return {ok:true};
   }catch(error){return {ok:false,error:error instanceof Error?error.message:"Could not remove the memory."};}
 }
-export async function memoryMediaAction(input: unknown): Promise<{ok?:boolean;id?:string;path?:string;expiresAt?:string;error?:string}> {
+export async function memoryMediaAction(input: unknown): Promise<{ok?:boolean;id?:string;path?:string;expiresAt?:string;uploaded?:boolean;error?:string;status?:number;retryable?:boolean}> {
   const parsed=mediaRequest.safeParse(input);
-  if(!parsed.success)return {error:parsed.error.issues[0].message};
+  if(!parsed.success)return {error:parsed.error.issues[0].message,status:400,retryable:false};
+  const expectation=z.object({expectedUserId:z.uuid().optional()}).safeParse(input);
+  if(!expectation.success)return {error:"Upload identity unavailable.",status:400,retryable:false};
   try{
+    if(!await getCurrentIdentity())return {error:"Sign in again before retrying your files.",status:401,retryable:false};
     const c=await planContext();
-    if(c.kind!=="database"||!c.paired)return {error:"Sign in with your connected account to add photos and videos."};
-    const {data:m}=await c.db.from(parsed.data.kind==="moment"?"milestones":"memories").select("id").eq("id",parsed.data.memoryId).maybeSingle();
-    if(!m)return {error:"Memory unavailable."};
+    if(c.kind!=="database"||!c.paired)return {error:"Sign in with your connected account to add photos and videos.",status:401,retryable:false};
+    if(expectation.data.expectedUserId&&expectation.data.expectedUserId!==c.userId)return {error:"Your account changed. Reopen the app before adding files.",status:403,retryable:false};
+    const {data:m,error:readError}=await c.db.from(parsed.data.kind==="moment"?"milestones":"memories").select("id").eq("id",parsed.data.memoryId).maybeSingle();
+    if(readError)return {error:"Could not open this entry. Try again shortly.",status:503,retryable:true};
+    if(!m)return {error:"Memory unavailable.",status:404,retryable:false};
     const {data,error}=await c.db.functions.invoke("memory-media",{body:parsed.data});
     if(error){
       const context=(error as {context?:Response}).context;
-      if(context){try{const body=await context.json();if(typeof body.error==="string")return {error:body.error};}catch{}}
-      return {error:"Media processing is unavailable. Check your connection and try again."};
+      if(context){try{const body=await context.json();if(typeof body.error==="string")return {error:body.error,status:context.status,retryable:typeof body.retryable==="boolean"?body.retryable:context.status===429||context.status>=500};}catch{}}
+      return {error:"Media processing is unavailable. Check your connection and try again.",status:503,retryable:true};
     }
     refresh(parsed.data.memoryId);
     return data;
-  }catch{return {error:"Could not reach media processing. Try again."};}
+  }catch{return {error:"Could not reach media processing. Try again.",status:503,retryable:true};}
 }
