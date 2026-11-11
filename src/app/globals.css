@@ -23,29 +23,44 @@
   --success: #316849;
   --elevation-paper: 0 24px 70px -45px rgba(58, 25, 34, 0.45);
   --elevation-marker: 0 6px 20px -12px rgba(80, 20, 40, 0.8);
+  /* The cover at the top of a Cover screen: a photograph, or this deep field when
+     there is none. Dark with light type in both themes, so whatever is laid over
+     it - the title, the phone header - reads the same either way. */
+  --cover-field: #591124;
+  --cover-foreground: #fff9f6;
+  --cover-muted: #f1d6da;
+  --cover-accent: #fff9f6;
+  --cover-accent-ink: #591124;
 }
 
+/* Ink and rose: a near-black ground with warm ivory type, so photographs carry the
+   colour; rose is the one voice for actions, labels and progress. */
 .dark {
-  --background: #211a20;
-  --foreground: #f8efea;
-  --field: #2b2229;
-  --card: #2a2127;
-  --card-foreground: #f8efea;
-  --primary: #df879a;
-  --primary-strong: #eda0af;
-  --primary-foreground: #27161d;
-  --secondary: #3b2a34;
-  --secondary-foreground: #fae8e7;
-  --muted: #30272d;
-  --muted-foreground: #c2b2b6;
-  --border: #59434e;
-  --ring: #e090a1;
-  --wine: #df879a;
-  --rose: #df879a;
-  --danger: #ff9c9f;
-  --success: #8fd0aa;
-  --elevation-paper: 0 24px 70px -38px rgba(0, 0, 0, 0.72);
-  --elevation-marker: 0 6px 20px -10px rgba(0, 0, 0, 0.78);
+  --background: #0e0d0c;
+  --foreground: #f4f0e9;
+  --field: #181716;
+  --card: #181716;
+  --card-foreground: #f4f0e9;
+  --primary: #f07a8c;
+  --primary-strong: #f59aa8;
+  --primary-foreground: #1a0d10;
+  --secondary: #222120;
+  --secondary-foreground: #f4f0e9;
+  --muted: #1c1b1a;
+  --muted-foreground: #a09a92;
+  --border: #302e2c;
+  --ring: #f07a8c;
+  --wine: #f07a8c;
+  --rose: #f07a8c;
+  --danger: #ff8f8f;
+  --success: #86d1a5;
+  --elevation-paper: 0 24px 70px -38px rgba(0, 0, 0, 0.8);
+  --elevation-marker: 0 6px 20px -10px rgba(0, 0, 0, 0.85);
+  --cover-field: #181716;
+  --cover-foreground: #f4f0e9;
+  --cover-muted: #dcd7ce;
+  --cover-accent: #f07a8c;
+  --cover-accent-ink: #1a0d10;
 }
 
 @theme inline {
@@ -67,6 +82,8 @@
   --color-rose: var(--rose);
   --color-danger: var(--danger);
   --color-success: var(--success);
+  --color-cover-field: var(--cover-field);
+  --color-cover-foreground: var(--cover-foreground);
   --radius-control: 0.5rem;
   --radius-navigation: 0.875rem;
   --radius-panel: 1rem;
@@ -126,6 +143,43 @@ body:has(dialog[open]) { overflow: hidden; }
 
 .paper-surface {
   background: var(--card);
+}
+
+/* Anything laid over a cover. The ordinary tokens are re-pointed rather than
+   given cover variants, so buttons, links, the bell and the brand mark need no
+   second set of classes. The phone header joins in only on a page that has a
+   cover, which it learns from the page itself rather than from the route. */
+.on-cover,
+.app-frame:has([data-cover-page]) .shell-header {
+  --foreground: var(--cover-foreground);
+  --muted-foreground: var(--cover-muted);
+  --primary: var(--cover-accent);
+  --primary-strong: var(--cover-accent);
+  --primary-foreground: var(--cover-accent-ink);
+  --secondary: rgb(255 255 255 / 0.14);
+  --border: rgb(255 255 255 / 0.28);
+  --ring: var(--cover-foreground);
+  color: var(--foreground);
+}
+
+.shell-header {
+  position: sticky;
+  top: 0;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-frame:has([data-cover-page]) .shell-header {
+  position: absolute;
+  inset-inline: 0;
+  background: transparent;
+  border-bottom-color: transparent;
+}
+
+/* Dark at the top for the header and at the foot for the title; the middle of
+   the photograph is left alone. */
+.cover-scrim {
+  background: linear-gradient(180deg, rgb(8 7 6 / 0.58) 0%, rgb(8 7 6 / 0.06) 28%, rgb(8 7 6 / 0.1) 46%, rgb(8 7 6 / 0.86) 100%);
 }
 
 .field-error { color: var(--danger); font-size: 0.875rem; line-height: 1.25rem; }

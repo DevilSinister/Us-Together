@@ -14,9 +14,9 @@ colors:
   muted-ink: "#74676a"
   fine-rule: "#decfca"
   restrained-rose: "#b75a6d"
-  night-paper: "#211a20"
-  night-card: "#2a2127"
-  night-rose: "#df879a"
+  night-paper: "#0e0d0c"
+  night-card: "#181716"
+  night-rose: "#f07a8c"
 typography:
   display:
     fontFamily: '"Iowan Old Style", Baskerville, "Times New Roman", serif'
@@ -146,13 +146,13 @@ The palette is a warm paper-and-wine system: deep wine carries action and emphas
 - **Charcoal Ink:** The default reading color.
 - **Muted Ink:** Secondary explanations, supporting metadata, and unavailable-state copy.
 - **Fine Rule:** Borders and dividers that clarify structure without dominating it.
-- **Night Paper, Night Card, and Night Rose:** Dark-mode counterparts that keep the palette warm and legible.
+- **Night Paper, Night Card, and Night Rose:** Dark mode is Ink and rose (ADR-053): a near-black ground and card, warm ivory type (`#f4f0e9`), and rose for primary actions, labels and progress.
 
 ### Named Rules
 
 **The One Wine Voice Rule.** Deep wine carries primary action and active emphasis; do not introduce a second competing accent for ordinary interaction.
 
-**The Warm Dark Rule.** Dark mode keeps plum, rose, and warm-paper relationships. It does not collapse into neutral black with electric accent colors.
+**The Ink and Rose Rule.** Dark mode is a near-black, faintly warm ground with ivory type, so photographs carry the colour; rose is its one accent and fills its primary buttons. This replaced the earlier Warm Dark (plum) rule by owner direction on 2026-11-11 (ADR-053).
 
 ## Typography
 
@@ -256,7 +256,13 @@ Two components carry the states a partner meets most often, so they read identic
 
 Desktop navigation lives in the warm card-paper sidebar and uses quiet blush to mark the active destination. Mobile navigation is fixed to the bottom safe area, uses the same paper tone with a fine top rule, and pairs icons with compact labels. All navigation targets meet the 44px minimum touch height. Five evenly spaced mobile targets prevent cramped labels; Lists is the short mobile label for Bucket lists. More uses the shared modal focus and Escape behavior. Bottom content padding reserves navigation height plus the device safe area.
 
-The mobile top bar includes a notification bell before appearance and sign-out controls. Its badge shows the signed-in recipient's unread count, capped visually at 99+, while the accessible name states the full count. At narrow phone widths the brand uses a smaller single-line serif label so all three controls retain their 44px targets. Home uses the compact page-header scale; its intro leads directly into the journal section without a separate notification action row.
+The mobile top bar includes a notification bell before appearance and sign-out controls. Its badge shows the signed-in recipient's unread count, capped visually at 99+, while the accessible name states the full count. At narrow phone widths the brand uses a smaller single-line serif label so all three controls retain their 44px targets. On a page with a cover the header is laid transparently over it (see Cover Screens).
+
+### Cover Screens
+
+The redesign in progress (ADR-053), so far applied to Home. A cover opens the screen: the newest relevant photograph under a scrim that darkens its top and foot, or the cover field (deep wine in light mode, near-black in dark) when there is none. Its type is always light. On phones the cover bleeds to the screen edges and the phone header lies over it; from tablet width it is a rounded panel inside the content column. A sheet with the 1.25rem radius on its top corners overlaps the cover's foot on phones. It holds one highlighted block for the next step (a blush or ink field with a date tile) and ruled rows, each a 44px leading mark (round icon field, avatar, thumbnail or progress ring), a small muted kicker and a 17px semibold title. Create actions sit behind one rose button that opens a single sheet: floating above the bottom navigation on phones, inline beside the greeting from tablet width. On phones the sheet rises from the bottom edge.
+
+Home's cover is the newest memory's first photograph with the day count in the 72px display serif and a "Recently kept" link. Beneath: the greeting, the next plan or an invitation to make one, then rows for the featured moment, the latest note, the latest drawing (with Draw back), bucket progress and wishes. Four recent photographs and Open gallery sit last on phones and in a 20rem side column from desktop width, followed by the privacy line.
 
 Every route a partner can reach is reachable from navigation; no destination depends on a link that happens to sit on Home. Each destination carries its own icon, so no two adjacent items read as the same thing.
 

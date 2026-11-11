@@ -9,7 +9,7 @@ import { NotificationBell } from "@/components/app/notification-bell";
 
 export function AppShell({ children, unreadCount }: { children: React.ReactNode; unreadCount: number }) {
   return (
-    <div className="min-h-screen bg-background md:grid md:grid-cols-[16rem_1fr] md:items-start">
+    <div className="app-frame min-h-screen bg-background md:grid md:grid-cols-[16rem_1fr] md:items-start">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:inline-flex focus:min-h-11 focus:items-center focus:rounded-control focus:bg-primary focus:px-4 focus:text-sm focus:font-semibold focus:text-primary-foreground focus:shadow-action"
@@ -26,8 +26,10 @@ export function AppShell({ children, unreadCount }: { children: React.ReactNode;
           </UploadSignOutForm>
         </div>
       </aside>
-      <div className="min-w-0 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
-        <header className="sticky top-0 z-20 flex items-center justify-between border-b bg-card px-5 py-4 md:hidden">
+      <div className="relative min-w-0 pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
+        {/* Solid and sticky on every page; laid transparently over the photograph
+            on a page with a cover (see .shell-header in globals.css). */}
+        <header className="shell-header z-20 flex items-center justify-between px-5 py-4 md:hidden">
           <Link href="/home" className="shrink-0 rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><BrandMark className="gap-1.5 whitespace-nowrap text-base sm:gap-2 sm:text-xl" /></Link>
           <div className="flex items-center gap-1">
             <NotificationBell count={unreadCount} />
