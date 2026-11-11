@@ -1,44 +1,61 @@
 import Link from "next/link";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ChevronLeft, Plus } from "lucide-react";
 import { CoverPhoto, type CoverImage, type PreviewEntry } from "@/components/app/cover-photo";
 import { cn } from "@/lib/utils";
 
 const heights = {
   tall: "h-[26rem] md:h-[22rem] lg:h-[24rem]",
   standard: "h-[19rem] md:h-[16rem] lg:h-[18rem]",
+  detail: "h-[24rem] md:h-[20rem] lg:h-[22rem]",
 } as const;
 
 /**
  * The top of a Cover screen (ADR-053): a photograph under a scrim, or the deep
  * cover field when there is none, with the screen's title laid over its foot.
  *
- * On a phone it bleeds to the screen edges and under the phone header, which
- * turns transparent because this section carries `data-cover-page`; from tablet
- * width it is a rounded panel in the content column. Everything inside reads the
- * re-pointed cover tokens (`.on-cover`), so type and links are light on it in
- * both themes.
+ * On a phone it bleeds to the screen edges. An index screen lets the phone
+ * header lie transparently over it; a detail screen (`back`) carries its own
+ * round back button in the corner instead and the header steps aside. From
+ * tablet width it is a rounded panel in the content column. Everything inside
+ * reads the re-pointed cover tokens (`.on-cover`), so it is light in both themes.
  */
-export function Cover({ photo = null, previewSession, previewEntry = null, height = "standard", labelledBy, className, children }: {
+export function Cover({ photo = null, previewSession, previewEntry = null, height = "standard", labelledBy, back, action, className, children }: {
   photo?: CoverImage | null;
   previewSession?: string;
   previewEntry?: PreviewEntry | null;
   height?: keyof typeof heights;
   labelledBy: string;
+  /** Where the corner back button leads, and what it is called for a screen reader. */
+  back?: { href: string; label: string };
+  /** Shown beside the title from tablet width, where there is no floating button. */
+  action?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 }) {
   return (
     <section
-      data-cover-page
+      data-cover-page={back ? "detail" : "index"}
       aria-labelledby={labelledBy}
       className={cn(
         "on-cover relative -mx-5 -mt-8 flex flex-col justify-end overflow-hidden bg-cover-field px-5 pb-12 sm:-mx-8 sm:px-8 md:mx-0 md:mt-0 md:rounded-surface md:pb-9 lg:px-10",
-        heights[height],
+        heights[back ? "detail" : height],
         className,
       )}
     >
       <CoverPhoto photo={photo} previewSession={previewSession} previewEntry={previewEntry} />
-      <div className="relative">{children}</div>
+      {back ? (
+        <Link
+          href={back.href}
+          aria-label={back.label}
+          className="absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] grid size-11 place-items-center rounded-full bg-[rgb(8_7_6/0.42)] text-[var(--cover-foreground)] transition-[background-color,transform] duration-200 hover:bg-[rgb(8_7_6/0.6)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 motion-reduce:transition-none md:left-4 md:top-4"
+        >
+          <ChevronLeft className="size-6" aria-hidden="true" />
+        </Link>
+      ) : null}
+      <div className="cover-rise relative flex items-end justify-between gap-4">
+        <div className="min-w-0">{children}</div>
+        {action ? <div className="hidden shrink-0 md:block">{action}</div> : null}
+      </div>
     </section>
   );
 }
@@ -58,13 +75,9 @@ export function CoverSheet({ className, children }: { className?: string; childr
   );
 }
 
-/** The way back, laid on the cover above its title. */
-export function CoverBack({ href, children }: { href: string; children: React.ReactNode }) {
-  return (
-    <Link href={href} className="-ml-1 mb-1 inline-flex min-h-11 items-center gap-1.5 rounded-control px-1 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-      <ArrowLeft className="size-4" aria-hidden="true" />{children}
-    </Link>
-  );
+/** The CSS custom property that orders a row in a `.stagger` list. */
+export function staggerIndex(index: number) {
+  return { "--i": index } as React.CSSProperties;
 }
 
 /**
@@ -72,7 +85,7 @@ export function CoverBack({ href, children }: { href: string; children: React.Re
  * from tablet width, where the screen shows the same action inline instead, so
  * a floating button never sits on top of content there.
  */
-export const floatingActionClass = "fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-30 grid size-14 place-items-center rounded-panel bg-primary text-primary-foreground shadow-[0_14px_30px_-14px_rgb(0_0_0/0.7)] transition-[background-color,transform] duration-200 hover:bg-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-px motion-reduce:transition-none md:hidden";
+export const floatingActionClass = "fab-in fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-30 grid size-14 place-items-center rounded-panel bg-primary text-primary-foreground shadow-[0_14px_30px_-14px_rgb(0_0_0/0.7)] transition-[background-color,scale] duration-200 hover:bg-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 motion-reduce:transition-none md:hidden";
 
 export function FloatingAction({ href, label }: { href: string; label: string }) {
   return (

@@ -1,5 +1,5 @@
 import { test,expect } from "@playwright/test";
-test("memories preserve stories through editing, tags, filters and deletion",async({page},testInfo)=>{
+test("memories preserve stories through editing, tags and deletion",async({page},testInfo)=>{
  await page.emulateMedia({reducedMotion:"reduce"});
  await page.goto("/sign-in");await page.getByRole("button",{name:"Enter paired preview"}).click();await expect(page).toHaveURL(/\/home$/);
  await page.goto("/memories/new");
@@ -19,15 +19,14 @@ test("memories preserve stories through editing, tags, filters and deletion",asy
  await expect(page).toHaveURL(/\/memories\/[0-9a-f-]+$/);const detail=page.url();
  await page.getByRole("link",{name:"Edit memory"}).click();
  await page.getByLabel("Tags").fill("Travel, little moments, travel");await page.getByLabel("How it felt").selectOption("5");
- await page.getByRole("button",{name:"Save changes"}).click();await expect(page.getByText("travel · little moments",{exact:true})).toBeVisible();
+ await page.getByRole("button",{name:"Save changes"}).click();await expect(page.getByRole("img",{name:"How it felt: 5 out of 5"})).toBeVisible();
+ // Tags and the place show as chips under the keeper.
+ const chips=page.getByRole("list",{name:"Tags and place"});await expect(chips.getByText("little moments",{exact:true})).toBeVisible();await expect(chips.getByText("The old harbour")).toBeVisible();
  await page.screenshot({path:"test-results/memories-detail-"+testInfo.project.name+".png",fullPage:true});
- await page.getByRole("link",{name:"Back to memories"}).click();
- await page.getByLabel("Find a tag").fill("travel");await page.getByLabel("Favorites only").check();
- await page.route("**/memories",route=>route.abort("failed"),{times:1});
- await page.getByRole("button",{name:"Apply filters"}).click();await expect(page.locator("main").getByRole("alert")).toContainText("Check your connection");
- await expect(page.getByLabel("Find a tag")).toHaveValue("travel");
- await page.getByRole("button",{name:"Apply filters"}).click();
- await expect(page.getByRole("region",{name:"Memories by date"}).getByRole("heading",{name:"August 20, 2026"})).toBeVisible();
+ await page.getByRole("link",{name:"All memories"}).click();await expect(page).toHaveURL(/\/memories$/);
+ // The list has no search or filters; the controls must be gone, not hidden.
+ await expect(page.getByLabel("Find a tag")).toHaveCount(0);await expect(page.getByRole("button",{name:"Apply filters"})).toHaveCount(0);
+ await expect(page.getByRole("region",{name:"Memories by date"}).getByRole("heading",{name:"August 2026"})).toBeVisible();
  await expect(page.getByRole("region",{name:"Memories by date"}).getByRole("link",{name:"An evening at the harbour"})).toHaveAttribute("href",/\/memories\/[0-9a-f-]+$/);
  await expect(page.getByText("The last light on the harbour, and nowhere else to be.")).toHaveCount(0);
  await expect(page.getByText("The old harbour")).toHaveCount(0);
@@ -38,7 +37,6 @@ test("memories preserve stories through editing, tags, filters and deletion",asy
  await expect(page.getByRole("heading",{name:"What you remember"})).toBeVisible();
  await page.goto("/memories");
  await page.screenshot({path:"test-results/memories-gallery-"+testInfo.project.name+".png",fullPage:true});
- await page.getByLabel("Find a tag").fill("other");await page.getByRole("button",{name:"Apply filters"}).click();await expect(page.getByText("No memories match just yet.")).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)).toBe(false);
  await page.goto(detail);await page.keyboard.press("Tab");await expect(page.locator(":focus-visible")).toBeVisible();
  await page.getByRole("button",{name:"Delete memory",exact:true}).click();await page.getByRole("dialog",{name:"Delete this memory?"}).getByRole("button",{name:"Delete memory",exact:true}).click();await expect(page).toHaveURL(/\/memories$/);

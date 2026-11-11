@@ -34,7 +34,9 @@ test("Gallery filters stay compact and apply only when confirmed", async ({ page
   await expect(trigger).toBeVisible();
   await expect(page.getByText("Videos · 2026-09-28 · By date", { exact: true })).toHaveCount(0);
   if (info.project.name.includes("mobile")) {
-    await page.getByRole("button", { name: "Toggle color theme" }).click();
+    // Appearance lives in Profile now; set the stored choice directly.
+    await page.evaluate(() => localStorage.setItem("theme", "dark"));
+    await page.reload();
     await page.screenshot({ path: `.impeccable/qa/gallery-filters-dark-${info.project.name}.png`, fullPage: true });
   }
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);

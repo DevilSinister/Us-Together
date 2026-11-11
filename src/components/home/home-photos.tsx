@@ -30,7 +30,7 @@ export function RecentPhotos({ hosted, previewSession, previewEntries }: {
   }
 
   return (
-    <ul className="grid grid-cols-4 gap-2 lg:grid-cols-2">
+    <ul className="stagger grid grid-cols-4 gap-2 lg:grid-cols-2">
       {photos.map((photo, index) => (
         <li key={photo.src}>
           <Link

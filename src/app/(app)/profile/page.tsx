@@ -8,6 +8,9 @@ import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState } from "@/lib/auth/dev-session";
 import { loadIdentities } from "@/lib/avatar/identities";
 import { forgetPartnerPresentationAction } from "@/app/actions/partner";
+import { LogOut } from "lucide-react";
+import { AppearanceSetting } from "@/components/profile/appearance-setting";
+import { UploadSignOutForm } from "@/components/providers/upload-owner";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -80,6 +83,21 @@ export default async function ProfilePage() {
             <p className="mt-1 text-xs text-muted-foreground">Leaving a couple never erases this on its own; forgetting is always something you choose.</p>
           </form>
         ) : null}
+      </section>
+
+      {/* Set once and left alone, so these live here rather than in the top bar. */}
+      <section aria-labelledby="profile-appearance" className="mt-8 rounded-panel bg-card p-6 shadow-paper sm:p-8">
+        <h2 id="profile-appearance" className="font-display text-section-title">Appearance</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Dark is easier on the eyes at night; matching your device follows its own setting.</p>
+        <div className="mt-5"><AppearanceSetting /></div>
+      </section>
+
+      <section aria-labelledby="profile-session" className="mt-8 rounded-panel bg-card p-6 shadow-paper sm:p-8">
+        <h2 id="profile-session" className="font-display text-section-title">Signed in on this device</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Signing out also clears any photos still waiting to send from this device.</p>
+        <UploadSignOutForm className="mt-5">
+          <Button type="submit" variant="outline"><LogOut className="size-4" aria-hidden="true" />Sign out</Button>
+        </UploadSignOutForm>
       </section>
     </div>
   );

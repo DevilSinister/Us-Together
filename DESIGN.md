@@ -256,7 +256,9 @@ Two components carry the states a partner meets most often, so they read identic
 
 Desktop navigation lives in the warm card-paper sidebar and uses quiet blush to mark the active destination. Mobile navigation is fixed to the bottom safe area, uses the same paper tone with a fine top rule, and pairs icons with compact labels. All navigation targets meet the 44px minimum touch height. Five evenly spaced mobile targets prevent cramped labels; Lists is the short mobile label for Bucket lists. More uses the shared modal focus and Escape behavior. Bottom content padding reserves navigation height plus the device safe area.
 
-The mobile top bar includes a notification bell before appearance and sign-out controls. Its badge shows the signed-in recipient's unread count, capped visually at 99+, while the accessible name states the full count. At narrow phone widths the brand uses a smaller single-line serif label so all three controls retain their 44px targets. On a page with a cover the header is laid transparently over it (see Cover Screens).
+The mobile top bar carries only search and the notification bell; appearance (Light, Dark, Match this device) and Sign out live in Profile (ADR-054). The desktop sidebar has a Search button under the brand. Its badge shows the signed-in recipient's unread count, capped visually at 99+, while the accessible name states the full count. At narrow phone widths the brand uses a smaller single-line serif label so both controls keep their 44px targets.
+
+**Search.** The search icon opens one sheet (bottom sheet on phones, centred from tablet width): a 48px field that takes focus, a Filters button with the active count for the screen's own filters, and a "Search everywhere" check box. Results are ruled rows with a round section mark, the kicker above the title, and italic section headings when searching everywhere. Search reads the current screen's section by default; Home, Gallery and settings always search everywhere. On a page with a cover the header is laid transparently over it (see Cover Screens).
 
 ### Cover Screens
 
@@ -264,11 +266,13 @@ The redesign in progress (ADR-053), so far applied to Home. A cover opens the sc
 
 Home's cover is the newest memory's first photograph with the day count in the 72px display serif and a "Recently kept" link. Beneath: the greeting, the next plan or an invitation to make one, then rows for the featured moment, the latest note, the latest drawing (with Draw back), bucket progress and wishes. Four recent photographs and Open gallery sit last on phones and in a 20rem side column from desktop width, followed by the privacy line.
 
-Memories' cover is the newest photographed memory under a 44px serif "Memories". The sheet opens with the tag field (its own row on phones), a Favorites only toggle that turns rose when on, Apply filters, and, from tablet width, an inline Add a memory; phones get the floating + instead. Months are italic serif labels; each memory is a ruled row with a 44px thumbnail or monogram, the title (with a small heart when it is a favourite) and a date and place line.
+Memories' cover is the newest photographed memory under a 44px serif "Memories" and one line, "N kept · the latest was …". There is no search or filter: the sheet goes straight into italic serif month labels and ruled rows, each a 44px thumbnail or monogram with the date (or "no photos yet") above the title and a small heart for a favourite. Place, story and tags stay on the memory. Add a memory floats on phones and sits on the cover from tablet width.
 
-A memory's cover is its own lead photograph, with All memories, "Memory · date" and the title in the display serif. The sheet reads favourite, rating dots and place on one line, then the story as plain large text with tag chips, then "Where this began" when it came from a plan or bucket idea, then the photo collection, the conversation, and Edit and Delete at the foot.
+A memory's cover is its own lead photograph, with "Memory · date" and the title in the display serif, and a round 44px back button in its top-left corner; on a phone the app header steps aside for it. The sheet opens with "Kept by" and the keeper's avatar, the favourite heart and rating dots opposite, then tag chips and a place chip with a pin, then the story as plain large text and "From the plan …" or "From your bucket list" when it began there, then the photo collection, the conversation, and Edit and Delete at the foot.
 
-The cover, the sheet, the back link and the floating action are shared components (`components/app/cover.tsx`), so every Cover screen lays them out identically.
+**Motion.** One entrance per Cover screen: the photograph settles from a 1.08 zoom over 1.6s, the title rises 14px out of a 6px blur, rows follow in a 45ms stagger, and the floating button springs in last. Hovering a row nudges its chevron and scales its thumbnail. All of it is off under reduced motion and leaves no transform or filter behind.
+
+The cover, the sheet, the corner back button and the floating action are shared components (`components/app/cover.tsx`), so every Cover screen lays them out identically.
 
 Every route a partner can reach is reachable from navigation; no destination depends on a link that happens to sit on Home. Each destination carries its own icon, so no two adjacent items read as the same thing.
 

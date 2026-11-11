@@ -226,7 +226,7 @@ export default async function HomePage() {
 
               <section aria-labelledby="home-lately" className="mt-4">
                 <h2 id="home-lately" className="sr-only">Lately</h2>
-                <ul className="divide-y divide-border">
+                <ul className="stagger divide-y divide-border">
                   {featuredMilestone ? (
                     <Row
                       href={`/milestones/${featuredMilestone.id}`}

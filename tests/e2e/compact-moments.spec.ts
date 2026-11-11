@@ -40,7 +40,9 @@ test("compact moment previews keep photo and gallery navigation clear", async ({
   if (info.project.name.includes("mobile")) {
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto("/milestones");
-    await page.getByRole("button", { name: "Toggle color theme" }).click();
+    // Appearance lives in Profile now; set the stored choice directly.
+    await page.evaluate(() => localStorage.setItem("theme", "dark"));
+    await page.reload();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     await page.screenshot({ path: ".impeccable/qa/compact-moments-dark-320.png", fullPage: true });
   }

@@ -77,7 +77,7 @@ export function CoverPhoto({ photo, previewSession, previewEntry }: {
         fetchPriority="high"
         decoding="async"
         referrerPolicy="no-referrer"
-        className="absolute inset-0 size-full object-cover"
+        className="cover-photo absolute inset-0 size-full object-cover"
       />
       <span aria-hidden="true" className="cover-scrim absolute inset-0" />
     </>
