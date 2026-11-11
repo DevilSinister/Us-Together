@@ -95,7 +95,13 @@
   --font-display: "Iowan Old Style", Baskerville, "Times New Roman", serif;
 }
 
-* { border-color: var(--border); }
+/* Every border is the hairline colour unless a class says otherwise. This must
+   stay in the base layer: Tailwind's utilities are layered, and an unlayered
+   rule beats every layer, so outside it this one line silently disabled every
+   border colour class in the app (selected, focus and danger borders alike). */
+@layer base {
+  * { border-color: var(--border); }
+}
 
 html { background: var(--background); }
 
