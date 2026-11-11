@@ -28,12 +28,14 @@ function clock(seconds:number|null){
  * never intersects the viewport, so it is never fetched and the tile stays
  * blank. `eager` opts the first visible tiles out of lazy loading entirely.
  */
-export function MediaTile({item,label,eager=false,onOpen,ratio="square",className}:{
+export function MediaTile({item,label,eager=false,onOpen,ratio="square",dense=false,className}:{
  item:GalleryItem;
  label:string;
  eager?:boolean;
  onOpen:()=>void;
  ratio?:"square"|"wide";
+ /** The gallery's contact sheet: a tighter corner, no caption beneath, and a video marked by a small play mark and its length. */
+ dense?:boolean;
  className?:string;
 }){
  const image=item.media_type==="image";
@@ -47,7 +49,7 @@ export function MediaTile({item,label,eager=false,onOpen,ratio="square",classNam
  const length=clock(item.duration_seconds);
 
  return <figure className={cn("min-w-0",className)}>
-  <div className={cn("group relative w-full overflow-hidden rounded-panel bg-secondary",ratio==="wide"?"aspect-[4/3]":"aspect-square")}>
+  <div className={cn("group relative w-full overflow-hidden bg-secondary",dense?"rounded-control":"rounded-panel",ratio==="wide"?"aspect-[4/3]":"aspect-square")}>
    {image&&status!=="error"&&!retrying?<Image
     key={attempt}
     src={mediaSource(item,"preview")}
@@ -71,19 +73,24 @@ export function MediaTile({item,label,eager=false,onOpen,ratio="square",classNam
 
    {!image?<>
     <VideoThumbnail src={mediaSource(item)} eager={eager}/>
-    <span aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-start justify-end p-2"><span className="grid size-8 place-items-center rounded-full bg-black/60 text-white"><Play className="size-4 fill-current"/></span></span>
-    <span className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/60 to-transparent px-2 pb-1.5 pt-4 text-xs font-semibold text-white">
-     <Film className="size-3.5 shrink-0" aria-hidden="true"/>{length||"Video"}
-    </span>
+    {dense?<>
+     <span aria-hidden="true" className="pointer-events-none absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white"><Play className="size-3 fill-current"/></span>
+     {length?<span className="pointer-events-none absolute bottom-1.5 left-1.5 rounded-md bg-black/60 px-1.5 text-[0.6875rem] font-semibold leading-[1.125rem] text-white">{length}</span>:null}
+    </>:<>
+     <span aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-start justify-end p-2"><span className="grid size-8 place-items-center rounded-full bg-black/60 text-white"><Play className="size-4 fill-current"/></span></span>
+     <span className="absolute inset-x-0 bottom-0 flex items-center gap-1.5 bg-gradient-to-t from-black/60 to-transparent px-2 pb-1.5 pt-4 text-xs font-semibold text-white">
+      <Film className="size-3.5 shrink-0" aria-hidden="true"/>{length||"Video"}
+     </span>
+    </>}
    </>:null}
 
    <button
     type="button"
     aria-label={label}
     onClick={onOpen}
-    className="absolute inset-0 z-10 rounded-panel transition-[background-color] group-hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring motion-reduce:transition-none"
+    className={cn("absolute inset-0 z-10 transition-[background-color] group-hover:bg-foreground/5 focus-visible:outline-2 focus-visible:outline-ring motion-reduce:transition-none",dense?"rounded-control focus-visible:-outline-offset-2":"rounded-panel focus-visible:outline-offset-4")}
    />
   </div>
-  {item.caption?<figcaption className="mt-2 line-clamp-2 break-words text-xs leading-5 text-muted-foreground">{item.caption}</figcaption>:null}
+  {item.caption&&!dense?<figcaption className="mt-2 line-clamp-2 break-words text-xs leading-5 text-muted-foreground">{item.caption}</figcaption>:null}
  </figure>;
 }

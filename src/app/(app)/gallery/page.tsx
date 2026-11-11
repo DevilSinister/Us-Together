@@ -1,13 +1,18 @@
 import { notFound } from "next/navigation";
 import { loadGallery } from "@/app/actions/gallery";
 import { galleryFilter } from "@/lib/entries/gallery";
-import { GalleryWorkspace } from "@/components/entries/gallery-workspace";
-import { InlineLink } from "@/components/ui/inline-link";
-import { PageHeader } from "@/components/app/page-header";
+import { GalleryCover, GalleryWorkspace } from "@/components/entries/gallery-workspace";
+import { CoverSheet } from "@/components/app/cover";
 import { PairingNotice } from "@/components/app/states";
 
 export const metadata = { title: "Gallery" };
 
+/**
+ * The gallery as a Cover screen. Its cover is a band rather than a photograph,
+ * because the sheet beneath is nothing but photographs. With `kind` and `entry`
+ * in the address it is one memory's or one moment's gallery instead, named for
+ * that entry and leading back to it.
+ */
 export default async function GalleryPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const query = await searchParams;
   const parsed = galleryFilter.safeParse({ kind: query.kind, entry: query.entry });
@@ -16,32 +21,19 @@ export default async function GalleryPage({ searchParams }: { searchParams: Prom
   const filter = parsed.data;
   const scope = filter.entry && filter.kind !== "all" ? { kind: filter.kind, entry: filter.entry } : undefined;
   const data = await loadGallery(filter);
-  const scopeLabel = scope?.kind === "memory" ? "memory" : "moment";
+
+  if (data.paired || data.error) return <GalleryWorkspace key={scope?.entry ?? "all"} initial={data} scope={scope} />;
 
   return (
-    <div className="reveal-on-load">
-      <PageHeader
-        title={scope ? `${scopeLabel === "memory" ? "Memory" : "Moment"} gallery.` : "Your shared gallery."}
-        lede={scope ? `Every photo and video from this ${scopeLabel}.` : "Photos, videos and the little things you kept."}
-        scale="compact"
-        className="gap-4 pb-5"
-        back={
-          <>
-            <InlineLink href={scope ? `${scope.kind === "memory" ? "/memories/" : "/milestones/"}${scope.entry}` : "/home"}>
-              {scope ? `Back to ${scopeLabel}` : "Back to Home"}
-            </InlineLink>
-            {scope ? <InlineLink href="/gallery">View all gallery</InlineLink> : null}
-          </>
-        }
-      />
-      {data.paired || data.error ? (
-        <GalleryWorkspace key={scope?.entry ?? "all"} initial={data} scope={scope} />
-      ) : (
+    <>
+      <GalleryCover scope={scope} line="" />
+      <CoverSheet>
         <PairingNotice
+          className="mt-0"
           title="Your gallery opens with your shared space."
           body="Photos and videos stay inside one couple boundary, so the gallery waits for both accounts."
         />
-      )}
-    </div>
+      </CoverSheet>
+    </>
   );
 }

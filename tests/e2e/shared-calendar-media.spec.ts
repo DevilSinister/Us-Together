@@ -175,7 +175,7 @@ test("preview galleries keep six photos, all files, captions and file-specific c
 
   await page.goto("/home");
   await page.getByRole("link", { name: "Open gallery", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Your shared gallery.", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Gallery", exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: /Open (photo|video)/ })).toHaveCount(15);
   await page.getByRole("button", { name: "Gallery filters" }).click();
   await page.getByLabel("From", { exact: true }).selectOption("memory");
@@ -213,7 +213,8 @@ test("preview galleries keep six photos, all files, captions and file-specific c
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
 
   // The comment left from Home is on the same file inside its memory.
-  await page.getByRole("link", { name: "Open memory", exact: true }).click();
+  // Each group's name is the way into its memory or moment.
+  await page.getByRole("link", { name: /^Gallery memory/ }).click();
   await expect(page).toHaveURL(new RegExp("/memories/[0-9a-f-]+$"));
   await page.getByRole("button", { name: "Open photo 1", exact: true }).click();
   const finalViewer = viewerOf(page);

@@ -7,7 +7,13 @@ const heights = {
   tall: "h-[26rem] md:h-[22rem] lg:h-[24rem]",
   standard: "h-[19rem] md:h-[16rem] lg:h-[18rem]",
   detail: "h-[24rem] md:h-[20rem] lg:h-[22rem]",
+  // A band is a cover with no photograph to show: only as tall as its title,
+  // with room above it for the phone header that lies over every cover.
+  band: "min-h-[13.25rem] pt-[5.5rem] md:min-h-0 md:pt-9",
 } as const;
+
+/** A band with a corner back button clears that button instead of the header, at every width. */
+const bandWithBack = "min-h-[12rem] pt-[4.75rem] md:min-h-0";
 
 /**
  * The top of a Cover screen (ADR-053): a photograph under a scrim, or the deep
@@ -15,8 +21,10 @@ const heights = {
  *
  * On a phone it bleeds to the screen edges. An index screen lets the phone
  * header lie transparently over it; a detail screen (`back`) carries its own
- * round back button in the corner instead and the header steps aside. From
- * tablet width it is a rounded panel in the content column. Everything inside
+ * round back button in the corner instead and the header steps aside. A screen
+ * that is itself all photographs (the gallery) asks for a `band`: the same
+ * field with no photo, only as tall as its title. From tablet width a cover is
+ * a rounded panel in the content column. Everything inside
  * reads the re-pointed cover tokens (`.on-cover`), so it is light in both themes.
  */
 export function Cover({ photo = null, previewSession, previewEntry = null, height = "standard", labelledBy, back, action, className, children }: {
@@ -38,7 +46,7 @@ export function Cover({ photo = null, previewSession, previewEntry = null, heigh
       aria-labelledby={labelledBy}
       className={cn(
         "on-cover relative -mx-5 -mt-8 flex flex-col justify-end overflow-hidden bg-cover-field px-5 pb-12 sm:-mx-8 sm:px-8 md:mx-0 md:mt-0 md:rounded-surface md:pb-9 lg:px-10",
-        heights[back ? "detail" : height],
+        height === "band" ? (back ? bandWithBack : heights.band) : heights[back ? "detail" : height],
         className,
       )}
     >
