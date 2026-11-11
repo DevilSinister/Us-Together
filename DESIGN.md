@@ -264,6 +264,12 @@ The redesign in progress (ADR-053), so far applied to Home. A cover opens the sc
 
 Home's cover is the newest memory's first photograph with the day count in the 72px display serif and a "Recently kept" link. Beneath: the greeting, the next plan or an invitation to make one, then rows for the featured moment, the latest note, the latest drawing (with Draw back), bucket progress and wishes. Four recent photographs and Open gallery sit last on phones and in a 20rem side column from desktop width, followed by the privacy line.
 
+Memories' cover is the newest photographed memory under a 44px serif "Memories". The sheet opens with the tag field (its own row on phones), a Favorites only toggle that turns rose when on, Apply filters, and, from tablet width, an inline Add a memory; phones get the floating + instead. Months are italic serif labels; each memory is a ruled row with a 44px thumbnail or monogram, the title (with a small heart when it is a favourite) and a date and place line.
+
+A memory's cover is its own lead photograph, with All memories, "Memory · date" and the title in the display serif. The sheet reads favourite, rating dots and place on one line, then the story as plain large text with tag chips, then "Where this began" when it came from a plan or bucket idea, then the photo collection, the conversation, and Edit and Delete at the foot.
+
+The cover, the sheet, the back link and the floating action are shared components (`components/app/cover.tsx`), so every Cover screen lays them out identically.
+
 Every route a partner can reach is reachable from navigation; no destination depends on a link that happens to sit on Home. Each destination carries its own icon, so no two adjacent items read as the same thing.
 
 ### Calendar Day Markers

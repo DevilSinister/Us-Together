@@ -1,7 +1,7 @@
 "use client";
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { ChevronRight, Heart, Plus } from "lucide-react";
 
 import { usePartnerRefresh } from "@/components/providers/partner-sync";
 import { refreshWindow } from "@/lib/partner-sync";
@@ -30,7 +30,7 @@ function MemoryMonogram({ title }: { title: string }) {
     className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_100%_0%,color-mix(in_srgb,var(--rose)_22%,transparent),transparent_65%)] text-primary"
   >
     {initial
-      ? <span className="font-display text-3xl leading-none sm:text-4xl">{initial}</span>
+      ? <span className="font-display text-xl leading-none">{initial}</span>
       : <Heart className="size-5" />}
   </span>;
 }
@@ -85,24 +85,25 @@ export function MemoryGallery({ initial }: { initial: MemoryPage }) {
   const filtered = applied.favorite || applied.tag;
   const groups = groupByMonth(page.memories);
 
-  return <section className="mt-8" aria-label="Memories by date" aria-busy={pending}>
-    <form method="post" onSubmit={e => { e.preventDefault(); load(); }} className="flex flex-wrap items-end gap-4 border-b pb-6">
-      {/* Its own row on phones: beside the checkbox and button it was crushed to four letters. */}
-      <div className="min-w-0 flex-1 basis-full space-y-2 sm:max-w-xs sm:basis-auto">
-        <Label htmlFor="tag-filter">Find a tag</Label>
-        <Input id="tag-filter" value={tag} onChange={e => setTag(e.target.value)} placeholder="All tags" maxLength={48}/>
+  return <section aria-label="Memories by date" aria-busy={pending}>
+    <form method="post" onSubmit={e => { e.preventDefault(); load(); }} className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      {/* The tag field takes its own row on phones; beside the toggle and button it was crushed. */}
+      <div className="min-w-0 flex-1 basis-full sm:basis-60 sm:grow-0">
+        <Label htmlFor="tag-filter" className="sr-only">Find a tag</Label>
+        <Input id="tag-filter" value={tag} onChange={e => setTag(e.target.value)} placeholder="Find a tag" maxLength={48} className="h-11"/>
       </div>
-      <label className="flex min-h-12 items-center gap-3 text-sm font-semibold">
-        <input type="checkbox" checked={favorite} onChange={e => setFavorite(e.target.checked)} className="size-5 accent-[var(--primary)]"/>
+      <label className="flex min-h-11 cursor-pointer items-center gap-2.5 rounded-control border px-3 text-sm font-semibold has-[:checked]:border-primary has-[:checked]:text-primary">
+        <input type="checkbox" checked={favorite} onChange={e => setFavorite(e.target.checked)} className="size-4 accent-[var(--primary)]"/>
         Favorites only
       </label>
       <Button type="submit" variant="outline" disabled={pending}>Apply filters</Button>
+      <Button asChild className="ml-auto hidden md:inline-flex"><Link href="/memories/new"><Plus className="size-4" aria-hidden="true"/>Add a memory</Link></Button>
     </form>
 
     {error ? <p role="alert" className="status-message status-error mt-5">{error}</p> : null}
     <p className="sr-only" role="status">{pending ? "Loading memories" : page.memories.length + " memories shown"}</p>
 
-    {!page.memories.length ? <div className="py-12">
+    {!page.memories.length ? <div className="py-10">
       <h2 className="font-display text-section-title">
         {filtered ? "No memories match just yet." : "Start with the detail you never want to lose."}
       </h2>
@@ -112,50 +113,45 @@ export function MemoryGallery({ initial }: { initial: MemoryPage }) {
           : "A memory does not need to be a milestone. Keep an ordinary moment that already feels like yours."}
       </p>
       <Button asChild className="mt-6"><Link href="/memories/new">Keep a memory</Link></Button>
-    </div> : <div className="mt-8 max-w-3xl space-y-8">
+    </div> : <div className="mt-4 max-w-3xl space-y-4">
       {groups.map(group => <section key={group.key} aria-labelledby={"month-" + group.key}>
-        <h2 id={"month-" + group.key} className="text-sm font-semibold text-primary">{group.label}</h2>
+        <h2 id={"month-" + group.key} className="pt-2 font-display text-lg italic text-muted-foreground">{group.label}</h2>
 
-        <ul className="mt-2 divide-y border-t">
+        <ul className="divide-y divide-border">
           {group.memories.map(m => {
             const thumb = m.media[0];
             return <li key={m.id} id={m.id}>
               <Link
                 href={"/memories/" + m.id}
-                className="group -mx-3 flex items-start gap-4 rounded-panel px-3 py-4 transition-colors duration-200 hover:bg-secondary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none"
+                className="group flex min-h-[4.25rem] items-center gap-3 rounded-control py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
-                <span className="relative size-16 shrink-0 overflow-hidden rounded-panel bg-secondary sm:size-20">
+                <span className="relative size-11 shrink-0 overflow-hidden rounded-control bg-secondary">
                   {/* Decorative: the title sits beside it, so an alt would only repeat. */}
                   {thumb ? <MediaThumb
                     src={mediaHref(thumb.id, "memory", "preview")}
                     mediaType={thumb.media_type}
                     alt=""
+                    sizes="44px"
                   /> : <MemoryMonogram title={m.title}/>}
                 </span>
 
+                {/* Title first: it is what the row's link is named by. */}
                 <span className="min-w-0 flex-1">
-                  <span className="flex items-start gap-2">
-                    <span className="min-w-0 truncate text-entry-title transition-colors group-hover:text-primary motion-reduce:transition-none">
+                  <span className="flex items-center gap-2">
+                    <span className="min-w-0 truncate text-[1.0625rem] font-semibold leading-snug transition-colors duration-200 group-hover:text-primary motion-reduce:transition-none">
                       {m.title}
                     </span>
                     {m.is_favorite ? <>
-                      {/* A glyph, not a colour: rose collapses into wine in dark mode. */}
-                      <Heart className="mt-1 size-4 shrink-0 fill-current text-rose" aria-hidden="true"/>
+                      <Heart className="size-3.5 shrink-0 fill-current text-primary" aria-hidden="true"/>
                       <span className="sr-only">Favourite</span>
                     </> : null}
                   </span>
-
-                  <span className="mt-1 block text-xs font-semibold text-muted-foreground">
+                  <span className="block truncate text-[0.8125rem] leading-5 text-muted-foreground">
                     <time dateTime={m.memory_date}>{dayFormat.format(new Date(m.memory_date + "T00:00:00Z"))}</time>
+                    {m.location ? " · " + m.location : null}
                   </span>
-
-                  {/* One line, always: `block` beside `line-clamp-1` let display:block win
-                      and the clamp never applied, so long stories wrapped to three lines.
-                      `truncate` also folds line breaks the story itself contains. */}
-                  {m.description ? <span className="mt-1 block truncate text-sm leading-6 text-muted-foreground">
-                    {m.description.replace(/\s+/g, " ")}
-                  </span> : null}
                 </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:translate-x-0.5 motion-reduce:transition-none" aria-hidden="true"/>
               </Link>
             </li>;
           })}
@@ -163,7 +159,7 @@ export function MemoryGallery({ initial }: { initial: MemoryPage }) {
       </section>)}
     </div>}
 
-    {page.next ? <Button className="mt-8" variant="outline" disabled={pending} onClick={() => load(true)}>
+    {page.next ? <Button className="mt-6" variant="outline" disabled={pending} onClick={() => load(true)}>
       {pending ? "Loading…" : "Load more memories"}
     </Button> : null}
   </section>;

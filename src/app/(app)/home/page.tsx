@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/app/page-header";
 import { PairingNotice } from "@/components/app/states";
 import { Avatar, AvatarPair } from "@/components/app/avatar";
-import { CoverPhoto, RecentPhotos, type HomePhoto, type PreviewEntry } from "@/components/home/home-photos";
+import { RecentPhotos } from "@/components/home/home-photos";
+import { Cover, CoverSheet } from "@/components/app/cover";
+import type { CoverImage, PreviewEntry } from "@/components/app/cover-photo";
 import { CreateTrigger, HomeCreateProvider } from "@/components/home/home-create";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { loadIdentities } from "@/lib/avatar/identities";
@@ -50,8 +52,8 @@ export default async function HomePage() {
   let recentNote: NoteRow | null = null;
   let recentDrawing: DrawingRow | null = null;
   let wishlistCount = 0;
-  let coverPhoto: HomePhoto | null = null;
-  let recentPhotos: HomePhoto[] = [];
+  let coverPhoto: CoverImage | null = null;
+  let recentPhotos: CoverImage[] = [];
   let previewSession: string | undefined;
   let previewEntries: PreviewEntry[] = [];
 
@@ -167,13 +169,7 @@ export default async function HomePage() {
     // No entrance animation on this wrapper: its clip-path would cut off the
     // cover's bleed, and its transform would trap the fixed create button.
     <HomeCreateProvider>
-      <section
-        data-cover-page
-        aria-labelledby="home-title"
-        className="on-cover relative -mx-5 -mt-8 flex h-[26rem] flex-col justify-end overflow-hidden bg-cover-field px-5 pb-12 sm:-mx-8 sm:px-8 md:mx-0 md:mt-0 md:h-[22rem] md:rounded-surface md:pb-9 lg:h-[24rem] lg:px-10"
-      >
-        <CoverPhoto hosted={coverPhoto} previewSession={previewSession} previewEntry={recentMemory ? { kind: "memory", id: recentMemory.id } : null} />
-        <div className="relative">
+      <Cover height="tall" labelledBy="home-title" photo={coverPhoto} previewSession={previewSession} previewEntry={recentMemory ? { kind: "memory", id: recentMemory.id } : null}>
           {dayCount === null ? (
             <h1 id="home-title" className="max-w-[18ch] text-balance font-display text-[2.25rem] leading-[1.1] tracking-[-0.02em]">
               Your shared story has room for its first date.
@@ -193,10 +189,9 @@ export default async function HomePage() {
               <ChevronRight className="size-4 shrink-0" aria-hidden="true" />
             </Link>
           ) : null}
-        </div>
-      </section>
+      </Cover>
 
-      <div className="reveal-on-load relative -mx-5 -mt-6 rounded-t-surface bg-background px-5 pb-24 pt-5 sm:-mx-8 sm:px-8 md:mx-0 md:mt-8 md:rounded-none md:px-0 md:pb-16 md:pt-0 lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-12">
+      <CoverSheet className="lg:grid lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start lg:gap-12">
         <div className="min-w-0">
           <div className="flex items-center justify-between gap-4">
             <p className="flex min-w-0 items-center gap-2.5 text-sm text-muted-foreground">
@@ -314,7 +309,7 @@ export default async function HomePage() {
             </div>
           </aside>
         ) : null}
-      </div>
+      </CoverSheet>
 
       {paired ? <CreateTrigger variant="floating" /> : null}
     </HomeCreateProvider>

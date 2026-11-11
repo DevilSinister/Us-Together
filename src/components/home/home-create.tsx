@@ -5,6 +5,7 @@ import { createContext, useContext, useState } from "react";
 import { Brush, CalendarDays, Flag, Gift, ListChecks, NotebookPen, Plus, Sparkles, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { floatingActionClass } from "@/components/app/cover";
 
 const others: Array<{ href: string; label: string; icon: LucideIcon }> = [
   { href: "/memories/new", label: "Memory", icon: Sparkles },
@@ -78,7 +79,7 @@ export function CreateTrigger({ variant }: { variant: "floating" | "inline" }) {
       aria-expanded={open}
       aria-label="Start something"
       onClick={() => setOpen(true)}
-      className="fixed bottom-[calc(5.75rem+env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-30 grid size-14 place-items-center rounded-panel bg-primary text-primary-foreground shadow-[0_14px_30px_-14px_rgb(0_0_0/0.7)] transition-[background-color,transform] duration-200 hover:bg-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:translate-y-px motion-reduce:transition-none md:hidden"
+      className={floatingActionClass}
     >
       <Plus className="size-6" aria-hidden="true" />
     </button>
