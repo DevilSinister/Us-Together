@@ -49,7 +49,13 @@ describe("batch summary", () => {
   it("says when it is paused or waiting for a connection", () => {
     const items = enqueue([], [photo("a")]);
     expect(summarize(items, { paused: true, waiting: true }).title).toBe("Paused · 1 photo still to add");
-    expect(summarize(items, { paused: false, waiting: true })).toMatchObject({ title: "Waiting for a connection", detail: "They'll carry on by themselves when you're back online." });
+    expect(summarize(items, { paused: false, waiting: true, offline: true })).toMatchObject({ title: "Waiting for a connection", detail: "They'll carry on by themselves when you're back online." });
+  });
+
+  it("does not blame the connection when the device is online", () => {
+    const items = update(enqueue([], [photo("a")]), "a", { status: "waiting", error: "You've added a lot in a short time." });
+    expect(summarize(items, { paused: false, waiting: true, offline: false })).toMatchObject({ title: "Trying again shortly", detail: "You've added a lot in a short time." });
+    expect(summarize(update(items, "a", { error: "" }), { paused: false, waiting: true }).title).toBe("Trying again shortly");
   });
 
   it("reports failures without counting them as work left", () => {

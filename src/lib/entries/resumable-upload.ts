@@ -51,10 +51,16 @@ export function uploadFailure(error: Error): { status: number; recoverable: bool
   if (error instanceof UploadSessionError || detail.causingError instanceof UploadSessionError) {
     return { status, recoverable: false, message: "You were signed out. Sign in again, then tap to try again." };
   }
-  if (status === 401 || status === 403) return { status, recoverable: false, message: "You were signed out. Sign in again, then tap to try again." };
+  if (status === 401) return { status, recoverable: false, message: "You were signed out. Sign in again, then tap to try again." };
+  // Storage refuses a file whose upload window closed. That is not a sign-out.
+  if (status === 403) return { status, recoverable: false, message: "Storage wouldn't take this file. Tap to try again." };
   if (status === 413) return { status, recoverable: false, message: "This file is too large to add." };
   const recoverable = status === 0 || status === 408 || status === 409 || status === 423 || status === 429 || status >= 500;
-  return { status, recoverable, message: recoverable
-    ? "Waiting for a connection. It will carry on by itself."
-    : "This one couldn't be added. Tap to try again, or remove it and choose it again." };
+  // Only a request that never got an answer is about the connection. A busy or
+  // failing storage service says so, and is never blamed on the person's network.
+  return { status, recoverable, message: !recoverable
+    ? "This one couldn't be added. Tap to try again, or remove it and choose it again."
+    : status === 0 ? "The connection dropped while sending. This file will try again by itself."
+    : status === 429 ? "Storage is busy. This file will try again by itself in a few minutes."
+    : "Storage couldn't take this file just now. It will try again by itself." };
 }

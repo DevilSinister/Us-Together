@@ -50,7 +50,7 @@ function noun(count: number, photos: number) {
  * the active files are. Failed files are reported but do not count as
  * progress still to come.
  */
-export function summarize(items: readonly UploadItem[], { paused, waiting }: { paused: boolean; waiting: boolean }) {
+export function summarize(items: readonly UploadItem[], { paused, waiting, offline = false }: { paused: boolean; waiting: boolean; offline?: boolean }) {
   const active = items.filter(item => item.status !== "failed");
   const failed = items.length - active.length;
   const photos = active.filter(item => item.mime.startsWith("image/")).length;
@@ -59,11 +59,14 @@ export function summarize(items: readonly UploadItem[], { paused, waiting }: { p
   let title = "";
   if (active.length) {
     if (paused) title = `Paused · ${active.length} ${what} still to add`;
-    else if (waiting) title = "Waiting for a connection";
+    else if (waiting) title = offline ? "Waiting for a connection" : "Trying again shortly";
     else title = `Adding ${active.length} ${what}`;
   }
+  // Online but deferred means the service asked us to slow down or a request
+  // failed; its own message says why better than blaming the connection.
+  const reason = items.find(item => item.status === "waiting" && item.error)?.error;
   const detail = waiting && !paused
-    ? "They'll carry on by themselves when you're back online."
+    ? offline ? "They'll carry on by themselves when you're back online." : reason || "They'll carry on by themselves in a moment."
     : failed
       ? `${failed} ${failed === 1 ? "file" : "files"} couldn't be added. Tap ${failed === 1 ? "it" : "one"} to try again.`
       : "";

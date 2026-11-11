@@ -66,9 +66,10 @@ export async function memoryMediaAction(input: unknown): Promise<{ok?:boolean;id
     if(error){
       const context=(error as {context?:Response}).context;
       if(context){try{const body=await context.json();if(typeof body.error==="string")return {error:body.error,status:context.status,retryable:typeof body.retryable==="boolean"?body.retryable:context.status===429||context.status>=500};}catch{}}
-      return {error:"Media processing is unavailable. Check your connection and try again.",status:503,retryable:true};
+      // This call is server to server; the person's own connection is not at fault.
+      return {error:"The photo service didn't answer. Try again in a moment.",status:503,retryable:true};
     }
     refresh(parsed.data.memoryId);
     return data;
-  }catch{return {error:"Could not reach media processing. Try again.",status:503,retryable:true};}
+  }catch{return {error:"The photo service didn't answer. Try again in a moment.",status:503,retryable:true};}
 }

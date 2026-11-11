@@ -4,7 +4,7 @@ import type { QueuedPhoto } from "./upload-queue";
 import type { UploadAllocation } from "./upload-batch";
 import type { UploadBatch, UploadJob, UploadStore } from "./upload-store";
 
-export type UploadSnapshot = { items: UploadJob[]; paused: boolean; waiting: boolean; completed: number; total: number; error: string; ready: boolean };
+export type UploadSnapshot = { items: UploadJob[]; paused: boolean; waiting: boolean; offline: boolean; completed: number; total: number; error: string; ready: boolean };
 export type UploadOperations = {
   prepare: (job: UploadJob) => Promise<UploadAllocation>;
   transfer: (job: UploadJob, allocation: UploadAllocation, progress: (percent: number) => void, checkpoint: (url: string) => Promise<void>) => Promise<Transfer>;
@@ -28,7 +28,7 @@ export class UploadSession {
 
   private emit() {
     if (this.stopped) return;
-    this.changed({ items: [...this.jobs], paused: this.batch.paused, waiting: this.jobs.some(job => job.status === "waiting") && !this.jobs.some(job => job.status === "sending" || job.status === "processing" || job.status === "queued"),
+    this.changed({ items: [...this.jobs], paused: this.batch.paused, waiting: this.jobs.some(job => job.status === "waiting") && !this.jobs.some(job => job.status === "sending" || job.status === "processing" || job.status === "queued"), offline: !this.online(),
       completed: this.batch.completed, total: this.batch.total, error: this.error, ready: this.ready });
   }
   async initialize(initial: QueuedPhoto[]) {

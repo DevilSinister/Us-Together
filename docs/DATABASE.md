@@ -208,7 +208,7 @@ Media metadata has immutable allocation identity/path, caption, upload expiry, p
 
 Storage policies now authorize exact allocated metadata, replacing the earlier prefix-only relationship check. Only its active uploader can insert the pending original before expiry. Private security-definer predicates use fixed search paths, revoked default execution, explicit identity/membership checks and narrow grants; the upload predicate locks the metadata during the Storage transaction. Browser overwrite/delete is unavailable. Ready files are readable by current members. Metadata deletion requires original/derivative objects to be absent; the memory FK restricts deletion while media remains.
 
-The private RLS-protected `media_request_budgets` table supports an identity-derived security-invoker RPC: sixty allocations/hour, 120 processing requests/hour and 120 application viewer authorizations/minute. Rows are scoped to auth.uid(); no actor ID is accepted.
+The private RLS-protected `media_request_budgets` table supports an identity-derived security-invoker RPC: 300 allocations/hour, 600 processing requests/hour and 600 application viewer authorizations/minute (raised from 60/120/120 by ADR-051). The memory-media function charges allocations only for new rows and processing only for claimed, non-ready files. Rows are scoped to auth.uid(); no actor ID is accepted.
 
 Phase 6 fixture setup/cleanup migrations contain generated fictional identities only and are paired. Hosted verification migrations execute assertions in rolled-back inner subtransactions with explicit no-leftover postconditions. See [Phase 6 evidence](PHASE6_VERIFICATION.md).
 

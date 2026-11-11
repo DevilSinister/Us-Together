@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { uploadQueuedFile, type UploadAllocation } from "./upload-batch";
+import { heldAllocation, prepareAllocation, uploadQueuedFile, type UploadAllocation } from "./upload-batch";
 
 describe("one queued file", () => {
   it("prepares, transfers and finalizes each of 30 files in order", async () => {
@@ -42,5 +42,52 @@ describe("one queued file", () => {
     expect(prepare).toHaveBeenCalledTimes(1);
     expect(upload).toHaveBeenCalledTimes(2);
     expect(finalize).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("an upload service older or newer than the page", () => {
+  const key = "11111111-1111-4111-8111-111111111111", theirs = "22222222-2222-4222-8222-222222222222";
+  const soon = () => new Date(Date.now() + 3600000).toISOString(), past = () => new Date(Date.now() - 1000).toISOString();
+
+  it("asks a current service again so it can renew and reconcile the same row", () => {
+    expect(heldAllocation(key, undefined)).toBe("ask");
+    expect(heldAllocation(key, { id: key, path: "p", uploaded: false, expiresAt: past() })).toBe("ask");
+  });
+
+  it("keeps a row an older service assigned while its window lasts, then replaces it", () => {
+    expect(heldAllocation(key, { id: theirs, path: "p", uploaded: false, expiresAt: soon() })).toBe("keep");
+    expect(heldAllocation(key, { id: theirs, path: "p", uploaded: true, expiresAt: past() })).toBe("keep");
+    expect(heldAllocation(key, { id: theirs, path: "p", uploaded: false, expiresAt: past() })).toBe("replace");
+    expect(heldAllocation(key, { id: theirs, path: "p", uploaded: false })).toBe("replace");
+  });
+
+  it("accepts the ID an older service assigns instead of refusing the upload", async () => {
+    const ask = vi.fn(async () => ({ id: theirs, path: "couple/entry/" + theirs + "/original", expiresAt: soon() }));
+    const release = vi.fn(async () => {});
+    const first = await prepareAllocation(key, undefined, ask, release);
+    expect(first).toMatchObject({ id: theirs, uploaded: false });
+    // A retry of the same file must not reserve a second row on that service.
+    const again = await prepareAllocation(key, { ...first, uploadUrl: "https://storage.test/upload/1" }, ask, release);
+    expect(again).toMatchObject({ id: theirs, uploadUrl: "https://storage.test/upload/1" });
+    expect(ask).toHaveBeenCalledTimes(1); expect(release).not.toHaveBeenCalled();
+  });
+
+  it("hands back an expired row from an older service before reserving a fresh one", async () => {
+    const fresh = "33333333-3333-4333-8333-333333333333";
+    const ask = vi.fn(async () => ({ id: fresh, path: "couple/entry/" + fresh + "/original", expiresAt: soon() }));
+    const release = vi.fn(async () => { throw Error("Media unavailable."); });
+    const next = await prepareAllocation(key, { id: theirs, path: "p", uploaded: false, expiresAt: past() }, ask, release);
+    expect(release).toHaveBeenCalledWith(theirs); expect(next.id).toBe(fresh);
+  });
+
+  it("always asks a current service, which answers with the page's own ID and what it already stored", async () => {
+    const ask = vi.fn(async () => ({ id: key, path: "p", uploaded: true, expiresAt: soon() }));
+    const release = vi.fn(async () => {});
+    expect(await prepareAllocation(key, { id: key, path: "p", uploaded: false, expiresAt: soon() }, ask, release)).toMatchObject({ id: key, uploaded: true });
+    expect(ask).toHaveBeenCalledTimes(1); expect(release).not.toHaveBeenCalled();
+  });
+
+  it("defers, rather than fails, a file whose reservation came back incomplete", async () => {
+    await expect(prepareAllocation(key, undefined, async () => ({}), async () => {})).rejects.toMatchObject({ recoverable: true });
   });
 });

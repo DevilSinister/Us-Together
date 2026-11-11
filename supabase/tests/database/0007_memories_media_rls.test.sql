@@ -15,7 +15,7 @@ insert into public.memories(id,couple_id,created_by,title,memory_date) values('6
 set local role authenticated;
 select set_config('request.jwt.claim.sub','60000000-0000-4000-8000-000000000002',true);
 insert into memory_tap_results select is(public.consume_memory_media_budget('upload'),true,'first upload budget allowed');
-do $budget$ begin for i in 1..59 loop perform public.consume_memory_media_budget('upload');end loop;end $budget$;
+do $budget$ begin for i in 1..299 loop perform public.consume_memory_media_budget('upload');end loop;end $budget$;
 insert into memory_tap_results select is(public.consume_memory_media_budget('upload'),false,'hourly upload budget is bounded');
 insert into memory_tap_results select is(public.consume_memory_media_budget('process'),true,'processing budget is separate');
 insert into memory_tap_results select throws_ok($$select public.consume_memory_media_budget('other')$$,'22023',null,'unknown budget kind rejected');

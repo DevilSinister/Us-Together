@@ -23,12 +23,13 @@ function RemoveButton({label,onClick,disabled}:{label:string;onClick:()=>void;di
  * wine line along the bottom edge for anyone who wants the number. That is
  * the one moving thing here, and with reduced motion it simply steps.
  */
-export function UploadTile({item,position,total,paused,waiting,onRetry,onRemove}:{
+export function UploadTile({item,position,total,paused,waiting,offline,onRetry,onRemove}:{
  item:UploadItem;
  position:number;
  total:number;
  paused:boolean;
  waiting:boolean;
+ offline:boolean;
  onRetry:()=>void;
  onRemove:()=>void;
 }){
@@ -38,7 +39,7 @@ export function UploadTile({item,position,total,paused,waiting,onRetry,onRemove}
  const held=(paused||waiting||item.status==="waiting")&&!failed&&!finishing;
  const developed=failed?0.15:finishing?1:item.progress/100;
  const label=failed?"Couldn't add":finishing?"Finishing…":held?(paused?"Paused":"Waiting"):sending?(item.progress?item.progress+"%":"Starting"):"Up next";
- const state=failed?"couldn't be added. "+item.error:finishing?"finishing":held?(paused?"paused":"waiting for a connection"):sending?(item.progress?item.progress+" percent sent":"starting"):"waiting its turn";
+ const state=failed?"couldn't be added. "+item.error:finishing?"finishing":held?(paused?"paused":offline?"waiting for a connection":"waiting to try again"):sending?(item.progress?item.progress+" percent sent":"starting"):"waiting its turn";
 
  return <figure role="group" aria-label={name+", "+state} className="min-w-0" data-upload-state={item.status}>
   <div className="relative aspect-square overflow-hidden rounded-panel bg-secondary">
@@ -88,8 +89,8 @@ export function UnfinishedTile({media,busy,onRetry,onRemove}:{media:EntryMedia;b
 }
 
 /** One line for the whole batch, and the one control a person needs: Pause. */
-export function UploadProgress({items,paused,waiting,completed=0,total=items.length,onPause,onResume,onRetry}:{items:UploadItem[];paused:boolean;waiting:boolean;completed?:number;total?:number;onPause:()=>void;onResume:()=>void;onRetry:()=>void}){
- const summary=summarize(items,{paused,waiting});
+export function UploadProgress({items,paused,waiting,offline,completed=0,total=items.length,onPause,onResume,onRetry}:{items:UploadItem[];paused:boolean;waiting:boolean;offline:boolean;completed?:number;total?:number;onPause:()=>void;onResume:()=>void;onRetry:()=>void}){
+ const summary=summarize(items,{paused,waiting,offline});
  if(!items.length)return null;
  const heading=summary.title||summary.detail;
  const deferred=items.filter(item=>item.status==="waiting").length;

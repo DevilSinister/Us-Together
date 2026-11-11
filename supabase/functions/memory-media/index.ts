@@ -30,11 +30,15 @@ Deno.serve(async (request: Request) => {
   const parentTable=input.kind==="moment"?"milestones":"memories",mediaTable=input.kind==="moment"?"milestone_media":"memory_media",parentColumn=input.kind==="moment"?"milestone_id":"memory_id";
   const { data: memory } = await userClient.from(parentTable).select("id,couple_id").eq("id", input.memoryId).maybeSingle();
   if (!memory) return response({ error: "Memory unavailable." }, 404);
+  // Charged only for new work: re-reading an allocation this caller already
+  // owns, or finishing a published file, must not spend budget, or one
+  // flaky connection's retries would lock out the rest of a batch.
+  const spend = async (kind: "upload" | "process") => {
+    const {data: allowed, error: limitError} = await userClient.rpc("consume_memory_media_budget", {kind});
+    return limitError || !allowed ? response({error: "Too many media requests. Try again later.",retryable:true}, 429) : null;
+  };
+  if (input.operation === "caption") { const limited = await spend("process"); if (limited) return limited; }
   // Elevated access is used only after fresh caller and parent authorization.
-  if (input.operation !== "remove") {
-    const {data: allowed, error: limitError} = await userClient.rpc("consume_memory_media_budget", {kind: input.operation === "prepare" ? "upload" : "process"});
-    if (limitError || !allowed) return response({error: "Too many media requests. Try again later."}, 429);
-  }
   const admin = createClient(url, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
   const bucket = admin.storage.from(input.kind==="moment"?"moment-media":"memory-media");
   if (input.operation === "prepare") {
@@ -63,6 +67,7 @@ Deno.serve(async (request: Request) => {
       return response({id,path,expiresAt,uploaded});
     };
     if(input.id){const recovered=await recover();if(recovered)return recovered;}
+    const limited=await spend("upload");if(limited)return limited;
     const { error } = await admin.from(mediaTable).insert({ id, [parentColumn]: memory.id, created_by: user.id, storage_path: path, media_type: isImage(input.mime) ? "image" : "video", mime_type: input.mime, size_bytes: input.size, caption: input.caption });
     if (error) {
       if(error.code==="23505"&&input.id){const recovered=await recover();if(recovered)return recovered;}
@@ -90,6 +95,7 @@ Deno.serve(async (request: Request) => {
   if (media.state === "ready") return response({ ok: true });
   if (media.state === "deleting") return response({ error: "Finish removing this upload." }, 409);
   if (media.created_by !== user.id) return response({ error: "Only the uploader can finish this file." }, 403);
+  const limited = await spend("process"); if (limited) return limited;
   // A fully stored original can finish after its upload authorization expires;
   // expiry still prevents the client from sending any new bytes through RLS.
   const token = crypto.randomUUID();
