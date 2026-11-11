@@ -22,7 +22,7 @@ test("compact moment previews keep photo and gallery navigation clear", async ({
   await expect(many.getByRole("button", { name: /Open photo/ })).toHaveCount(6);
   await expect(single.getByRole("button", { name: /Open photo/ })).toHaveCount(1);
   await expect(single.getByRole("link", { name: /View all|Show more/ })).toHaveCount(0);
-  await expect(many.getByRole("heading")).toHaveCSS("font-size", "18px");
+  await expect(many.getByRole("heading")).toHaveCSS("font-size", "17px");
   await many.getByRole("button", { name: "Open photo 1", exact: true }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog", { name: /^Photo viewer,/ })).toBeVisible();
