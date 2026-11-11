@@ -101,6 +101,14 @@ describe("real resumable transfer recovery", () => {
     for (const status of [0, 408, 409, 423, 429, 500, 503]) expect(uploadFailure(Object.assign(Error(), { originalResponse: { getStatus: () => status } })).recoverable).toBe(true);
   });
 
+  it("blames the connection only when a request got no answer, and a sign-out only for a rejected credential", () => {
+    const failure = (status: number) => uploadFailure(Object.assign(Error(), { originalResponse: { getStatus: () => status } })).message;
+    expect(failure(0)).toMatch(/connection/i);
+    for (const status of [408, 409, 423, 429, 500, 503]) expect(failure(status)).not.toMatch(/connection|offline|online/i);
+    expect(failure(401)).toMatch(/signed out/i);
+    expect(failure(403)).not.toMatch(/signed out|sign in/i);
+  });
+
   it("preserves retryable auth outages as connection failures and resumes with a fresh credential", async () => {
     const outage = new AuthRetryableFetchError("private auth response", 503);
     const getSession = vi.fn().mockResolvedValueOnce({ data: { session: null }, error: outage }).mockResolvedValue({ data: { session: { access_token: "after-reconnection" } }, error: null });

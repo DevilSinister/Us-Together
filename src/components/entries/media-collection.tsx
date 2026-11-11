@@ -11,6 +11,10 @@ import type {GalleryItem} from "@/lib/entries/gallery";
 import {PhotoChooser,type QueuedPhoto} from "./photo-picker";
 import {UnfinishedTile,UploadProgress,UploadTile} from "./upload-tiles";
 import {useEntryUploads} from "./use-entry-uploads";
+import {useUploadOwner} from "@/components/providers/upload-owner";
+import {uploadRequest} from "@/lib/entries/upload-client";
+import {UploadOperationError} from "@/lib/entries/upload-errors";
+import {settleStaleUploads,staleUploads} from "@/lib/entries/stale-uploads";
 import {Button} from "@/components/ui/button";
 import {MediaViewer} from "./media-viewer";
 import {MediaTile} from "./media-tile";
@@ -54,6 +58,24 @@ export function MediaCollection({access,initial=[],onCount,separated=false,entry
  // Rows reserved by a file sending right now are that file's tile already.
  const inFlight=new Set(uploads.items.map(item=>item.stored).filter(Boolean));
  const unfinished=editable?media.filter(m=>m.state!=="ready"&&m.state!=="deleting"&&m.mine!==false&&!inFlight.has(m.id)):[];
+ // Reservations whose upload window closed long ago still count toward this
+ // entry's limits. Each is asked to finish once per visit: a file that did
+ // arrive is published, and an empty reservation is released.
+ const owner=useUploadOwner(),swept=useRef(new Set<string>()),sweeping=useRef(false),alive=useRef(true);
+ useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
+ const stale=editable&&!previewSession&&uploads.ready&&!loading?staleUploads(media,inFlight as Set<string>).map(m=>m.id).join(","):"";
+ useEffect(()=>{
+  if(!stale||!owner||sweeping.current)return;
+  const rows=stale.split(",").filter(fileId=>!swept.current.has(fileId)).map(fileId=>({id:fileId}) as EntryMedia);
+  if(!rows.length)return;
+  sweeping.current=true;
+  void settleStaleUploads(rows,async(operation,fileId)=>{
+   if(!alive.current)return {error:"Stopped.",retryable:true};
+   if(operation==="finalize")swept.current.add(fileId);
+   try{await uploadRequest({operation,kind,memoryId:id,id:fileId},owner);return {};}
+   catch(problem){return {error:problem instanceof Error?problem.message:"Unavailable.",retryable:problem instanceof UploadOperationError&&problem.recoverable};}
+  }).then(result=>{sweeping.current=false;if(alive.current&&result.published+result.released)void reload();});
+ },[stale,owner,kind,id,reload]);
  // The detail page may already be showing this entry's first photo as a hero,
  // in which case promoting it again here would print it twice at two sizes.
  const lead=leadTile&&!previewOnly&&shown.length>2&&!adding&&!unfinished.length;
@@ -79,12 +101,12 @@ export function MediaCollection({access,initial=[],onCount,separated=false,entry
    ?<div aria-label="Photo and video preview" className={"grid gap-3 "+(previewOnly?"grid-flow-col auto-cols-[42%] snap-x snap-mandatory overflow-x-auto pb-2 sm:auto-cols-[28%]":"grid-cols-3 sm:grid-cols-4")}>
      {shown.map((m,i)=><MediaTile key={m.id} item={m} eager={i<3} label={"Open "+(m.media_type==="image"?"photo":"video")+" "+(ready.indexOf(m)+1)} onOpen={()=>setSelected(m.id)} className={previewOnly?"snap-start":lead&&i===0?"col-span-2 row-span-2":undefined}/>)}
      {editable?unfinished.map(m=><UnfinishedTile key={m.id} media={m} busy={pending} onRetry={()=>void settle(m.id,"finalize")} onRemove={()=>void settle(m.id,"remove")}/>):null}
-     {editable?uploads.items.map((item,i)=><UploadTile key={item.key} item={item} position={i+1} total={uploads.items.length} paused={uploads.paused} waiting={uploads.waiting} onRetry={()=>uploads.retry(item.key)} onRemove={()=>void uploads.remove(item.key)}/>):null}
+     {editable?uploads.items.map((item,i)=><UploadTile key={item.key} item={item} position={i+1} total={uploads.items.length} paused={uploads.paused} waiting={uploads.waiting} offline={uploads.offline} onRetry={()=>uploads.retry(item.key)} onRemove={()=>void uploads.remove(item.key)}/>):null}
      {editable?<PhotoChooser tile disabled={!uploads.ready} onFiles={accept} onError={setError}/>:null}
     </div>
    :!loading?<div className="max-w-sm"><PhotoChooser disabled={!uploads.ready} onFiles={accept} onError={setError}/></div>:null}
  </div>
- {editable?<UploadProgress items={uploads.items} paused={uploads.paused} waiting={uploads.waiting} completed={uploads.completed} total={uploads.total} onPause={()=>void uploads.pause()} onResume={()=>void uploads.resume()} onRetry={()=>void uploads.retry()}/>:null}
+ {editable?<UploadProgress items={uploads.items} paused={uploads.paused} waiting={uploads.waiting} offline={uploads.offline} completed={uploads.completed} total={uploads.total} onPause={()=>void uploads.pause()} onResume={()=>void uploads.resume()} onRetry={()=>void uploads.retry()}/>:null}
  {editable&&adding?<p className="mt-3 text-sm leading-6 text-muted-foreground">Unfinished files stay on this device for up to 24 hours. Reopen this entry to continue. Keep the app open while they send.</p>:null}
  {access.previewSession&&adding?<p className="mt-3 text-sm leading-6 text-muted-foreground">Preview photos stay in this browser for up to 24 hours. They are not uploaded to your shared account.</p>:null}
  {index>=0?<MediaViewer items={ready} index={index} onIndex={i=>setSelected(ready[i].id)} onClose={()=>setSelected(null)} onChange={reload}/>:null}

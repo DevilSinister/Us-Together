@@ -1,11 +1,17 @@
 "use client";
-import {useState} from "react";
+import {useEffect,useState} from "react";
 import Image from "next/image";
 import {Film, ImageOff, Play} from "lucide-react";
 import type {GalleryItem} from "@/lib/entries/gallery";
 import {mediaSource} from "./media-viewer";
 import {cn} from "@/lib/utils";
 import {VideoThumbnail} from "./video-thumbnail";
+
+/**
+ * A refused read (the per-minute view budget, a dropped connection) is
+ * usually momentary, so a tile asks again before it gives up on the photo.
+ */
+const RETRY_MS=[2000,8000,20000];
 
 function clock(seconds:number|null){
  const total=Math.round(Number(seconds??0));
@@ -32,11 +38,18 @@ export function MediaTile({item,label,eager=false,onOpen,ratio="square",classNam
 }){
  const image=item.media_type==="image";
  const [status,setStatus]=useState<"loading"|"ready"|"error">(image?"loading":"ready");
+ const [attempt,setAttempt]=useState(0),[retrying,setRetrying]=useState(false);
+ useEffect(()=>{
+  if(!retrying)return;
+  const timer=setTimeout(()=>{setRetrying(false);setAttempt(value=>value+1);},RETRY_MS[attempt]);
+  return()=>clearTimeout(timer);
+ },[retrying,attempt]);
  const length=clock(item.duration_seconds);
 
  return <figure className={cn("min-w-0",className)}>
   <div className={cn("group relative w-full overflow-hidden rounded-panel bg-secondary",ratio==="wide"?"aspect-[4/3]":"aspect-square")}>
-   {image&&status!=="error"?<Image
+   {image&&status!=="error"&&!retrying?<Image
+    key={attempt}
     src={mediaSource(item,"preview")}
     alt={item.caption||item.entryTitle||"Photo"}
     fill
@@ -47,7 +60,7 @@ export function MediaTile({item,label,eager=false,onOpen,ratio="square",classNam
     referrerPolicy="no-referrer"
     className={cn("object-cover transition-opacity duration-500 motion-reduce:transition-none",status==="ready"?"opacity-100":"opacity-0")}
     onLoad={()=>setStatus("ready")}
-    onError={()=>setStatus("error")}
+    onError={()=>{if(attempt<RETRY_MS.length)setRetrying(true);else setStatus("error");}}
    />:null}
 
    {image&&status==="loading"?<span aria-hidden="true" className="media-skeleton absolute inset-0"/>:null}

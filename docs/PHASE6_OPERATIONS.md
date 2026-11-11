@@ -29,7 +29,7 @@ Batches run sequentially. After bounded transport retries, temporary failures ar
 
 Prepare accepts an optional stable UUID. Parent, uploader, MIME, size and caption must match to reuse it; ownership/path remain server-derived. Lost prepare responses cannot create duplicate metadata, and a completed Storage object is reconciled before retransferring. Only the uploader can renew an existing unfinished one-hour authorization when no original or active processor exists. Expired TUS references restart against the same allocation. Continue renews authorization after a long pause. Completed originals may finalize after upload authorization expires; publication still rechecks membership and the five-minute processing lease. Existing budgets, binary validation, immutable originals, grants and RLS remain enforced.
 
-Deploy the updated `memory-media` function, including shared `upload-allocation.ts`, before the matching web app. The new client refuses a replacement UUID from an older processor. Local evidence does not claim deployment.
+Deploy the updated `memory-media` function, including shared `upload-allocation.ts`, before the matching web app. Since ADR-052 the client also works with an older processor that assigns its own ID, so a missed deploy degrades recovery instead of failing every upload. Local evidence does not claim deployment.
 
 Finalization claims a five-minute processing lease and token, downloads/inspects the actual object, creates image derivatives, rechecks membership, then publishes only if its lease still matches. Repeated finalization of ready media is safe. Failed processing stores only a generic error code. A worker killed by a runtime limit can be retried after its lease expires.
 

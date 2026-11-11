@@ -3,6 +3,7 @@ import { UploadSession, type UploadOperations, type UploadSnapshot } from "./upl
 import { TransferCancelled, type Transfer } from "./media-transfer";
 import { UploadOperationError } from "./upload-errors";
 import type { UploadBatch, UploadJob, UploadStore } from "./upload-store";
+import { prepareAllocation } from "./upload-batch";
 
 const photo = (key: string) => ({ key, file: new File(["fixture"], key + ".png", { type: "image/png" }), mime: "image/png", caption: "" });
 const copy = (job: UploadJob) => ({ ...job, allocation: job.allocation ? { ...job.allocation } : undefined });
@@ -95,6 +96,38 @@ describe("durable bulk upload recovery", () => {
     expect(f.state().paused).toBe(true); expect(f.operations.prepare).not.toHaveBeenCalled();
     await reopened.resume(); await flush(); expect(f.state().completed).toBe(2);
     await reopened.dispose();
+  });
+
+  it("reports a throttled batch as deferred while online, and Retry remaining sends it", async () => {
+    const f = fixture();
+    f.operations.prepare = vi.fn().mockRejectedValueOnce(new UploadOperationError("You've added a lot in a short time.", true, 300000))
+      .mockRejectedValueOnce(new UploadOperationError("You've added a lot in a short time.", true, 300000))
+      .mockImplementation(async job => ({ id: job.key, path: "private/" + job.key, uploaded: false }));
+    const session = f.make(); await session.initialize([photo("a"), photo("b")]); await flush();
+    expect(f.state()).toMatchObject({ waiting: true, offline: false, completed: 0 });
+    expect(f.state().items.every(job => job.status === "waiting" && job.retryAt > Date.now())).toBe(true);
+    await session.retry(); await flush();
+    expect(f.state().completed).toBe(2); await session.dispose();
+  });
+
+  it("finishes a batch against an older service that assigns its own IDs, reserving one row per file", async () => {
+    vi.useFakeTimers();
+    const f = fixture(); let rows = 0, dropped = true;
+    const ask = vi.fn(async () => { rows++; return { id: "server-" + rows, path: "private/server-" + rows, expiresAt: new Date(Date.now() + 3600000).toISOString() }; });
+    f.operations.prepare = vi.fn(async job => prepareAllocation(job.key, job.allocation, ask, async () => {}));
+    f.operations.transfer = vi.fn(async job => {
+      if (job.key === "a" && dropped) { dropped = false; throw new UploadOperationError("The connection dropped while sending.", true); }
+      return { done: Promise.resolve(), pause: vi.fn(), resume: vi.fn(), cancel: vi.fn(), suspend: vi.fn() };
+    });
+    const session = f.make(); await session.initialize([photo("a"), photo("b")]); await flush();
+    expect(f.state().completed).toBe(1);
+    expect(f.state().items[0]).toMatchObject({ key: "a", status: "waiting", stored: "server-1" });
+    vi.advanceTimersByTime(15000); await session.pump(); await flush();
+    expect(f.state().completed).toBe(2);
+    // The dropped file went back to the row it already held.
+    expect(ask).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(f.operations.finalize).mock.calls.map(([, allocation]) => allocation.id).sort()).toEqual(["server-1", "server-2"]);
+    await session.dispose();
   });
 
   it("retries all remaining files without duplicating a successful file when refresh fails", async () => {

@@ -3,6 +3,7 @@ export class UploadOperationError extends Error {
 }
 
 export function mediaOperationResult<T extends { error?: string; status?: number; retryable?: boolean }>(result: T): T {
-  if (result.error) throw new UploadOperationError(result.error, result.retryable ?? false, result.status === 429 ? 300000 : 0);
+  if (result.status === 429) throw new UploadOperationError("You've added a lot in a short time. The rest will carry on by themselves in a few minutes.", true, 300000);
+  if (result.error) throw new UploadOperationError(result.error, result.retryable ?? false);
   return result;
 }

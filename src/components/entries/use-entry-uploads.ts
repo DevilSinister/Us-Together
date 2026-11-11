@@ -6,12 +6,13 @@ import { startTransfer, TransferCancelled } from "@/lib/entries/media-transfer";
 import { browserUploadStore, clearUploadStorage } from "@/lib/entries/upload-store";
 import { UploadSession, type UploadSnapshot } from "@/lib/entries/upload-session";
 import { uploadRequest } from "@/lib/entries/upload-client";
+import { prepareAllocation } from "@/lib/entries/upload-batch";
 import type { QueuedPhoto } from "@/lib/entries/upload-queue";
 import type { EntryAccess } from "@/lib/entries/types";
 import { useUploadOwner, uploadStopEvent } from "@/components/providers/upload-owner";
 import { queueFiles } from "./photo-picker";
 
-const empty: UploadSnapshot = { items: [], paused: false, waiting: false, completed: 0, total: 0, error: "", ready: false };
+const empty: UploadSnapshot = { items: [], paused: false, waiting: false, offline: false, completed: 0, total: 0, error: "", ready: false };
 
 /** Reopening this entry recovers its durable, account-scoped queue under one Web Lock. */
 export function useEntryUploads({ access, initial, onSaved }: { access: EntryAccess; initial: QueuedPhoto[]; onSaved: () => Promise<void> }) {
@@ -54,10 +55,11 @@ export function useEntryUploads({ access, initial, onSaved }: { access: EntryAcc
           const control = new UploadSession(browserUploadStore(owner, scope), {
             prepare: async job => {
               if (previewSession) return { id: job.key, path: "preview", uploaded: true };
-              const result = await uploadRequest({ operation: "prepare", id: job.key, kind, memoryId: id, filename: job.file.name, mime: job.mime, size: job.file.size, caption: job.caption }, owner);
-              if (!result.id || !result.path) throw Error("Could not start this upload. Try again.");
-              if (result.id !== job.key) throw Error("Uploads need the latest service update. Try again after the app is updated.");
-              return { id: result.id, path: result.path, expiresAt: result.expiresAt, uploaded: result.uploaded ?? false };
+              // The service may be older than this page and assign its own ID;
+              // prepareAllocation uses that row as given instead of refusing it.
+              return prepareAllocation(job.key, job.allocation,
+                () => uploadRequest({ operation: "prepare", id: job.key, kind, memoryId: id, filename: job.file.name, mime: job.mime, size: job.file.size, caption: job.caption }, owner),
+                stale => uploadRequest({ operation: "remove", kind, memoryId: id, id: stale }, owner));
             },
             transfer: async (job, allocation, onProgress, onUploadUrl) => startTransfer({ file: job.file, mime: job.mime,
               bucket: kind === "moment" ? "moment-media" : "memory-media", objectName: allocation.path,
