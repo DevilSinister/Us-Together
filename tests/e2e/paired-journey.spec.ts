@@ -52,12 +52,14 @@ test("paired fixture exposes a named partner and completes the plan-to-memory lo
 
   await page.goto("/plans/new");
   await page.getByLabel("What are you planning?").fill("Rooftop dinner");
-  await page.getByLabel("Location").fill("Old Town");
-  await page.getByLabel("Starts").fill("2027-02-14T19:30");
-  await page.getByRole("button", { name: "Save this plan" }).click();
+  await page.getByLabel("Place").fill("Old Town");
+  // A plan whose day has passed asks whether it happened and offers to keep it as a memory.
+  await page.getByLabel("Date", { exact: true }).fill("2026-02-14");
+  await page.getByLabel("Time", { exact: true }).fill("19:30");
+  await page.getByRole("button", { name: "Save plan" }).click();
   await expect(page.getByRole("heading", { name: "Rooftop dinner" })).toBeVisible();
-  await page.getByRole("button", { name: "Mark complete" }).click();
-  await page.getByRole("link", { name: "Save this memory" }).click();
+  await expect(page.getByText("Did this happen?", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Keep it as a memory" }).click();
   await expect(page.getByText("From a completed plan")).toBeVisible();
   await page.getByLabel("What do you want to remember?").fill("The city lights and the quiet walk home.");
   await page.getByRole("button", { name: "Save the memory" }).click();

@@ -19,3 +19,16 @@ describe("dream domain validation", () => {
     expect(() => zonedLocalToUtc("2026-03-29T01:30", "Europe/London")).toThrow();
   });
 });
+
+describe("first reminder on a new plan", () => {
+  const base = { title: "Dinner", type: "date", startsAt: "2026-12-19T19:30", endsAt: "", timezone: "Asia/Karachi", budget: "", currency: "" };
+  it("takes one of the offered offsets as minutes, and none when left empty or absent", () => {
+    expect(planSchema.parse({ ...base, reminder: "1440" }).reminder).toBe(1440);
+    expect(planSchema.parse({ ...base, reminder: "0" }).reminder).toBe(0);
+    expect(planSchema.parse({ ...base, reminder: "" }).reminder).toBeNull();
+    expect(planSchema.parse(base).reminder).toBeNull();
+  });
+  it("refuses an offset the form never offers", () => {
+    expect(planSchema.safeParse({ ...base, reminder: "45" }).success).toBe(false);
+  });
+});

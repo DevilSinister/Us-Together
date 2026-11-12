@@ -8,6 +8,20 @@ import { readDeveloperState, writeDeveloperState } from "@/lib/auth/dev-session"
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { saveBucketPlan, saveBucketMemory } from "@/lib/bucket/conversion";
 import { isValidTimeZone, memorySchema, moneyToMinorUnits, planSchema, zonedLocalToUtc } from "@/lib/dream/schema";
+import { mutatePlan } from "@/app/actions/plans";
+import { loadPlan } from "@/lib/plans/data";
+
+/**
+ * The reminder chosen on the new plan form, added once the plan exists through
+ * the same authorized path as the plan page. The plan is already saved, so a
+ * reminder that cannot be added (its time has passed) does not undo it: the
+ * plan page then shows no reminder and offers the ones still possible.
+ */
+async function addFirstReminder(planId: string, minutes: number | null) {
+  if (minutes === null) return;
+  const detail = await loadPlan(planId);
+  if (detail) await mutatePlan({ planId, version: detail.plan.version, operation: "reminder", kind: "add", minutes });
+}
 
 async function activeCoupleId(userId: string) {
   const supabase = await createServerSupabaseClient();
@@ -35,6 +49,7 @@ export async function createPlanAction(_previous: ActionState, formData: FormDat
     let id: string;
     try { id = await saveBucketPlan(parsed.data.sourceBucketId, parsed.data, startsAt, endsAt); }
     catch (error) { return { status: "error", message: error instanceof Error ? error.message : "We couldn't save the plan." }; }
+    await addFirstReminder(id, parsed.data.reminder);
     revalidatePath("/bucket"); revalidatePath(`/bucket/${parsed.data.sourceBucketId}`); revalidatePath("/plans"); revalidatePath("/home");
     redirect(`/plans/${id}`);
   }
@@ -49,6 +64,7 @@ export async function createPlanAction(_previous: ActionState, formData: FormDat
       ...state,
       plans: [{ id, title: parsed.data.title, description: parsed.data.description ?? "", type: parsed.data.type, status: "planned" as const, startsAt, endsAt, timezone: parsed.data.timezone, location: parsed.data.location ?? "", version: 1, latitude: parsed.data.latitude, longitude: parsed.data.longitude, mapUrl: parsed.data.mapUrl, budgetMinor: moneyToMinorUnits(parsed.data.budget), currency: parsed.data.currency || null }, ...state.plans].slice(0, 20),
     });
+    await addFirstReminder(id, parsed.data.reminder);
     redirect(`/plans/${id}`);
   }
 
@@ -69,6 +85,7 @@ export async function createPlanAction(_previous: ActionState, formData: FormDat
     currency: parsed.data.currency || null,
   }).select("id").single();
   if (error || !data) return { status: "error", message: "We couldn't save this plan. Try again." };
+  await addFirstReminder(data.id, parsed.data.reminder);
   revalidatePath("/plans");
   revalidatePath("/home");
   redirect(`/plans/${data.id}`);

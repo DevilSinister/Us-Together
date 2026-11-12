@@ -80,8 +80,9 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
   await page.getByRole("link", { name: "Plan this", exact: true }).click();
   await expect(page.getByLabel("What are you planning?")).toHaveValue("Watch the sunrise together");
-  await page.getByLabel("Starts", { exact: true }).fill("2027-08-14T05:00");
-  await page.getByRole("button", { name: "Save this plan", exact: true }).click();
+  await page.getByLabel("Date", { exact: true }).fill("2027-08-14");
+  await page.getByLabel("Time", { exact: true }).fill("05:00");
+  await page.getByRole("button", { name: "Save plan", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
   await page.goto(ideaUrl);
   await page.getByRole("button", { name: "Mark complete", exact: true }).click();
