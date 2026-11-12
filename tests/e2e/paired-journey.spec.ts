@@ -48,7 +48,7 @@ test("paired fixture exposes a named partner and completes the plan-to-memory lo
   }
   await page.goto("/pairing");
   await expect(page.getByRole("heading", { name: "Maya" })).toBeVisible();
-  await expect(page.getByText("Shared access is granted only while both memberships are active.")).toBeVisible();
+  await expect(page.getByText(/Nobody else can be added/)).toBeVisible();
 
   await page.goto("/plans/new");
   await page.getByLabel("What are you planning?").fill("Rooftop dinner");
@@ -87,7 +87,7 @@ test("paired connection stays usable on mobile with reduced motion", async ({ pa
   await page.emulateMedia({ reducedMotion: "reduce" });
   await enterPairedPreview(page);
   await page.goto("/pairing");
-  await expect(page.getByRole("heading", { name: "You’re connected." })).toBeVisible();
+  await expect(page.getByText("Connected", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Maya" })).toBeVisible();
   await page.goto("/home");
   await expect(page.getByRole("heading", { name: "The day we chose us" })).toBeVisible();
