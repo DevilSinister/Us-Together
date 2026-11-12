@@ -30,12 +30,15 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await page.getByRole("button", { name: "Save this idea" }).click();
   await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
   const ideaUrl = page.url();
-  await page.getByText("Edit idea", { exact: true }).click();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.screenshot({ path: `test-results/bucket-editor-${testInfo.project.name}.png` });
   await page.getByLabel("Location", { exact: false }).fill("By the water");
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(page.getByText("By the water", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Add a step", exact: true }).click();
   for (const label of ["Choose a viewpoint", "Pack coffee"]) { await page.getByLabel("Next little step").fill(label); await page.getByRole("button", { name: "Add step", exact: true }).click(); await expect(page.getByLabel("Next little step")).toHaveValue(""); }
+  // Renaming, reordering and removing steps live behind "Edit steps".
+  await page.getByRole("button", { name: "Edit steps", exact: true }).click();
   if (testInfo.project.name === "desktop-chromium") {
     await page.getByRole("button", { name: "Move Pack coffee up" }).focus();
     await page.keyboard.press("Enter");
@@ -52,12 +55,14 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
     await sourceRow.dispatchEvent("pointerup", { pointerType: "touch", pointerId: 7, clientX: targetBox!.x + 8, clientY: targetBox!.y + 8 });
     await expect(page.getByLabel("Step 2", { exact: true })).toHaveValue("Pack coffee");
   }
-  await page.getByRole("checkbox", { name: "Complete Pack coffee" }).click();
-  await expect(page.getByRole("checkbox", { name: "Complete Pack coffee" })).toBeChecked();
-  await expect(page.getByText("1 of 2 complete", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Done editing", exact: true }).click();
+  await page.getByRole("checkbox", { name: "Pack coffee", exact: true }).check();
+  await expect(page.getByRole("checkbox", { name: "Pack coffee", exact: true })).toBeChecked();
+  await expect(page.getByText("1 of 2 done", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Edit steps", exact: true }).click();
   await page.getByLabel("Step 2", { exact: true }).fill("Find a quiet viewpoint");
   await page.getByRole("button", { name: "Save step", exact: true }).nth(1).click();
-  await expect(page.getByRole("checkbox", { name: "Complete Find a quiet viewpoint" })).toBeVisible();
+  await expect(page.getByLabel("Step 2", { exact: true })).toHaveValue("Find a quiet viewpoint");
   await expect(page.getByRole("button", { name: "Add step", exact: true })).toBeEnabled();
   const viewport = page.viewportSize()!;
   for (const width of [320, 768]) {
@@ -74,16 +79,19 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
     }
   }
   await page.setViewportSize(viewport);
+  await page.getByRole("button", { name: "Done editing", exact: true }).click();
+  await expect(page.getByRole("checkbox", { name: "Find a quiet viewpoint", exact: true })).toBeVisible();
   await page.screenshot({ path: `test-results/bucket-detail-${testInfo.project.name}.png`, fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
-  await page.getByRole("link", { name: "Plan this", exact: true }).click();
+  await page.getByRole("link", { name: "Make it a plan", exact: true }).click();
   await expect(page.getByLabel("What are you planning?")).toHaveValue("Watch the sunrise together");
   await page.getByLabel("Date", { exact: true }).fill("2027-08-14");
   await page.getByLabel("Time", { exact: true }).fill("05:00");
   await page.getByRole("button", { name: "Save plan", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
   await page.goto(ideaUrl);
-  await page.getByRole("button", { name: "Mark complete", exact: true }).click();
+  await page.getByRole("button", { name: "We lived it", exact: true }).click();
+  await page.getByRole("button", { name: "Mark it lived", exact: true }).click();
   await expect(page.getByRole("heading", { name: "One more dream lived." })).toBeVisible();
   await page.getByRole("link", { name: "Save this as a memory" }).click();
   await page.getByRole("button", { name: "Save the memory" }).click();
@@ -105,8 +113,8 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await page.getByRole("button", { name: "Apply filters" }).click();
   await expect(page.getByText("Nothing in this view.")).toBeVisible();
   await page.goto(ideaUrl);
-  await page.getByRole("button", { name: "Delete idea", exact: true }).click();
-  await page.getByRole("dialog", { name: "Delete this idea?" }).getByRole("button", { name: "Delete idea", exact: true }).click();
+  await page.getByRole("button", { name: "Delete", exact: true }).click();
+  await page.getByRole("dialog", { name: "Delete this idea?" }).getByRole("button", { name: "Delete", exact: true }).click();
   await expect(page).toHaveURL(listUrl);
   await page.goto("/memories");
   await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
