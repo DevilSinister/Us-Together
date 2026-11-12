@@ -7,12 +7,10 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await page.getByRole("button", { name: "Enter paired preview" }).click();
   await expect(page).toHaveURL(/\/home$/);
   await page.goto("/bucket");
-  await page.getByRole("button", { name: "Add list", exact: true }).click();
+  // A new list opens as soon as it is made.
+  await page.getByRole("button", { name: "New list", exact: true }).click();
   await page.getByLabel("List name", { exact: true }).fill("Our little adventures");
-  await page.getByRole("button", { name: "Create list" }).click();
-  await expect(page.getByRole("heading", { name: "Our little adventures" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Add idea", exact: true })).toHaveCount(0);
-  await page.getByRole("link", { name: "Our little adventures Open ideas" }).click();
+  await page.getByRole("button", { name: "Make the list" }).click();
   await expect(page).toHaveURL(/\/bucket\/lists\/[^/]+$/);
   const listUrl = page.url();
   await page.getByRole("link", { name: "Add idea", exact: true }).first().click();
@@ -132,10 +130,10 @@ test("bucket options preserve drafts on failure and support keyboard, narrow scr
   await page.getByRole("button", { name: "Enter paired preview" }).click();
   await expect(page).toHaveURL(/\/home$/);
   await page.goto("/bucket");
-  await page.getByRole("button", { name: "Add list", exact: true }).click();
+  await page.getByRole("button", { name: "New list", exact: true }).click();
   await page.getByLabel("List name", { exact: true }).fill("Quiet weekends");
-  await page.getByRole("button", { name: "Create list", exact: true }).click();
-  await page.getByRole("link", { name: "Quiet weekends Open ideas" }).click();
+  await page.getByRole("button", { name: "Make the list", exact: true }).click();
+  await expect(page).toHaveURL(/\/bucket\/lists\/[^/]+$/);
   const options = page.getByRole("button", { name: "Options", exact: true });
   await options.click();
   const dialog = page.getByRole("dialog");
