@@ -1,4 +1,4 @@
-const CACHE = "us-together-shell-v2";
+const CACHE = "us-together-shell-v3";
 const SHELL = ["/offline", "/icon.svg", "/icon-192.png"];
 
 self.addEventListener("install", (event) => {

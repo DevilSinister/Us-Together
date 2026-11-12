@@ -436,3 +436,7 @@ Sign in, Create your space, Let's get you back in and Choose a new password shar
 ## Landing in the Cover language — 2026-11-13
 
 The front door is a 480px cover (the rose-lit cover field, as on the signed-out screens) with "Us Together" in serif and an outline Sign in at its head, and "Our own private little world." at 48px serif over "A shared journal for the two of you." at its foot. The sheet gives one line ("Plan what's next, keep what mattered, and watch it turn into your story."), the product loop as four ruled rows with 44px marks (Dream, Plan, Memory, Our Story), a full-width "Create your space", and the privacy line with a lock. From desktop width the cover is a full-height panel beside the rest. The relationship-thread style used only by the old landing page is removed.
+
+## Offline — 2026-11-13
+
+The offline page is centred and quiet: a 64px round `secondary` mark with a crossed-out signal, "You're offline." in 32px serif, "Your private space opens again as soon as you reconnect.", and a full-width Try again. The mockup's "What you've already opened is still here." is not used: the service worker keeps only this page, not the pages you visited. Try again is a plain link to the current address, so it reloads what you meant to open without needing any script. The shell cache is now `us-together-shell-v3`, so installed apps pick up the new page.
