@@ -10,6 +10,7 @@ import { Cover, CoverSheet } from "@/components/app/cover";
 import { MonthGrid } from "./month-grid";
 import { loadSharedCalendar } from "@/app/actions/calendar";
 import { calendarDays } from "@/lib/plans/calendar";
+import { plain } from "@/lib/plans/list";
 import {
   entriesOnDay, visibleEntries, calendarKinds, monthCounts, monthLine, openingDay, shiftMonth,
   type CalendarEntry, type CalendarKind, type SharedCalendarPage,
@@ -99,7 +100,7 @@ export function SharedCalendar({ initial, today }: { initial: SharedCalendarPage
     if (entry.status && statusWords[entry.status]) parts.push(statusWords[entry.status]);
     if (entry.kind === "plan") {
       if (entry.endDay > entry.day) parts.push(`Day ${daysBetween(entry.day, selected) + 1} of ${daysBetween(entry.day, entry.endDay) + 1}`);
-      if (entry.startsAt && selected === entry.day) parts.push(new Intl.DateTimeFormat("en", { hour: "numeric", minute: "2-digit", timeZone: page.timezone }).format(new Date(entry.startsAt)));
+      if (entry.startsAt && selected === entry.day) parts.push(plain(new Intl.DateTimeFormat("en", { hour: "numeric", minute: "2-digit", timeZone: page.timezone }).format(new Date(entry.startsAt))));
     }
     parts.push(entry.location);
     return parts.filter(Boolean).join(" · ");
