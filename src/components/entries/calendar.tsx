@@ -158,7 +158,6 @@ export function SharedCalendar({ initial, today }: { initial: SharedCalendarPage
           </p> : null}
 
           <MonthGrid
-            variant="cover"
             label={monthTitle(month, true)}
             days={days}
             selected={selected}

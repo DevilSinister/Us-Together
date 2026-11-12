@@ -13,13 +13,11 @@ test("plans support calendar, details, checklist, reminders, rescheduling and ca
  await page.getByRole("link",{name:"Edit plan",exact:true}).click();await expect(page.getByLabel("Amount",{exact:true})).toHaveValue("45.50");await page.getByLabel("Starts",{exact:true}).fill("2027-02-14T16:00");await page.getByRole("button",{name:"Save changes",exact:true}).click();await expect(page.getByRole("heading",{name:"An afternoon by the sea"})).toBeVisible();
  await page.screenshot({path:"test-results/plans-detail-"+testInfo.project.name+".png",fullPage:true});
  await page.getByRole("link",{name:"Back to plans",exact:true}).click();
- await page.getByRole("button",{name:"Month",exact:true}).click();
- // Navigate from the runtime month using the visible calendar heading.
- for(let i=0;i<18&&!await page.getByRole("heading",{name:"February 2027",exact:true}).isVisible();i++){await page.getByRole("button",{name:"Next month",exact:true}).click();await expect(page.getByRole("button",{name:"Next month",exact:true})).toBeEnabled();}
- await expect(page.getByRole("heading",{name:"February 2027",exact:true})).toBeVisible();
- await page.getByRole("button",{name:/Sun, Feb 14, 1 plans/}).click();await expect(page.getByRole("link",{name:"An afternoon by the sea",exact:true})).toBeVisible();
+ await expect(page.getByRole("link",{name:/An afternoon by the sea/})).toBeVisible();
+ // Months and weeks moved to the shared Calendar, one month per address.
+ await page.goto("/calendar?month=2027-02");await expect(page.getByRole("heading",{level:1,name:"February",exact:true})).toBeVisible();
+ await page.getByRole("button",{name:/Sunday, February 14, 2027, 1 entry: Plan/}).click();await expect(page.getByRole("link",{name:/^An afternoon by the sea/})).toBeVisible();
  await page.screenshot({path:"test-results/plans-month-"+testInfo.project.name+".png",fullPage:true});
- await page.getByRole("button",{name:"Week",exact:true}).click();await expect(page.getByRole("button",{name:"Previous week"})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)).toBe(false);
  await page.goto(planUrl);await page.getByRole("button",{name:"Cancel plan",exact:true}).click();await expect(page.getByText("date · cancelled",{exact:true})).toBeVisible();await expect(page.getByText(/· cancelled/)).toHaveCount(2);
  await page.getByRole("button",{name:"Restore plan",exact:true}).click();await expect(page.getByRole("button",{name:"Mark complete",exact:true})).toBeVisible();

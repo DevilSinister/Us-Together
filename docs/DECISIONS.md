@@ -508,3 +508,14 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 **Decision:** One search sheet opens from the phone top bar and the desktop sidebar. It searches the section of the screen it was opened from (Memories, Moments, Plans and Calendar, Bucket lists, Notes, Wishlists), with section filters behind a Filters button, and "Search everywhere" searches all of them. Home, Gallery and settings screens always search everywhere. The query travels in a Server Action body and is matched in Node, with accents and case folded and every word required, against the newest 400 rows per section read under RLS. No SQL or PostgREST filter is built from it and nothing is logged. Appearance (light, dark or device) and Sign out move to Profile; the top bar keeps only search and notifications.
 
 **Consequences:** No migration is needed and the database never sees the search text. Very old entries beyond the newest 400 of a section are not searched; a server-side function with a body-only parameter would be needed if that ever matters. Each search reads up to six tables, so input is debounced. Two browser specs now set the theme through storage, and one signs out from Profile.
+
+## ADR-055 — Plans is a list; the shared Calendar is the only month view
+
+**Status:** Accepted, 2026-11-12, by owner direction ("exactly match mock up"); on `redesign`.
+
+**Context:** Plans carried its own Upcoming/Month/Week workspace and a status select, which duplicated the shared Calendar for plans alone. The Cover mockups give Plans a list (next plan, Coming up, Kept) and give months to Calendar.
+
+**Decision:** `/plans` is a server-rendered list: the next plan as a raised card with how far off it is, the rest coming up, "Did these happen?" for planned plans whose days have all passed, Kept (completed, newest first) linking to the memory each became, and cancelled plans behind a `?show=cancelled` link. Months live on `/calendar?month=`; the week view and the `filterPlans` action are removed.
+
+**Consequences:** No schema change. A planned plan left unmarked is no longer hidden in the past. There is no week grid anywhere; the day agenda on Calendar covers a single day. Partner changes still appear through the shared server refresh.
+

@@ -3,8 +3,6 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { planContext, loadPlan } from "@/lib/plans/data";
-import { calendarFilter } from "@/lib/plans/calendar";
-import { loadPlans } from "@/lib/plans/data";
 import { editPlanSchema,planInterval,planMutationSchema,inspectAttachment,attachmentLimit } from "@/lib/plans/schema";
 import { moneyToMinorUnits } from "@/lib/dream/schema";
 import { writeDeveloperState } from "@/lib/auth/dev-session";
@@ -15,9 +13,6 @@ function checkResult(value:unknown) {
  if(!r.ok)throw new Error(r.code==="CONFLICT"?"This plan changed. Refresh the page before trying again.":r.code==="ATTACHMENTS_EXIST"?"Remove the attachments before deleting this plan.":"That plan is no longer available.");
 }
 function refresh(id:string){revalidatePath("/plans");revalidatePath("/plans/"+id);revalidatePath("/home");}
-export async function filterPlans(input:unknown) {
- try{return {page:await loadPlans(calendarFilter.parse(input))};}catch{return {error:"We couldn't load these plans. Try again."};}
-}
 export async function updatePlanAction(_previous:ActionState,form:FormData):Promise<ActionState> {
  const parsed=editPlanSchema.safeParse(Object.fromEntries(form));
  if(!parsed.success)return {status:"error",message:"Check the plan details.",fields:parsed.error.flatten().fieldErrors};
