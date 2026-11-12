@@ -33,7 +33,9 @@ test("compact moment previews keep photo and gallery navigation clear", async ({
   await expect(page.getByRole("button", { name: /Open photo/ })).toHaveCount(7);
   for (const route of ["home", "calendar", "notes", "wishlist", "bucket"]) {
     await page.goto(`/${route}`);
-    await expect(page.locator("h1")).toHaveCSS("font-size", info.project.name.includes("mobile") ? "30px" : "36px");
+    // Cover band screens (ADR-053) set their title at 40px at every width.
+    const band = ["calendar", "notes", "wishlist"].includes(route);
+    await expect(page.locator("h1")).toHaveCSS("font-size", band ? "40px" : info.project.name.includes("mobile") ? "30px" : "36px");
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     await page.screenshot({ path: `.impeccable/qa/compact-${route}-${info.project.name}.png`, fullPage: true });
   }

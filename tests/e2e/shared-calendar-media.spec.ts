@@ -170,8 +170,8 @@ test("preview galleries keep six photos, all files, captions and file-specific c
   await page.keyboard.press("Escape");
 
   await page.goto("/calendar");
-  await expect(page.getByRole("link", { name: /Memory Gallery memory/ })).toBeVisible();
-  await expect(page.getByRole("link", { name: /Moment Gallery moment/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Gallery memory Memory/ })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^Gallery moment Moment/ })).toBeVisible();
 
   await page.goto("/home");
   await page.getByRole("link", { name: "Open gallery", exact: true }).click();

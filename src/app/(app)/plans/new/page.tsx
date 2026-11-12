@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { z } from "zod";
 import { ArrowLeft, Sparkles } from "lucide-react";
 import { PlanForm } from "@/components/dream/plan-form";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ export const metadata: Metadata = { title: "New plan" };
 
 const pickerField = "min-h-12 w-full min-w-0 rounded-control border border-border bg-field px-3 py-2 text-base sm:text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring";
 
-export default async function NewPlanPage({ searchParams }: { searchParams: Promise<{ bucket?: string }> }) {
+export default async function NewPlanPage({ searchParams }: { searchParams: Promise<{ bucket?: string; date?: string }> }) {
   const identity = await getCurrentIdentity();
   let timezone = "UTC";
   if (identity?.kind === "developer") timezone = (await readDeveloperState()).timezone;
@@ -24,7 +25,9 @@ export default async function NewPlanPage({ searchParams }: { searchParams: Prom
     timezone = data?.timezone ?? "UTC";
   }
 
-  const { bucket } = await searchParams;
+  const { bucket, date } = await searchParams;
+  // The calendar links here with the day you had selected; anything else is ignored.
+  const defaultDate = z.iso.date().safeParse(date).success ? date : undefined;
   const source = bucket ? await loadBucketItem(bucket) : null;
   if (bucket && !source) notFound();
 
@@ -73,7 +76,7 @@ export default async function NewPlanPage({ searchParams }: { searchParams: Prom
 
     <section className="mt-6 rounded-panel bg-card p-6 sm:p-8">
       {/* Keyed by the source, so choosing another idea refills every field. */}
-      <PlanForm key={source?.item.id ?? "blank"} defaultTimezone={timezone} source={source?.item} />
+      <PlanForm key={source?.item.id ?? "blank"} defaultTimezone={timezone} source={source?.item} defaultDate={defaultDate} />
     </section>
   </div>;
 }

@@ -1,38 +1,38 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/app/page-header";
+import { Cover, CoverSheet } from "@/components/app/cover";
 import { PairingNotice } from "@/components/app/states";
 import { SharedCalendar } from "@/components/entries/calendar";
 import { loadSharedCalendar } from "@/app/actions/calendar";
 import { planContext } from "@/lib/plans/data";
 import { localDate } from "@/lib/plans/calendar";
+import { monthParam } from "@/lib/entries/calendar";
 
 export const metadata = { title: "Calendar" };
 
-export default async function CalendarPage() {
+/**
+ * The shared calendar, one month per address (`?month=YYYY-MM`). Today is read
+ * in the couple's zone on the server and handed down, so the first paint and
+ * the hydrated page agree on which day is today.
+ */
+export default async function CalendarPage({ searchParams }: { searchParams: Promise<{ month?: string | string[] }> }) {
+  const { month: requested } = await searchParams;
   const context = await planContext();
-  const initial = await loadSharedCalendar({ date: localDate(new Date(), context.timezone) });
+  const today = localDate(new Date(), context.timezone);
+  const month = monthParam(requested) ?? today.slice(0, 7);
+  const initial = await loadSharedCalendar({ date: month === today.slice(0, 7) ? today : month + "-01" });
 
-  return (
-    <div className="reveal-on-load">
-      {/* Compact, and no lede: on a phone the display scale plus a lede plus
-          four links filled the first screen before a single date was visible.
-          The creation links now live in the selected day's foot, where they can
-          act on the chosen date. */}
-      <PageHeader
-        scale="compact"
-        eyebrow="Plans, memories, and moments"
-        title="Your shared calendar."
-        actions={<Button asChild><Link href="/plans/new">New plan</Link></Button>}
+  if (!initial.paired) return <>
+    <Cover labelledBy="calendar-title" height="band">
+      <h1 id="calendar-title" className="font-display text-[2.5rem] leading-[1.05] tracking-[-0.02em]">Calendar</h1>
+      <p className="mt-1.5 text-[0.9375rem] leading-6 text-muted-foreground">Plans, memories and moments on one month</p>
+    </Cover>
+    <CoverSheet>
+      <PairingNotice
+        className="mt-0"
+        title="Your calendar opens with your shared space."
+        body="Plans, memories, and moments are read inside one couple boundary, so the calendar waits for both accounts."
       />
-      {initial.paired ? (
-        <SharedCalendar initial={initial} />
-      ) : (
-        <PairingNotice
-          title="Your calendar opens with your shared space."
-          body="Plans, memories, and moments are read inside one couple boundary, so the calendar waits for both accounts."
-        />
-      )}
-    </div>
-  );
+    </CoverSheet>
+  </>;
+
+  return <SharedCalendar key={initial.date} initial={initial} today={today} />;
 }

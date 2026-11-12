@@ -61,7 +61,7 @@ export function Cover({ photo = null, previewSession, previewEntry = null, heigh
         </Link>
       ) : null}
       <div className="cover-rise relative flex items-end justify-between gap-4">
-        <div className="min-w-0">{children}</div>
+        <div className="min-w-0 flex-1">{children}</div>
         {action ? <div className="hidden shrink-0 md:block">{action}</div> : null}
       </div>
     </section>
