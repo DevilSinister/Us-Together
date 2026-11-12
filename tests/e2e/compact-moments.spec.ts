@@ -22,7 +22,7 @@ test("compact moment previews keep photo and gallery navigation clear", async ({
   await expect(many.getByRole("button", { name: /Open photo/ })).toHaveCount(6);
   await expect(single.getByRole("button", { name: /Open photo/ })).toHaveCount(1);
   await expect(single.getByRole("link", { name: /View all|Show more/ })).toHaveCount(0);
-  await expect(many.getByRole("heading")).toHaveCSS("font-size", "18px");
+  await expect(many.getByRole("heading")).toHaveCSS("font-size", "17px");
   await many.getByRole("button", { name: "Open photo 1", exact: true }).focus();
   await page.keyboard.press("Enter");
   await expect(page.getByRole("dialog", { name: /^Photo viewer,/ })).toBeVisible();
@@ -33,14 +33,18 @@ test("compact moment previews keep photo and gallery navigation clear", async ({
   await expect(page.getByRole("button", { name: /Open photo/ })).toHaveCount(7);
   for (const route of ["home", "calendar", "notes", "wishlist", "bucket"]) {
     await page.goto(`/${route}`);
-    await expect(page.locator("h1")).toHaveCSS("font-size", info.project.name.includes("mobile") ? "30px" : "36px");
+    // Cover band screens (ADR-053) set their title at 40px at every width.
+    const band = ["calendar", "notes", "wishlist"].includes(route);
+    await expect(page.locator("h1")).toHaveCSS("font-size", band ? "40px" : info.project.name.includes("mobile") ? "30px" : "36px");
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     await page.screenshot({ path: `.impeccable/qa/compact-${route}-${info.project.name}.png`, fullPage: true });
   }
   if (info.project.name.includes("mobile")) {
     await page.setViewportSize({ width: 320, height: 740 });
     await page.goto("/milestones");
-    await page.getByRole("button", { name: "Toggle color theme" }).click();
+    // Appearance lives in Profile now; set the stored choice directly.
+    await page.evaluate(() => localStorage.setItem("theme", "dark"));
+    await page.reload();
     expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
     await page.screenshot({ path: ".impeccable/qa/compact-moments-dark-320.png", fullPage: true });
   }

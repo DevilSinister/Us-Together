@@ -21,7 +21,7 @@ const statusLabels: Record<string, string> = {
   in_progress: "In progress",
   planned: "Planned",
   idea: "Ideas",
-  completed: "Completed",
+  completed: "Lived",
 };
 
 const priorityOrder = ["dream", "high", "medium", "low"] as const;

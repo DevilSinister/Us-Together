@@ -2,7 +2,7 @@ import "server-only";
 import { coupleContext } from "@/lib/couple/context";
 import { readDeveloperState } from "@/lib/auth/dev-session";
 import type { StoryCounts, StoryCursor, StoryEntry, StoryItem, StoryKind, StoryOverview, StoryView } from "./schema";
-import { decodeCursor, storyExcerpt, storyPageSize } from "./schema";
+import { decodeCursor, storyExcerpt, storyPageSize, yearsFromDates } from "./schema";
 
 const columns = "kind,id,couple_id,occurred_on,title,location,source_bucket_item_id,source_plan_id" as const;
 const kinds: StoryKind[] = ["memory", "milestone", "plan", "bucket"];
@@ -101,14 +101,17 @@ function enrich(entry: StoryEntry, detail?: Detail): StoryItem {
 
 async function loadOverview(db: Db, coupleId: string, userId: string): Promise<StoryOverview | undefined> {
   try {
-    const [couple, profile, ...totals] = await Promise.all([
+    const [couple, profile, dates, ...totals] = await Promise.all([
       db.from("couples").select("relationship_started_on").eq("id", coupleId).maybeSingle(),
       db.from("profiles").select("relationship_started_on").eq("user_id", userId).maybeSingle(),
+      // One narrow column for the chapter switcher and each year's count.
+      db.from("story_entries").select("occurred_on").eq("couple_id", coupleId).limit(10000),
       ...kinds.map((kind) => db.from("story_entries").select("id", { count: "exact", head: true }).eq("couple_id", coupleId).eq("kind", kind)),
     ]);
     const counts = Object.fromEntries(kinds.map((kind, i) => [kind, totals[i].count ?? 0])) as StoryCounts;
     // Home reads the couple's date first and the profile's as a fallback; so does this.
-    return { counts, startedOn: couple.data?.relationship_started_on ?? profile.data?.relationship_started_on ?? null };
+    const years = dates.error ? undefined : yearsFromDates((dates.data ?? []).map((row) => row.occurred_on ?? ""));
+    return { counts, startedOn: couple.data?.relationship_started_on ?? profile.data?.relationship_started_on ?? null, years };
   } catch {
     return undefined;
   }
@@ -141,7 +144,7 @@ async function previewStory(cursor: StoryCursor | null): Promise<StoryView> {
     paired: true,
     entries: page,
     next: rows.length > storyPageSize && last ? { occurredOn: last.occurred_on, id: last.id } : null,
-    overview: { counts, startedOn: state.relationshipStartedOn || null },
+    overview: { counts, startedOn: state.relationshipStartedOn || null, years: yearsFromDates(all.map((e) => e.occurred_on)) },
     previewSession: state.bucketSessionId,
   };
 }

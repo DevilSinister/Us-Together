@@ -1,6 +1,7 @@
 import "server-only";
 import { coupleContext, partnerName } from "@/lib/couple/context";
 import { decodeCursor, encodeCursor, keysetFilter, keysetFilterAfter } from "@/lib/pagination/cursor";
+import { sampleDrawings, seededPreview } from "@/lib/preview/samples";
 
 export type DrawingNote = {
   id: string;
@@ -37,7 +38,11 @@ const unpaired: DrawingsView = { paired: false, notes: [], next: null, partner: 
  */
 export async function loadDrawings(after?: string): Promise<DrawingsView> {
   const context = await coupleContext();
-  if (context.kind === "preview" || !context.coupleId) return unpaired;
+  if (context.kind === "preview") {
+    const seed = await seededPreview();
+    return seed ? { paired: true, notes: sampleDrawings, next: null, partner: seed.partner } : unpaired;
+  }
+  if (!context.coupleId) return unpaired;
   let query = context.db.from("drawing_notes").select(columns)
     .eq("couple_id", context.coupleId).eq("status", "ready")
     .order("sent_at", { ascending: false }).order("id", { ascending: false }).limit(PAGE + 1);
@@ -69,7 +74,13 @@ export async function loadDrawings(after?: string): Promise<DrawingsView> {
 
 export async function loadDrawing(id: string): Promise<DrawingDetail | null> {
   const context = await coupleContext();
-  if (context.kind === "preview" || !context.coupleId) return null;
+  if (context.kind === "preview") {
+    const seed = await seededPreview();
+    const index = seed ? sampleDrawings.findIndex((item) => item.id === id) : -1;
+    if (index < 0 || !seed) return null;
+    return { ...sampleDrawings[index], read: true, partner: seed.partner, older: sampleDrawings[index + 1]?.id ?? null, newer: sampleDrawings[index - 1]?.id ?? null };
+  }
+  if (!context.coupleId) return null;
   const { data } = await context.db.from("drawing_notes").select(columns)
     .eq("id", id).eq("status", "ready").maybeSingle();
   if (!data) return null;

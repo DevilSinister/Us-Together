@@ -115,3 +115,50 @@ export async function loadBucketCategories(): Promise<string[]> {
   const set = new Set([...DEFAULT_BUCKET_CATEGORIES, ...existingCategories]);
   return Array.from(set).sort((a, b) => a.localeCompare(b));
 }
+
+export type BucketListSummary = BucketList & { dreams: number; lived: number };
+export type LivedDream = { id: string; title: string; listTitle: string | null; livedOn: string };
+export type BucketOverview = { lists: BucketListSummary[]; recent: LivedDream[]; dreams: number; lived: number };
+
+/** Ideas counted for the lists screen: far beyond what a couple keeps, so the counts stay one read. */
+const overviewItemCap = 5000;
+
+/**
+ * The lists screen in one read: each list with how many dreams it holds and
+ * how many are lived, and the few most recently lived. A dream's day is the
+ * day you said you lived it, or, without one, the day it was marked complete.
+ */
+export async function loadBucketOverview(): Promise<BucketOverview> {
+  const context = await bucketContext();
+  type Row = { list_id: string; status: string };
+  type Done = { id: string; title: string; list_id: string; lived_on: string | null; completed_at: string | null };
+  let lists: BucketList[], rows: Row[], done: Done[];
+  if (context.kind === "preview") {
+    lists = context.preview.lists;
+    rows = context.preview.items;
+    done = context.preview.items.filter((item) => item.status === "completed");
+  } else {
+    const [listResult, itemResult, doneResult] = await Promise.all([
+      context.db.from("bucket_lists").select("id,title").eq("couple_id", context.coupleId).order("id").limit(100),
+      context.db.from("bucket_list_items").select("list_id,status").eq("couple_id", context.coupleId).limit(overviewItemCap),
+      context.db.from("bucket_list_items").select("id,title,list_id,lived_on,completed_at").eq("couple_id", context.coupleId).eq("status", "completed")
+        .order("lived_on", { ascending: false, nullsFirst: false }).order("completed_at", { ascending: false }).limit(5),
+    ]);
+    if (listResult.error || itemResult.error || doneResult.error) throw new Error("We couldn't load your lists. Try again.");
+    [lists, rows, done] = [listResult.data, itemResult.data, doneResult.data];
+  }
+  const day = (row: Done) => row.lived_on ?? row.completed_at?.slice(0, 10) ?? "";
+  const titles = new Map(lists.map((list) => [list.id, list.title]));
+  const summaries = lists.map((list) => {
+    const own = rows.filter((row) => row.list_id === list.id);
+    return { ...list, dreams: own.length, lived: own.filter((row) => row.status === "completed").length };
+  });
+  const recent = [...done].sort((a, b) => day(b).localeCompare(day(a))).slice(0, 5)
+    .map((row) => ({ id: row.id, title: row.title, listTitle: titles.get(row.list_id) ?? null, livedOn: day(row) }));
+  return {
+    lists: summaries,
+    recent,
+    dreams: summaries.reduce((sum, list) => sum + list.dreams, 0),
+    lived: summaries.reduce((sum, list) => sum + list.lived, 0),
+  };
+}

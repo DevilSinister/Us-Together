@@ -6,16 +6,17 @@ test("list landing, scoped creation and back navigation keep ideas in their list
   await page.goto("/sign-in");
   await page.getByRole("button", { name: "Enter paired preview" }).click();
   await expect(page).toHaveURL(/\/home$/);
-  await page.goto("/bucket");
   for (const title of ["At home", "Away for the weekend"]) {
-    await page.getByRole("button", { name: "Add list", exact: true }).click();
+    await page.goto("/bucket");
+    await page.getByRole("button", { name: "New list", exact: true }).click();
     await page.getByLabel("List name", { exact: true }).fill(title);
-    await page.getByRole("button", { name: "Create list", exact: true }).click();
-    await expect(page.getByRole("dialog")).toHaveCount(0);
-    await expect(page.getByRole("heading", { name: title, exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Make the list", exact: true }).click();
+    await expect(page).toHaveURL(/\/bucket\/lists\/[^/]+$/);
   }
+  await page.goto("/bucket");
+  await expect(page.getByRole("link", { name: /^At home No dreams yet/ })).toBeVisible();
   await page.screenshot({ path: `test-results/lists-landing-${testInfo.project.name}.png`, fullPage: true });
-  await page.getByRole("link", { name: "Away for the weekend Open ideas" }).click();
+  await page.getByRole("link", { name: /^Away for the weekend/ }).click();
   await expect(page).toHaveURL(/\/bucket\/lists\/[^/]+$/);
   const listUrl = page.url();
   await page.getByRole("link", { name: "Add idea", exact: true }).first().click();
@@ -27,17 +28,17 @@ test("list landing, scoped creation and back navigation keep ideas in their list
   await page.getByRole("link", { name: "Back to list", exact: true }).click();
   await expect(page).toHaveURL(listUrl);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "A picnic by the lake", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^A picnic by the lake/ })).toBeVisible();
   await page.screenshot({ path: `test-results/list-ideas-${testInfo.project.name}.png`, fullPage: true });
-  await page.getByRole("link", { name: "All lists", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "A picnic by the lake", exact: true })).toHaveCount(0);
-  await page.getByRole("link", { name: "At home Open ideas" }).click();
-  await expect(page.getByRole("heading", { name: "A picnic by the lake", exact: true })).toHaveCount(0);
+  await page.getByRole("link", { name: "Back to bucket lists", exact: true }).click();
+  await expect(page.getByRole("link", { name: /^A picnic by the lake/ })).toHaveCount(0);
+  await page.getByRole("link", { name: /^At home/ }).click();
+  await expect(page.getByRole("link", { name: /^A picnic by the lake/ })).toHaveCount(0);
   await page.getByRole("button", { name: "Options", exact: true }).click();
   await page.getByLabel("Status", { exact: true }).selectOption("idea");
   await page.getByRole("button", { name: "Apply filters", exact: true }).click();
   await page.getByRole("button", { name: "Reset view", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "A picnic by the lake", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: /^A picnic by the lake/ })).toHaveCount(0);
   await page.goto("/bucket/lists/not-a-list");
   await expect(page.getByRole("heading", { name: "404" })).toBeVisible();
   await page.goto("/bucket/lists/11111111-1111-4111-8111-111111111111");

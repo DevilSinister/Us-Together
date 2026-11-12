@@ -76,3 +76,80 @@ export async function loadPlan(id:string):Promise<PlanDetail|null> {
  if(tasks.error||reminders.error||attachments.error||memory.error)throw new Error("We couldn't load all the plan details. Try again.");
  return {plan:{...plan,status:z.enum(["planned","completed","cancelled"]).parse(plan.status)},checklist:tasks.data,reminders:reminders.data,attachments:attachments.data,memoryId:memory.data?.id??null};
 }
+
+/** A plan on the Plans list, with the memory it became when one was kept from it. */
+export type PlanListRow = Plan & { memoryId: string | null };
+export type PlanList = {
+  paired: boolean; timezone: string; today: string;
+  /** Planned and not yet over, soonest first; at most one page. */
+  upcoming: Plan[]; upcomingMore: boolean;
+  /** Still planned, but every day of it has passed: waiting to be marked kept or cancelled. Newest first. */
+  unmarked: Plan[];
+  /** Completed, newest first. */
+  kept: PlanListRow[]; keptCount: number;
+  cancelled: Plan[]; cancelledCount: number;
+};
+
+const keptPage = 20, allKept = 200;
+
+/**
+ * The Plans screen in one read: what is coming up (the same window and page
+ * as the upcoming view), what was kept and the memory each became, and how
+ * many were cancelled. Cancelled plans are listed only when asked for.
+ */
+export async function loadPlanList({ showCancelled = false, allKept: everyKept = false } = {}): Promise<PlanList> {
+  const c = await planContext();
+  const today = localDate(new Date(), c.timezone);
+  const empty: PlanList = { paired: c.paired, timezone: c.timezone, today, upcoming: [], upcomingMore: false, unmarked: [], kept: [], keptCount: 0, cancelled: [], cancelledCount: 0 };
+  if (!c.paired) return empty;
+  const keptLimit = everyKept ? allKept : keptPage;
+  const newestFirst = (a: Plan, b: Plan) => b.starts_at.localeCompare(a.starts_at) || b.id.localeCompare(a.id);
+  const over = (p: Plan) => localDate(p.ends_at && p.ends_at > p.starts_at ? new Date(Date.parse(p.ends_at) - 1) : p.starts_at, c.timezone) < today;
+
+  if (c.kind === "preview") {
+    const all = previewPlans(c.state);
+    const upcoming = await loadPlans({ view: "upcoming", status: "planned" });
+    const kept = all.filter(p => p.status === "completed").sort(newestFirst);
+    const cancelled = all.filter(p => p.status === "cancelled").sort(newestFirst);
+    return {
+      ...empty,
+      upcoming: upcoming.plans, upcomingMore: upcoming.hasMore,
+      unmarked: all.filter(p => p.status === "planned" && over(p)).sort(newestFirst).slice(0, keptPage),
+      kept: kept.slice(0, keptLimit).map(p => ({ ...p, memoryId: c.state.memories.find(m => m.sourcePlanId === p.id)?.id ?? null })), keptCount: kept.length,
+      cancelled: showCancelled ? cancelled.slice(0, keptPage) : [], cancelledCount: cancelled.length,
+    };
+  }
+  if (!c.coupleId) return empty;
+
+  const status = z.enum(["planned", "completed", "cancelled"]);
+  const [upcoming, unmarked, kept, cancelled] = await Promise.all([
+    loadPlans({ view: "upcoming", status: "planned" }),
+    c.db.from("plans").select(planColumns).eq("couple_id", c.coupleId).eq("status", "planned").lt("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: false }).order("id", { ascending: false }).limit(keptPage),
+    c.db.from("plans").select(planColumns, { count: "exact" }).eq("couple_id", c.coupleId).eq("status", "completed")
+      .order("starts_at", { ascending: false }).order("id", { ascending: false }).limit(keptLimit),
+    showCancelled
+      ? c.db.from("plans").select(planColumns, { count: "exact" }).eq("couple_id", c.coupleId).eq("status", "cancelled")
+        .order("starts_at", { ascending: false }).order("id", { ascending: false }).limit(keptPage)
+      : c.db.from("plans").select("id", { count: "exact", head: true }).eq("couple_id", c.coupleId).eq("status", "cancelled"),
+  ]);
+  if (unmarked.error || kept.error || cancelled.error) throw new Error("We couldn't load your plans. Try again.");
+  const keptRows = (kept.data ?? []).map(p => ({ ...p, status: status.parse(p.status) }));
+  const ids = keptRows.map(p => p.id);
+  const memories = ids.length
+    ? await c.db.from("memories").select("id,source_plan_id").eq("couple_id", c.coupleId).in("source_plan_id", ids)
+    : { data: [] as { id: string; source_plan_id: string | null }[], error: null };
+  if (memories.error) throw new Error("We couldn't load your plans. Try again.");
+  const memoryOf = new Map((memories.data ?? []).map(m => [m.source_plan_id, m.id]));
+  const cancelledRows = showCancelled && "data" in cancelled && Array.isArray(cancelled.data)
+    ? (cancelled.data as Plan[]).map(p => ({ ...p, status: status.parse(p.status) }))
+    : [];
+
+  return {
+    ...empty,
+    upcoming: upcoming.plans, upcomingMore: upcoming.hasMore,
+    unmarked: (unmarked.data ?? []).map(p => ({ ...p, status: status.parse(p.status) })).filter(over),
+    kept: keptRows.map(p => ({ ...p, memoryId: memoryOf.get(p.id) ?? null })), keptCount: kept.count ?? keptRows.length,
+    cancelled: cancelledRows, cancelledCount: cancelled.count ?? cancelledRows.length,
+  };
+}

@@ -5,16 +5,14 @@ import { AuthForm } from "@/components/auth/auth-form";
 import { developerLoginAction } from "@/app/actions/developer";
 import { isDeveloperLoginEnabled } from "@/lib/auth/dev-session";
 import { Button } from "@/components/ui/button";
+import { AuthShell } from "@/components/auth/auth-shell";
 
 export const metadata: Metadata = { title: "Sign in" };
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const { error } = await searchParams;
   return (
-    <>
-      <p className="text-sm font-semibold text-primary">Welcome back</p>
-      <h1 className="mt-3 font-display text-page-title">Come back to your little world.</h1>
-      <p className="mt-4 mb-8 leading-7 text-muted-foreground">Sign in with the email and password you chose.</p>
+    <AuthShell title="Welcome back." lede="Your own private little world.">
       {error ? <p className="status-message status-error mb-5" role="alert">{error}</p> : null}
       <AuthForm action={signInAction} mode="sign-in" />
       {isDeveloperLoginEnabled() ? (
@@ -30,7 +28,7 @@ export default async function SignInPage({ searchParams }: { searchParams: Promi
           <p className="mt-2 text-center text-xs leading-5 text-muted-foreground">Local testing only. This bypass is unavailable in production builds.</p>
         </div>
       ) : null}
-      <p className="mt-7 text-center text-sm text-muted-foreground">New to Us Together? <Link href="/sign-up" className="font-semibold text-primary hover:underline">Create your space</Link></p>
-    </>
+      <p className="mt-6 text-center text-sm text-muted-foreground">New here? <Link href="/sign-up" className="font-semibold text-primary underline-offset-4 hover:underline">Create your space</Link></p>
+    </AuthShell>
   );
 }

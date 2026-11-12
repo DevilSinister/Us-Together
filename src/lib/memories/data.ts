@@ -8,6 +8,9 @@ import type { DevState } from "@/lib/auth/dev-session";
 export const memoryColumns = "id,title,description,memory_date,location,rating,is_favorite,source_plan_id,source_bucket_item_id,version" as const;
 export const mediaColumns = "id,media_type,mime_type,size_bytes,state,caption,width,height,duration_seconds,upload_expires_at" as const;
 const galleryColumns = "id,title,description,memory_date,location,rating,is_favorite,source_plan_id,source_bucket_item_id,version,memory_tag_links(memory_tags(name)),memory_media(id,media_type,mime_type,size_bytes,state,caption,width,height,duration_seconds,upload_expires_at)" as const;
+// The detail also needs the author, to say who kept it. Kept as a literal so the
+// query stays typed.
+const detailColumns = `${galleryColumns},created_by` as const;
 // There is deliberately no file-count embed here. A second, aliased
 // `media_count:memory_media(count)` alongside the ordered single-row embed made
 // PostgREST emit one query that ordered by memory_media.media_type while
@@ -64,13 +67,22 @@ export async function loadMemory(id: string): Promise<MemoryDetail | null> {
   if(!c.paired)return null;
   if(c.kind==="preview"){
     const memory=previewMemories(c.state).find(m=>m.id===id);
-    return memory?{memory,preview:true,previewSession:c.state.bucketSessionId,planTitle:c.state.plans.find(p=>p.id===memory.source_plan_id)?.title??null,timezone:c.timezone}:null;
+    return memory?{memory,preview:true,previewSession:c.state.bucketSessionId,planTitle:c.state.plans.find(p=>p.id===memory.source_plan_id)?.title??null,timezone:c.timezone,keptBy:"me"}:null;
   }
-  const {data,error}=await c.db.from("memories").select(galleryColumns).eq("id",id).order("created_at",{referencedTable:"memory_media",ascending:true}).limit(30,{referencedTable:"memory_media"}).maybeSingle();
+  const {data,error}=await c.db.from("memories").select(detailColumns).eq("id",id).order("created_at",{referencedTable:"memory_media",ascending:true}).limit(30,{referencedTable:"memory_media"}).maybeSingle();
   if(error)throw new Error("Could not open this memory.");
   if(!data)return null;
   const memory=pageFromRows([data]).memories[0];
   let planTitle: string|null=null;
   if(memory.source_plan_id){const {data:p}=await c.db.from("plans").select("title").eq("id",memory.source_plan_id).maybeSingle();planTitle=p?.title??null;}
-  return {memory,preview:false,planTitle,timezone:c.timezone};
+  return {memory,preview:false,planTitle,timezone:c.timezone,keptBy:data.created_by===c.userId?"me":"partner"};
+}
+
+/** How many memories the couple has kept, for the Memories cover. Null when it cannot be counted. */
+export async function countMemories(): Promise<number | null> {
+  const c=await planContext();
+  if(!c.paired)return null;
+  if(c.kind==="preview")return c.state.memories.length;
+  const {count,error}=await c.db.from("memories").select("id",{count:"exact",head:true}).eq("couple_id",c.coupleId!);
+  return error?null:count;
 }

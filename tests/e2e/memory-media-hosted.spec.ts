@@ -69,7 +69,7 @@ test("connected account uploads, views and removes private photos and videos", a
     await page.screenshot({ path: ".impeccable/qa/phase6-media-detail-" + testInfo.project.name + ".png", fullPage: true });
 
     await page.goto("/memories");
-    await expect(page).toHaveURL(/\/memories$/); await expect(page.getByRole("heading", { name: "Memories, close to home." })).toBeVisible();
+    await expect(page).toHaveURL(/\/memories$/); await expect(page.getByRole("heading", { name: "Memories", level: 1 })).toBeVisible();
     const swatch = page.getByRole("img", { name: "Fictional test swatch", exact: true }).first();
     await expect(swatch).toBeVisible();
     await expect.poll(() => swatch.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0)).toBe(true);

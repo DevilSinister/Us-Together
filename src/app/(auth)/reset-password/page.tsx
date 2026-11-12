@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { updatePasswordAction } from "@/app/actions/auth";
 import { AuthForm } from "@/components/auth/auth-form";
+import { AuthShell } from "@/components/auth/auth-shell";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Choose a new password" };
@@ -20,12 +21,9 @@ export default async function ResetPasswordPage() {
   if (!data?.claims?.sub) redirect("/forgot-password");
 
   return (
-    <>
-      <p className="text-sm font-semibold text-primary">Account recovery</p>
-      <h1 className="mt-3 font-display text-page-title">Choose a new password.</h1>
-      <p className="mt-4 mb-8 leading-7 text-muted-foreground">Make it unique and keep it somewhere only you can access.</p>
+    <AuthShell title="Choose a new password." lede="Make it unique and keep it somewhere only you can access.">
       <AuthForm action={updatePasswordAction} mode="reset-password" />
-      <p className="mt-7 text-center text-sm"><Link href="/home" className="font-semibold text-primary hover:underline">Continue to Us Together</Link></p>
-    </>
+      <p className="mt-6 text-center text-sm"><Link href="/home" className="font-semibold text-primary underline-offset-4 hover:underline">Continue to Us Together</Link></p>
+    </AuthShell>
   );
 }

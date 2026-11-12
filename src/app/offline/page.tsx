@@ -1,17 +1,21 @@
-import Link from "next/link";
 import { WifiOff } from "lucide-react";
-import { BrandMark } from "@/components/brand/brand-mark";
-import { Button } from "@/components/ui/button";
 
+/**
+ * Shown by the service worker when a page cannot load (ADR-053): a round mark,
+ * "You're offline.", one honest line and Try again. The worker serves this in
+ * place of the address you asked for, so Try again is a plain link to that same
+ * address: it reloads what you meant to open, and works even when the app's
+ * scripts were never cached.
+ */
 export default function OfflinePage() {
   return (
-    <main className="grid min-h-screen place-items-center px-6 py-12">
-      <div className="max-w-md text-center">
-        <BrandMark className="justify-center" />
-        <WifiOff className="mx-auto mt-12 size-10 text-primary" aria-hidden="true" />
-        <h1 className="mt-6 font-display text-4xl tracking-[-0.025em]">You’re offline for a moment.</h1>
-        <p className="mt-4 leading-7 text-muted-foreground">Reconnect before viewing or changing your private space. We don’t queue relationship data without clear conflict handling.</p>
-        <Button asChild className="mt-8"><Link href="/">Try again</Link></Button>
+    <main id="main" className="grid min-h-dvh place-items-center bg-background px-8 py-12">
+      <div className="flex max-w-sm flex-col items-center gap-4 text-center">
+        <span className="grid size-16 place-items-center rounded-full bg-secondary"><WifiOff className="size-6" aria-hidden="true" /></span>
+        <h1 className="font-display text-[2rem] leading-[1.1] tracking-[-0.02em]">You&rsquo;re offline.</h1>
+        <p className="text-base leading-[1.6] text-muted-foreground">Your private space opens again as soon as you reconnect.</p>
+        {/* An empty href is the current address: reloading it needs no script. */}
+        <a href="" className="mt-2 inline-flex min-h-12 w-full items-center justify-center rounded-control bg-primary px-5 text-base font-semibold text-primary-foreground transition-colors duration-150 hover:bg-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none">Try again</a>
       </div>
     </main>
   );

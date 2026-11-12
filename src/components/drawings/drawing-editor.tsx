@@ -1,21 +1,25 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Circle, Download, Eraser, Highlighter, PaintBucket, PenLine, Pencil, Pipette, Redo2, Send, SprayCan, Square, Trash2, Undo2, X, type LucideIcon } from "lucide-react";
+import Link from "next/link";
+import { ChevronLeft, Circle, Download, Eraser, Highlighter, PaintBucket, PenLine, Pencil, Pipette, Redo2, Send, SprayCan, Square, Trash2, Undo2, X, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { fillPixels, HEIGHT, hexRgb, SWATCHES, WIDTH } from "@/lib/drawings/canvas";
 
 type Tool = "pencil" | "marker" | "highlighter" | "airbrush" | "fill" | "rectangle" | "ellipse" | "dropper" | "eraser";
-const TOOLS: { id: Tool; label: string; short: string; icon: LucideIcon }[] = [
-  { id: "pencil", label: "Pencil", short: "Pencil", icon: Pencil },
-  { id: "marker", label: "Marker", short: "Marker", icon: PenLine },
-  { id: "highlighter", label: "Highlighter", short: "Highlight", icon: Highlighter },
-  { id: "airbrush", label: "Airbrush", short: "Airbrush", icon: SprayCan },
-  { id: "fill", label: "Paint bucket", short: "Fill", icon: PaintBucket },
-  { id: "rectangle", label: "Filled rectangle", short: "Rectangle", icon: Square },
-  { id: "ellipse", label: "Filled ellipse", short: "Ellipse", icon: Circle },
-  { id: "dropper", label: "Eyedropper", short: "Pick", icon: Pipette },
-  { id: "eraser", label: "Eraser", short: "Eraser", icon: Eraser },
+// The mockup's order: the stroke tools, then fill and the color picker. The two
+// shapes follow; on a phone they sit just past the edge of the scrolling row.
+const TOOLS: { id: Tool; label: string; icon: LucideIcon }[] = [
+  { id: "pencil", label: "Pencil", icon: Pencil },
+  { id: "marker", label: "Marker", icon: PenLine },
+  { id: "highlighter", label: "Highlighter", icon: Highlighter },
+  { id: "airbrush", label: "Airbrush", icon: SprayCan },
+  { id: "eraser", label: "Eraser", icon: Eraser },
+  { id: "fill", label: "Fill", icon: PaintBucket },
+  { id: "dropper", label: "Pick a color from the page", icon: Pipette },
+  { id: "rectangle", label: "Filled rectangle", icon: Square },
+  { id: "ellipse", label: "Filled ellipse", icon: Circle },
 ];
 const COLOR_NAMES = ["Ink", "Wine", "Pink", "Coral", "Orange", "Yellow", "Leaf", "Sage", "Sky", "Violet", "White"] as const;
 const DRAFT_KEY = "us-together-drawing-draft-v1";
@@ -88,7 +92,6 @@ export function DrawingEditor({ partnerName, canSend }: { partnerName: string | 
   const [shapeAnchor, setShapeAnchor] = useState(false);
   const [review, setReview] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
-  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const [draftState, setDraftState] = useState<DraftState>("saved");
   const [message, setMessage] = useState("");
   const ctx = () => canvasRef.current?.getContext("2d", { willReadFrequently: true }) ?? null;
@@ -218,24 +221,21 @@ export function DrawingEditor({ partnerName, canSend }: { partnerName: string | 
     const context = ctx(); if (!context) return;
     remember(context); context.fillStyle = "#ffffff"; context.globalAlpha = 1; context.fillRect(0, 0, WIDTH, HEIGHT); changed();
   }
-  function discardDraft() {
-    const context = ctx(); if (!context) return;
-    context.fillStyle = "#ffffff"; context.globalAlpha = 1; context.fillRect(0, 0, WIDTH, HEIGHT);
-    frames.current = []; cursor.current = -1;
-    try { localStorage.removeItem(DRAFT_KEY); } catch { /* nothing to remove */ }
-    setConfirmDiscard(false);
-    setHistory({ undo: false, redo: false });
-    setDraftState("saved");
-    setMessage("");
-    canvasRef.current?.focus();
-  }
   async function saveCopy() {
     if (!canvasRef.current) return;
     const blob = await toBlob(canvasRef.current);
     if (blob) download(blob, "drawing-draft.png");
   }
+  /** True once anything other than white paper is on the page. */
+  function hasInk() {
+    const context = ctx(); if (!context) return false;
+    const data = context.getImageData(0, 0, WIDTH, HEIGHT).data;
+    for (let i = 0; i < data.length; i += 4) if (data[i] !== 255 || data[i + 1] !== 255 || data[i + 2] !== 255) return true;
+    return false;
+  }
   async function openReview() {
     if (!canvasRef.current) return;
+    if (!hasInk()) { setMessage("The page is still blank. A few lines are enough."); canvasRef.current.focus(); return; }
     const blob = await toBlob(canvasRef.current);
     if (!blob) { setMessage("Could not prepare the preview. Try again."); return; }
     reviewBlob.current = blob;
@@ -275,122 +275,138 @@ export function DrawingEditor({ partnerName, canSend }: { partnerName: string | 
   const selectedTool = TOOLS.find((item) => item.id === tool)?.label ?? "Pencil";
   const hasSize = tool === "pencil" || tool === "marker" || tool === "highlighter" || tool === "airbrush" || tool === "eraser";
   const isShape = tool === "rectangle" || tool === "ellipse";
-  const iconButton = "grid size-11 place-items-center rounded-xl bg-secondary text-foreground transition-colors hover:bg-secondary/80 disabled:opacity-40 focus-visible:outline-2 focus-visible:outline-primary motion-reduce:transition-none";
+  const square = "grid size-11 shrink-0 place-items-center rounded-control border transition-[background-color,border-color,scale] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 disabled:pointer-events-none disabled:opacity-40 motion-reduce:transition-none";
+  const quiet = "border-border bg-transparent text-foreground hover:bg-secondary";
 
-  return <section className="mt-4 space-y-4 sm:mt-6" aria-label="Drawing workspace">
-    <div hidden={review !== null} aria-hidden={review !== null} className="space-y-4">
-      <div className="rounded-[1.5rem] bg-[#f5dfe2] p-3 dark:bg-[#4b303a] sm:p-5">
-        <div className="mb-3 flex items-center justify-between gap-3 px-1 text-xs font-bold uppercase tracking-[0.12em] text-[#713143] dark:text-[#f5c9d3]">
-          <span>For {partner}</span>
-          <span aria-live="polite">{draftState === "unavailable" ? "Draft not saved on this device" : draftState === "pending" ? "Saving draft…" : "Private draft"}</span>
-        </div>
-        <div className="rounded-[1rem] bg-white p-1.5 shadow-paper sm:p-2">
-          <div className="relative mx-auto w-fit">
-            <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} tabIndex={0} role="img"
-              aria-label={"Drawing canvas. Use a pointer to draw. With keyboard, arrow keys move the cursor; Space draws a mark; Enter uses fill or eyedropper." + (isShape ? " For shapes, press Space once to set a corner, move with the arrows, then press Space again. Escape cancels." : "")}
-              className="block aspect-[4/3] h-auto max-h-[min(56dvh,30rem)] w-auto max-w-full rounded-[0.7rem] bg-white touch-none outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-primary"
-              onFocus={() => setKeyboardCursor({ ...keyboardPoint.current })}
-              onBlur={() => { setKeyboardCursor(null); if (shapeAnchor) cancelShape(); }}
-              onPointerDown={(event) => { if (shapeAnchor) cancelShape(); event.currentTarget.setPointerCapture(event.pointerId); const p = point(event.currentTarget, event.clientX, event.clientY); begin(p.x, p.y); }}
-              onPointerMove={(event) => { if (!event.currentTarget.hasPointerCapture(event.pointerId)) return; const p = point(event.currentTarget, event.clientX, event.clientY); move(p.x, p.y); }}
-              onPointerUp={end} onPointerCancel={end}
-              onKeyDown={(event) => {
-                const cursorPoint = keyboardPoint.current;
-                const step = event.shiftKey ? 20 : 5;
-                if (event.key === "Escape") { if (!shapeAnchor) return; cancelShape(); }
-                else if (event.key === "ArrowLeft") cursorPoint.x = Math.max(0, cursorPoint.x - step);
-                else if (event.key === "ArrowRight") cursorPoint.x = Math.min(WIDTH - 1, cursorPoint.x + step);
-                else if (event.key === "ArrowUp") cursorPoint.y = Math.max(0, cursorPoint.y - step);
-                else if (event.key === "ArrowDown") cursorPoint.y = Math.min(HEIGHT - 1, cursorPoint.y + step);
-                else if (event.key === " " || event.key === "Enter") {
-                  if (isShape) {
-                    if (shapeAnchor) { move(cursorPoint.x, cursorPoint.y); end(); setShapeAnchor(false); }
-                    else { begin(cursorPoint.x, cursorPoint.y); setShapeAnchor(true); }
-                  } else { begin(cursorPoint.x, cursorPoint.y); end(); }
-                }
-                else return;
-                if (shapeAnchor && event.key.startsWith("Arrow")) move(cursorPoint.x, cursorPoint.y);
-                setKeyboardCursor({ ...cursorPoint });
-                event.preventDefault();
-              }} />
-            {keyboardCursor ? <span aria-hidden="true" className="pointer-events-none absolute size-3 rounded-full border-2 border-primary bg-white shadow-sm" style={{ left: (keyboardCursor.x / WIDTH * 100) + "%", top: (keyboardCursor.y / HEIGHT * 100) + "%", transform: "translate(-50%, -50%)" }} /> : null}
-          </div>
+  return <section aria-label="Drawing workspace">
+    <div hidden={review !== null} aria-hidden={review !== null}>
+      <EditorBar title={`For ${partner}`} close={{ href: "/drawings", label: "Close without sending" }}>
+        <button type="button" onClick={openReview}
+          className="inline-flex min-h-11 items-center gap-2 rounded-control bg-primary px-3.5 text-sm font-semibold text-primary-foreground transition-[background-color,scale] duration-150 hover:bg-primary-strong focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 motion-reduce:transition-none">
+          <Send className="size-4" aria-hidden="true" />Send
+        </button>
+      </EditorBar>
+      <Paper>
+        <div className="relative mx-auto w-fit">
+          <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} tabIndex={0} role="img"
+            aria-label={"Drawing canvas. Use a pointer to draw. With keyboard, arrow keys move the cursor; Space draws a mark; Enter uses fill or the color picker." + (isShape ? " For shapes, press Space once to set a corner, move with the arrows, then press Space again. Escape cancels." : "")}
+            className="block aspect-[4/3] h-auto max-h-[min(56dvh,30rem)] w-auto max-w-full rounded-control bg-white touch-none outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-primary"
+            onFocus={() => setKeyboardCursor({ ...keyboardPoint.current })}
+            onBlur={() => { setKeyboardCursor(null); if (shapeAnchor) cancelShape(); }}
+            onPointerDown={(event) => { if (shapeAnchor) cancelShape(); setMessage(""); event.currentTarget.setPointerCapture(event.pointerId); const p = point(event.currentTarget, event.clientX, event.clientY); begin(p.x, p.y); }}
+            onPointerMove={(event) => { if (!event.currentTarget.hasPointerCapture(event.pointerId)) return; const p = point(event.currentTarget, event.clientX, event.clientY); move(p.x, p.y); }}
+            onPointerUp={end} onPointerCancel={end}
+            onKeyDown={(event) => {
+              const cursorPoint = keyboardPoint.current;
+              const step = event.shiftKey ? 20 : 5;
+              if (event.key === "Escape") { if (!shapeAnchor) return; cancelShape(); }
+              else if (event.key === "ArrowLeft") cursorPoint.x = Math.max(0, cursorPoint.x - step);
+              else if (event.key === "ArrowRight") cursorPoint.x = Math.min(WIDTH - 1, cursorPoint.x + step);
+              else if (event.key === "ArrowUp") cursorPoint.y = Math.max(0, cursorPoint.y - step);
+              else if (event.key === "ArrowDown") cursorPoint.y = Math.min(HEIGHT - 1, cursorPoint.y + step);
+              else if (event.key === " " || event.key === "Enter") {
+                setMessage("");
+                if (isShape) {
+                  if (shapeAnchor) { move(cursorPoint.x, cursorPoint.y); end(); setShapeAnchor(false); }
+                  else { begin(cursorPoint.x, cursorPoint.y); setShapeAnchor(true); }
+                } else { begin(cursorPoint.x, cursorPoint.y); end(); }
+              }
+              else return;
+              if (shapeAnchor && event.key.startsWith("Arrow")) move(cursorPoint.x, cursorPoint.y);
+              setKeyboardCursor({ ...cursorPoint });
+              event.preventDefault();
+            }} />
+          {keyboardCursor ? <span aria-hidden="true" className="pointer-events-none absolute size-3 rounded-full border-2 border-primary bg-white shadow-sm" style={{ left: (keyboardCursor.x / WIDTH * 100) + "%", top: (keyboardCursor.y / HEIGHT * 100) + "%", transform: "translate(-50%, -50%)" }} /> : null}
         </div>
         <p className="sr-only" aria-live="polite">{shapeAnchor ? "Corner set. Move with the arrows, then press Space to finish. Escape cancels." : ""}</p>
-      </div>
-      <div className="rounded-[1.25rem] border bg-card p-3 sm:p-4">
-        <div className="mb-3 flex items-baseline justify-between gap-3 px-1">
-          <h2 className="text-sm font-bold text-foreground">Your tools</h2>
-          <span className="text-xs text-muted-foreground" aria-live="polite">{selectedTool}</span>
-        </div>
-        <div role="toolbar" aria-label="Drawing tools" className="grid grid-cols-5 gap-2 sm:grid-cols-9">
+      </Paper>
+
+      <div className="flex flex-col gap-3.5 px-5 pb-6 pt-4 sm:px-8 md:px-0">
+        {/* Nine 44px tools do not fit a phone's width, so the row scrolls and the next tool shows at the edge. */}
+        <div role="toolbar" aria-label="Tools" className="-mx-5 flex gap-[7px] overflow-x-auto px-5 [mask-image:linear-gradient(to_right,#000_calc(100%-1.25rem),transparent)] [scrollbar-width:none] sm:mx-0 sm:justify-between sm:overflow-visible sm:px-0 sm:[mask-image:none] [&::-webkit-scrollbar]:hidden">
           {TOOLS.map((item) => { const Icon = item.icon; return <button key={item.id} type="button" title={item.label} aria-label={item.label} aria-pressed={tool === item.id}
             onClick={() => { if (shapeAnchor) cancelShape(); setTool(item.id); }}
-            className={"grid min-h-12 place-items-center gap-1 rounded-xl border-2 py-1.5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none " +
-              (tool === item.id ? "border-primary bg-primary text-primary-foreground" : "border-transparent bg-secondary/70 text-foreground hover:border-border hover:bg-secondary")}>
+            className={cn(square, tool === item.id ? "border-primary bg-primary text-primary-foreground" : quiet)}>
             <Icon className="size-5" aria-hidden="true" />
-            <span aria-hidden="true" className="hidden text-xs font-semibold leading-none sm:block">{item.short}</span>
           </button>; })}
         </div>
-        <div className="mt-4 border-t pt-4">
-          <p className="mb-3 px-1 text-sm font-bold">Colors</p>
-          <div role="group" aria-label="Preset colors" className="flex flex-wrap gap-2">
-            {SWATCHES.map((swatch, index) => <button key={swatch} type="button" title={COLOR_NAMES[index]}
-              aria-label={COLOR_NAMES[index] + " color"} aria-pressed={color === swatch}
-              onClick={() => setColor(swatch)} style={{ backgroundColor: swatch }}
-              className={"size-10 rounded-full border-2 shadow-sm transition-shadow focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary motion-reduce:transition-none " +
-                (color === swatch ? "border-white ring-2 ring-primary ring-offset-2 ring-offset-card" : "border-black/10 dark:border-white/20")} />)}
-          </div>
+        <p className="sr-only" aria-live="polite">{selectedTool}</p>
+
+        <div role="group" aria-label="Colors" className="flex flex-wrap gap-[7px]">
+          {SWATCHES.map((swatch, index) => <button key={swatch} type="button" title={COLOR_NAMES[index]}
+            aria-label={COLOR_NAMES[index]} aria-pressed={color === swatch}
+            onClick={() => setColor(swatch)} style={{ backgroundColor: swatch }}
+            className={cn("size-11 shrink-0 rounded-full border border-border transition-[outline-color,scale] duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 motion-reduce:transition-none",
+              color === swatch && "outline-2 outline-offset-2 outline-foreground")} />)}
         </div>
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-          <label className={"flex min-h-11 items-center gap-3 text-sm font-bold " + (!hasSize ? "opacity-50" : "") }>
-            <span>Size</span>
-            <input type="range" min="1" max="12" step="1" value={brushSize} disabled={!hasSize}
-              onChange={(event) => setBrushSize(Number(event.target.value))} aria-label="Brush size"
-              className="w-24 accent-primary sm:w-36" />
-            <span className="grid size-8 place-items-center rounded-full bg-secondary" aria-hidden="true"><span className="rounded-full bg-primary" style={{ width: Math.min(24, Math.max(3, brushWidth(tool, brushSize))), height: Math.min(24, Math.max(3, brushWidth(tool, brushSize))) }} /></span>
-            <output className="min-w-4 tabular-nums">{brushSize}</output>
+
+        <div className="flex items-center gap-2">
+          <button type="button" title="Undo" aria-label="Undo" disabled={!history.undo} onClick={undo} className={cn(square, quiet)}><Undo2 className="size-5" aria-hidden="true" /></button>
+          <button type="button" title="Redo" aria-label="Redo" disabled={!history.redo} onClick={redo} className={cn(square, quiet)}><Redo2 className="size-5" aria-hidden="true" /></button>
+          <button type="button" title="Clear the page" aria-label="Clear the page" onClick={clearPage} className={cn(square, quiet)}><Trash2 className="size-5" aria-hidden="true" /></button>
+          <label className={cn("flex flex-1 items-center gap-2.5 pl-2 text-[13px] text-muted-foreground", !hasSize && "opacity-50")}>
+            Size
+            <input type="range" min="1" max="12" step="1" value={brushSize} disabled={!hasSize} aria-label="Brush size"
+              onChange={(event) => setBrushSize(Number(event.target.value))}
+              className="h-11 min-w-0 flex-1 accent-primary" />
           </label>
-          <div className="flex items-center gap-2" role="group" aria-label="Edit drawing">
-            <button type="button" title="Undo" aria-label="Undo" disabled={!history.undo} onClick={undo} className={iconButton}><Undo2 className="size-5" aria-hidden="true" /></button>
-            <button type="button" title="Redo" aria-label="Redo" disabled={!history.redo} onClick={redo} className={iconButton}><Redo2 className="size-5" aria-hidden="true" /></button>
-            <button type="button" title="Clear page" aria-label="Clear page" onClick={clearPage} className={iconButton}><Trash2 className="size-5" aria-hidden="true" /></button>
-          </div>
         </div>
-      </div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs leading-5 text-muted-foreground">
-          <p>{draftState === "unavailable" ? "This browser cannot keep a draft. Keep the tab open until you send." : "Saved on this device until you send. Sent drawings stay as they are."}</p>
-          {draftState === "unavailable" ? <button type="button" onClick={saveCopy} className="inline-flex min-h-8 items-center gap-1 font-semibold text-primary underline underline-offset-4"><Download className="size-3.5" aria-hidden="true" />Save a copy</button> : null}
-          {confirmDiscard ? <span role="group" aria-label="Discard this page?" className="inline-flex items-center gap-2">
-            <span className="font-semibold text-foreground">Discard this page?</span>
-            <Button type="button" size="sm" variant="outline" className="border-danger text-danger hover:bg-danger/10" onClick={discardDraft}>Discard</Button>
-            <Button type="button" size="sm" variant="ghost" onClick={() => setConfirmDiscard(false)}>Keep</Button>
-          </span> : <button type="button" onClick={() => setConfirmDiscard(true)} className="inline-flex min-h-8 items-center gap-1 font-semibold text-primary underline underline-offset-4"><X className="size-3.5" aria-hidden="true" />Discard draft</button>}
-        </div>
-        <Button type="button" className="min-h-12 shrink-0 gap-2 rounded-xl" onClick={openReview}>Review drawing <ArrowRight className="size-4" aria-hidden="true" /></Button>
+
+        {draftState === "unavailable"
+          ? <p className="flex flex-wrap items-center gap-x-3 text-[13px] text-muted-foreground">
+              This browser cannot keep a draft. Keep the tab open until you send.
+              <button type="button" onClick={saveCopy} className="inline-flex min-h-11 items-center gap-1 font-semibold text-primary underline underline-offset-4"><Download className="size-3.5" aria-hidden="true" />Save a copy</button>
+            </p>
+          : <p className="text-[13px] text-muted-foreground">Kept on this device until you send. Clearing the page can be undone.</p>}
+        {message && review === null ? <p role="alert" className="status-message status-error">{message}</p> : null}
       </div>
     </div>
-    <div hidden={review === null} className="space-y-5">
-      <div className="text-center">
-        <p className="text-xs font-bold uppercase tracking-[0.12em] text-primary">One last look</p>
-        <h2 ref={reviewHeading} tabIndex={-1} className="mt-2 font-display outline-none text-section-title">Ready for {partner}?</h2>
-      </div>
-      <div className="rounded-[1.5rem] bg-[#f5dfe2] p-3 dark:bg-[#4b303a] sm:p-5">
-        <div className="mb-3 px-1 text-xs font-bold uppercase tracking-[0.12em] text-[#713143] dark:text-[#f5c9d3]">Your finished drawing</div>
+
+    <div hidden={review === null}>
+      <EditorBar title={`For ${partner}`} close={{ onClick: closeReview, label: "Keep drawing", back: true }} />
+      <Paper>
         {review ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={review} alt="Preview of the finished drawing" className="aspect-[4/3] w-full rounded-[1rem] bg-white object-contain shadow-paper" />
+          <img src={review} alt="Preview of the finished drawing" className="mx-auto aspect-[4/3] max-h-[min(56dvh,30rem)] w-auto max-w-full rounded-control bg-white object-contain" />
         ) : null}
-      </div>
-      <p className="text-center text-sm text-muted-foreground">
-        {canSend ? `Sending adds this page to your shared history and ${partner}'s widget. It cannot be revised.` : "Sending opens with a connected account. Your draft stays on this device."}
-      </p>
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-center" aria-busy={pending}>
-        <Button type="button" variant="outline" className="min-h-12 rounded-xl" disabled={pending} onClick={closeReview}>Keep drawing</Button>
-        <Button type="button" className="min-h-12 gap-2 rounded-xl" disabled={pending || !canSend} onClick={send}>{pending ? "Sending…" : `Send to ${partner}`}<Send className="size-4" aria-hidden="true" /></Button>
+      </Paper>
+      <div className="flex flex-col gap-4 px-5 pb-6 pt-5 sm:px-8 md:px-0" aria-busy={pending}>
+        <div>
+          <h2 ref={reviewHeading} tabIndex={-1} className="font-display text-[22px] leading-snug outline-none">Ready for {partner}?</h2>
+          <p className="mt-1.5 text-sm leading-6 text-muted-foreground">
+            {canSend ? `It goes into your drawings and onto ${partner}'s widget. A sent drawing stays as it is.` : "Sending opens with a connected account. Your draft stays on this device."}
+          </p>
+        </div>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <Button type="button" className="min-h-12 gap-2" disabled={pending || !canSend} onClick={send}><Send className="size-4" aria-hidden="true" />{pending ? "Sending…" : `Send to ${partner}`}</Button>
+          <Button type="button" variant="outline" className="min-h-12" disabled={pending} onClick={closeReview}>Keep drawing</Button>
+        </div>
+        {message && review !== null ? <p role="alert" className="status-message status-error">{message}</p> : null}
       </div>
     </div>
-    {message ? <p role="alert" className="status-message status-error">{message}</p> : null}
   </section>;
+}
+
+/** The paper on its raised field: edge to edge on a phone, a rounded panel from tablet width. */
+function Paper({ children }: { children: React.ReactNode }) {
+  return <div className="bg-secondary p-5 md:rounded-panel">{children}</div>;
+}
+
+/**
+ * The editor's own top bar, which stands in for the app header on a phone: a
+ * way out on the left, who the drawing is for, and the one action on the right.
+ */
+export function EditorBar({ title, close, children }: {
+  title: string;
+  close: { href: string; label: string } | { onClick: () => void; label: string; back: true };
+  children?: React.ReactNode;
+}) {
+  const target = "grid size-11 shrink-0 place-items-center rounded-control text-foreground transition-[background-color,scale] duration-150 hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring active:scale-95 motion-reduce:transition-none";
+  return <div className="flex h-14 items-center justify-between gap-3 pl-2 pr-4 sm:pl-5 sm:pr-8 md:px-0">
+    {"href" in close
+      ? <Link href={close.href} aria-label={close.label} title={close.label} className={target}><X className="size-5" aria-hidden="true" /></Link>
+      : <button type="button" onClick={close.onClick} aria-label={close.label} title={close.label} className={target}><ChevronLeft className="size-6" aria-hidden="true" /></button>}
+    <h1 className="min-w-0 truncate text-base font-semibold">{title}</h1>
+    {children ?? <span aria-hidden="true" className="size-11 shrink-0" />}
+  </div>;
 }

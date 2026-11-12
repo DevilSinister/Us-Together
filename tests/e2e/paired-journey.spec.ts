@@ -32,7 +32,7 @@ test("mobile Home keeps unread notifications in the header", async ({ page }, te
 
   await bell.click();
   await expect(page).toHaveURL(/\/notifications$/);
-  await page.getByRole("button", { name: "Mark read" }).click();
+  await page.getByRole("button", { name: "Mark all read" }).click();
   await expect(page.getByRole("link", { name: "Notifications", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Notifications, .* unread/ })).toHaveCount(0);
 });
@@ -48,16 +48,18 @@ test("paired fixture exposes a named partner and completes the plan-to-memory lo
   }
   await page.goto("/pairing");
   await expect(page.getByRole("heading", { name: "Maya" })).toBeVisible();
-  await expect(page.getByText("Shared access is granted only while both memberships are active.")).toBeVisible();
+  await expect(page.getByText(/Nobody else can be added/)).toBeVisible();
 
   await page.goto("/plans/new");
   await page.getByLabel("What are you planning?").fill("Rooftop dinner");
-  await page.getByLabel("Location").fill("Old Town");
-  await page.getByLabel("Starts").fill("2027-02-14T19:30");
-  await page.getByRole("button", { name: "Save this plan" }).click();
+  await page.getByLabel("Place").fill("Old Town");
+  // A plan whose day has passed asks whether it happened and offers to keep it as a memory.
+  await page.getByLabel("Date", { exact: true }).fill("2026-02-14");
+  await page.getByLabel("Time", { exact: true }).fill("19:30");
+  await page.getByRole("button", { name: "Save plan" }).click();
   await expect(page.getByRole("heading", { name: "Rooftop dinner" })).toBeVisible();
-  await page.getByRole("button", { name: "Mark complete" }).click();
-  await page.getByRole("link", { name: "Save this memory" }).click();
+  await expect(page.getByText("Did this happen?", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Keep it as a memory" }).click();
   await expect(page.getByText("From a completed plan")).toBeVisible();
   await page.getByLabel("What do you want to remember?").fill("The city lights and the quiet walk home.");
   await page.getByRole("button", { name: "Save the memory" }).click();
@@ -72,8 +74,9 @@ test("paired fixture exposes a named partner and completes the plan-to-memory lo
   await expect(page.getByRole("heading", { name: "Our first brave leap" })).toBeVisible();
 
   await page.goto("/notifications");
-  await page.getByRole("button", { name: "Mark read" }).click();
-  await expect(page.getByText("0 unread")).toBeVisible();
+  await page.getByRole("button", { name: "Mark all read" }).click();
+  await expect(page.getByText("All caught up")).toBeVisible();
+  await page.getByText("Notification settings", { exact: true }).click();
   await page.getByLabel("Moments").uncheck();
   await page.getByRole("button", { name: "Save preferences" }).click();
   await expect(page.getByText("Notification preferences saved.")).toBeVisible();
@@ -84,7 +87,7 @@ test("paired connection stays usable on mobile with reduced motion", async ({ pa
   await page.emulateMedia({ reducedMotion: "reduce" });
   await enterPairedPreview(page);
   await page.goto("/pairing");
-  await expect(page.getByRole("heading", { name: "You’re connected." })).toBeVisible();
+  await expect(page.getByText("Connected", { exact: true })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Maya" })).toBeVisible();
   await page.goto("/home");
   await expect(page.getByRole("heading", { name: "The day we chose us" })).toBeVisible();

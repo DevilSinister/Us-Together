@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chapterLabel, decodeCursor, encodeCursor, groupByYear, storyExcerpt, storySummary, type StoryEntry } from "./schema";
+import { chapterLabel, decodeCursor, encodeCursor, groupByYear, storyExcerpt, storySummary, yearCursor, yearsFromDates, type StoryEntry } from "./schema";
 
 const id = "11111111-1111-4111-8111-111111111111";
 const other = "22222222-2222-4222-8222-222222222222";
@@ -82,5 +82,21 @@ describe("story excerpts", () => {
     const excerpt = storyExcerpt(long)!;
     expect(excerpt.endsWith("word…")).toBe(true);
     expect(excerpt.length).toBeLessThanOrEqual(181);
+  });
+});
+
+describe("chapters", () => {
+  it("counts entries per year, newest first, and skips malformed dates", () => {
+    expect(yearsFromDates(["2025-03-02", "2026-11-02", "2026-10-31", "nope"])).toEqual([
+      { year: "2026", count: 2 },
+      { year: "2025", count: 1 },
+    ]);
+  });
+
+  it("opens a year with a cursor the decoder accepts, just past its last day", () => {
+    const cursor = yearCursor("2025")!;
+    expect(cursor.occurredOn).toBe("2026-01-01");
+    expect(decodeCursor(encodeCursor(cursor))).toEqual(cursor);
+    expect(yearCursor("20x5")).toBeNull();
   });
 });

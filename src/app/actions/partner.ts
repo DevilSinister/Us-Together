@@ -33,9 +33,10 @@ export async function savePartnerPresentationAction(_previous: ActionState, form
   if (!check.ok) return { status: "error", message: check.message };
 
   const name = parsed.data.partnerName.trim();
-  // Opened from onboarding it continues the flow; opened from the profile it
-  // returns there, so there is one editor rather than two.
-  const back = formData.get("returnTo") === "profile" ? "/profile" : "/onboarding?step=connect";
+  // Opened from onboarding it continues the flow; opened from the partner page
+  // (or the profile) it returns there, so there is one editor rather than two.
+  const returnTo = formData.get("returnTo");
+  const back = returnTo === "pairing" ? "/pairing" : returnTo === "profile" ? "/profile" : "/onboarding?step=connect";
 
   if (identity.kind === "developer") {
     const state = await readDeveloperState();

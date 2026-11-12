@@ -1,51 +1,40 @@
 import type { Metadata } from "next";
-import { Bell, Check } from "lucide-react";
-import { markNotificationReadAction } from "@/app/actions/dashboard";
+import { Bell, ChevronDown } from "lucide-react";
+import { markAllNotificationsReadAction } from "@/app/actions/dashboard";
 import { NotificationPreferencesForm } from "@/components/dashboard/notification-preferences-form";
 import { DeviceAlerts } from "@/components/app/device-alerts";
-import { Button } from "@/components/ui/button";
-import { InlineLink } from "@/components/ui/inline-link";
-import { PageHeader } from "@/components/app/page-header";
+import { Avatar } from "@/components/app/avatar";
+import { Cover, CoverSheet } from "@/components/app/cover";
 import { EmptyState } from "@/components/app/states";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState } from "@/lib/auth/dev-session";
+import { loadIdentities, type Identities } from "@/lib/avatar/identities";
+import { fromPartner, relativeWhen, type NotificationRow } from "@/lib/notifications/links";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getViewerTimeZone } from "@/lib/time/viewer";
+import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Notifications" };
-type NotificationRow = { id: string; title: string; category: string; target_type: string | null; target_id: string | null; read_at: string | null; created_at: string };
 type Preferences = { inAppEnabled: boolean; plansEnabled: boolean; memoriesEnabled: boolean; milestonesEnabled: boolean; notesEnabled: boolean; onThisDayEnabled: boolean; bucketEnabled: boolean; wishlistEnabled: boolean; drawingsEnabled: boolean };
 const defaults: Preferences = { inAppEnabled: true, plansEnabled: true, memoriesEnabled: true, milestonesEnabled: true, notesEnabled: true, onThisDayEnabled: true, bucketEnabled: true, wishlistEnabled: true, drawingsEnabled: true };
 
 /**
- * Stored categories keep their database names ('milestone', 'note', ...). Only the
- * reader-facing label follows the product's vocabulary.
+ * Notifications as a Cover screen (ADR-053). The band says how many are
+ * unread. New and Earlier are ruled rows: your partner's face for what they
+ * did, a bell for what the app is reminding you of, when it happened, and the
+ * line itself, bold with a rose dot while unread. A row opens through
+ * `/notifications/{id}/open`, which marks it read and goes where it points.
+ * Preferences and device alerts wait behind "Notification settings".
  */
-const categoryLabels: Record<string, string> = { plan: "Plan", memory: "Memory", milestone: "Moment", note: "Note", system: "System", on_this_day: "On this day", bucket: "Bucket list", wishlist: "Wish", drawing: "Drawing" };
-
-/** Where an envelope with no target lands: a deletion points at the section it left. */
-const sectionHrefs: Record<string, string> = { plan: "/plans", memory: "/memories", milestone: "/milestones", note: "/notes", bucket: "/bucket", wishlist: "/wishlist", drawing: "/drawings" };
-
-function targetHref(notification: NotificationRow) {
-  if (!notification.target_id) return sectionHrefs[notification.category] ?? "/home";
-  if (notification.target_type === "milestone") return `/milestones/${notification.target_id}`;
-  if (notification.target_type === "plan") return `/plans/${notification.target_id}`;
-  if (notification.target_type === "memory") return `/memories/${notification.target_id}`;
-  if (notification.target_type === "bucket_list") return `/bucket/lists/${notification.target_id}`;
-  if (notification.target_type === "bucket") return `/bucket/${notification.target_id}`;
-  if (notification.target_type === "wishlist") return `/wishlist/${notification.target_id}`;
-  if (notification.target_type === "drawing") return `/drawings/${notification.target_id}`;
-  if (notification.target_type === "note") return `/notes/${notification.target_id}`;
-  return "/home";
-}
-
 export default async function NotificationsPage() {
   const identity = await getCurrentIdentity();
   let notifications: NotificationRow[] = [];
   let preferences = defaults;
   if (identity?.kind === "developer") {
     const state = await readDeveloperState();
-    notifications = state.notifications.map((item) => ({ id: item.id, title: item.title, category: item.category, target_type: item.targetType, target_id: item.targetId, read_at: item.readAt, created_at: item.createdAt }));
+    notifications = state.notifications
+      .map((item) => ({ id: item.id, title: item.title, category: item.category, target_type: item.targetType, target_id: item.targetId, read_at: item.readAt, created_at: item.createdAt }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
     preferences = state.notificationPreferences;
   } else if (identity?.kind === "supabase") {
     const supabase = await createServerSupabaseClient();
@@ -56,61 +45,82 @@ export default async function NotificationsPage() {
     notifications = (rows ?? []) as NotificationRow[];
     if (row) preferences = { inAppEnabled: row.in_app_enabled, plansEnabled: row.plans_enabled, memoriesEnabled: row.memories_enabled, milestonesEnabled: row.milestones_enabled, notesEnabled: row.notes_enabled, onThisDayEnabled: row.on_this_day_enabled, bucketEnabled: row.bucket_enabled, wishlistEnabled: row.wishlist_enabled, drawingsEnabled: row.drawings_enabled };
   }
-  const formatter = new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short", timeZone: await getViewerTimeZone() });
-  const unread = notifications.filter((item) => !item.read_at).length;
+  const [timeZone, identities] = await Promise.all([getViewerTimeZone(), loadIdentities()]);
+  const now = new Date();
+  const fresh = notifications.filter((item) => !item.read_at);
+  const earlier = notifications.filter((item) => item.read_at);
 
   return (
-    <div className="reveal-on-load">
-      <PageHeader
-        eyebrow="Quiet updates"
-        title="Notifications without the private details."
-        lede="The inbox says what changed. Shared content is fetched only after your membership is checked."
-      />
-      <div className="mt-10 grid gap-12 lg:grid-cols-[minmax(0,1fr)_21rem]">
-        <section aria-labelledby="inbox-title">
-          <div className="flex items-center justify-between gap-4">
-            <h2 id="inbox-title" className="font-display text-section-title">Inbox</h2>
-            <span className="text-sm text-muted-foreground">{unread} unread</span>
-          </div>
+    <>
+      <Cover labelledBy="notifications-title" height="band">
+        <h1 id="notifications-title" className="font-display text-[2.25rem] leading-[1.05] tracking-[-0.02em]">Notifications</h1>
+        <p className="mt-1.5 text-[0.9375rem] leading-6 text-muted-foreground">{fresh.length ? `${fresh.length} unread` : "All caught up"}</p>
+      </Cover>
+
+      <CoverSheet>
+        <div className="flex max-w-2xl flex-col gap-6">
           {notifications.length ? (
-            <div className="mt-5 divide-y border-y">
-              {notifications.map((notification) => (
-                <article key={notification.id} className="flex gap-4 py-5">
-                  <Bell aria-hidden="true" className={`mt-1 size-5 shrink-0 ${notification.read_at ? "text-muted-foreground" : "text-primary"}`} />
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold">{notification.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{formatter.format(new Date(notification.created_at))} · {categoryLabels[notification.category] ?? notification.category}</p>
-                    <div className="mt-3 flex flex-wrap items-center gap-3">
-                      <InlineLink href={targetHref(notification)}>Open update</InlineLink>
-                      {!notification.read_at ? (
-                        <form action={markNotificationReadAction}>
-                          <input type="hidden" name="notificationId" value={notification.id} />
-                          <Button variant="ghost" size="sm"><Check className="size-4" />Mark read</Button>
-                        </form>
-                      ) : null}
-                    </div>
+            <>
+              {fresh.length ? (
+                <section aria-labelledby="new-title" className="flex flex-col">
+                  <div className="flex items-center justify-between gap-3">
+                    <h2 id="new-title" className="text-[0.8125rem] font-semibold text-primary">New</h2>
+                    <form action={markAllNotificationsReadAction}>
+                      <button className="inline-flex min-h-11 items-center rounded-control text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Mark all read</button>
+                    </form>
                   </div>
-                </article>
-              ))}
-            </div>
+                  <Rows items={fresh} identities={identities} now={now} timeZone={timeZone} />
+                </section>
+              ) : null}
+              {earlier.length ? (
+                <section aria-labelledby="earlier-title" className="flex flex-col">
+                  <h2 id="earlier-title" className="py-3 text-[0.8125rem] font-semibold text-primary">Earlier</h2>
+                  <Rows items={earlier} identities={identities} now={now} timeZone={timeZone} />
+                </section>
+              ) : null}
+            </>
           ) : (
-            <EmptyState
-              className="mt-8"
-              icon={Bell}
-              title="All quiet here."
-              body="New shared activity will appear without copying its private content into this inbox."
-            />
+            <EmptyState className="mt-0" icon={Bell} title="All quiet here." body="New shared activity appears here, without copying its private content into the inbox." />
           )}
-        </section>
-        <aside className="space-y-8">
-          <div className="rounded-panel bg-secondary p-6">
-            <NotificationPreferencesForm preferences={preferences} />
-          </div>
-          <div className="rounded-panel bg-secondary p-6">
-            <DeviceAlerts />
-          </div>
-        </aside>
-      </div>
-    </div>
+
+          <details className="group">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-center gap-2 rounded-control border border-border px-3.5 text-sm font-semibold transition-colors duration-150 hover:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none [&::-webkit-details-marker]:hidden">
+              Notification settings
+              <ChevronDown className="size-4 transition-transform duration-200 group-open:rotate-180 motion-reduce:transition-none" aria-hidden="true" />
+            </summary>
+            <div className="mt-4 flex flex-col gap-4">
+              <div className="rounded-panel bg-secondary p-5"><NotificationPreferencesForm preferences={preferences} /></div>
+              <div className="rounded-panel bg-secondary p-5"><DeviceAlerts /></div>
+            </div>
+          </details>
+          <p className="text-[0.8125rem] leading-5 text-muted-foreground">The inbox says what changed, never the private details. What it points to opens only after your membership is checked.</p>
+        </div>
+      </CoverSheet>
+    </>
+  );
+}
+
+function Rows({ items, identities, now, timeZone }: { items: NotificationRow[]; identities: Identities; now: Date; timeZone: string }) {
+  return (
+    <ul className="flex flex-col">
+      {items.map((item) => {
+        const unread = !item.read_at;
+        return (
+          <li key={item.id} className="border-b border-border last:border-0">
+            {/* A plain anchor, not a prefetching Link: opening is what marks it read. */}
+            <a href={`/notifications/${item.id}/open`} className="group flex min-h-[4.25rem] items-center gap-3 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+              {fromPartner.has(item.category)
+                ? <Avatar name={identities.partner.name} src={identities.partner.src} style={identities.partner.style} size="md" className="size-11 shrink-0" />
+                : <span className="grid size-11 shrink-0 place-items-center rounded-full bg-secondary"><Bell className="size-5" aria-hidden="true" /></span>}
+              <span className="flex min-w-0 flex-1 flex-col-reverse gap-px">
+                <span className={cn("break-words text-[1.0625rem] leading-[1.35] transition-colors duration-150 group-hover:text-primary motion-reduce:transition-none", unread ? "font-semibold" : "font-normal")}>{item.title}</span>
+                <span className="text-[0.8125rem] leading-5 text-muted-foreground"><time dateTime={item.created_at}>{relativeWhen(item.created_at, now, timeZone)}</time></span>
+              </span>
+              {unread ? <span role="img" aria-label="Unread" className="size-2 shrink-0 rounded-full bg-rose" /> : null}
+            </a>
+          </li>
+        );
+      })}
+    </ul>
   );
 }

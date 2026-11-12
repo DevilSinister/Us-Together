@@ -1,19 +1,21 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
 import { BucketWorkspace } from "@/components/bucket/bucket-workspace";
-import { loadBucketCategories, loadBucketLists, loadBucketPage } from "@/lib/bucket/data";
+import { loadBucketCategories, loadBucketOverview, loadBucketPage } from "@/lib/bucket/data";
 
-export const metadata = { title: "List ideas" };
+export const metadata = { title: "Bucket list" };
 
+/** One list. Its counts come from the overview, since the first page of ideas holds only twelve. */
 export default async function BucketListPage({ params }: { params: Promise<{ listId: string }> }) {
   const parsed = z.uuid().safeParse((await params).listId);
   if (!parsed.success) notFound();
   const listId = parsed.data;
-  const lists = await loadBucketLists();
-  if (!lists.some((list) => list.id === listId)) notFound();
+  const overview = await loadBucketOverview();
+  const list = overview.lists.find((candidate) => candidate.id === listId);
+  if (!list) notFound();
   const [page, categories] = await Promise.all([
     loadBucketPage({ listId, status: "", priority: "", category: "" }),
     loadBucketCategories(),
   ]);
-  return <BucketWorkspace key={listId} lists={lists} initialPage={page} listId={listId} categories={categories} />;
+  return <BucketWorkspace key={listId} list={{ id: list.id, title: list.title }} initialPage={page} summary={{ dreams: list.dreams, lived: list.lived }} categories={categories} />;
 }

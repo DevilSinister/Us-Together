@@ -7,12 +7,10 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await page.getByRole("button", { name: "Enter paired preview" }).click();
   await expect(page).toHaveURL(/\/home$/);
   await page.goto("/bucket");
-  await page.getByRole("button", { name: "Add list", exact: true }).click();
+  // A new list opens as soon as it is made.
+  await page.getByRole("button", { name: "New list", exact: true }).click();
   await page.getByLabel("List name", { exact: true }).fill("Our little adventures");
-  await page.getByRole("button", { name: "Create list" }).click();
-  await expect(page.getByRole("heading", { name: "Our little adventures" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Add idea", exact: true })).toHaveCount(0);
-  await page.getByRole("link", { name: "Our little adventures Open ideas" }).click();
+  await page.getByRole("button", { name: "Make the list" }).click();
   await expect(page).toHaveURL(/\/bucket\/lists\/[^/]+$/);
   const listUrl = page.url();
   await page.getByRole("link", { name: "Add idea", exact: true }).first().click();
@@ -32,12 +30,17 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await page.getByRole("button", { name: "Save this idea" }).click();
   await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
   const ideaUrl = page.url();
-  await page.getByText("Edit idea", { exact: true }).click();
+  // Edit and Delete live in the corner's More options.
+  await page.getByRole("button", { name: "More options", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Edit idea", exact: true }).click();
   await page.screenshot({ path: `test-results/bucket-editor-${testInfo.project.name}.png` });
   await page.getByLabel("Location", { exact: false }).fill("By the water");
   await page.getByRole("button", { name: "Save changes", exact: true }).click();
   await expect(page.getByText("By the water", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Add a step", exact: true }).click();
   for (const label of ["Choose a viewpoint", "Pack coffee"]) { await page.getByLabel("Next little step").fill(label); await page.getByRole("button", { name: "Add step", exact: true }).click(); await expect(page.getByLabel("Next little step")).toHaveValue(""); }
+  // Renaming, reordering and removing steps live behind "Edit steps".
+  await page.getByRole("button", { name: "Edit steps", exact: true }).click();
   if (testInfo.project.name === "desktop-chromium") {
     await page.getByRole("button", { name: "Move Pack coffee up" }).focus();
     await page.keyboard.press("Enter");
@@ -54,12 +57,14 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
     await sourceRow.dispatchEvent("pointerup", { pointerType: "touch", pointerId: 7, clientX: targetBox!.x + 8, clientY: targetBox!.y + 8 });
     await expect(page.getByLabel("Step 2", { exact: true })).toHaveValue("Pack coffee");
   }
-  await page.getByRole("checkbox", { name: "Complete Pack coffee" }).click();
-  await expect(page.getByRole("checkbox", { name: "Complete Pack coffee" })).toBeChecked();
-  await expect(page.getByText("1 of 2 complete", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Done editing", exact: true }).click();
+  await page.getByRole("checkbox", { name: "Pack coffee", exact: true }).check();
+  await expect(page.getByRole("checkbox", { name: "Pack coffee", exact: true })).toBeChecked();
+  await expect(page.getByText("1 of 2 done", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Edit steps", exact: true }).click();
   await page.getByLabel("Step 2", { exact: true }).fill("Find a quiet viewpoint");
   await page.getByRole("button", { name: "Save step", exact: true }).nth(1).click();
-  await expect(page.getByRole("checkbox", { name: "Complete Find a quiet viewpoint" })).toBeVisible();
+  await expect(page.getByLabel("Step 2", { exact: true })).toHaveValue("Find a quiet viewpoint");
   await expect(page.getByRole("button", { name: "Add step", exact: true })).toBeEnabled();
   const viewport = page.viewportSize()!;
   for (const width of [320, 768]) {
@@ -76,15 +81,19 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
     }
   }
   await page.setViewportSize(viewport);
+  await page.getByRole("button", { name: "Done editing", exact: true }).click();
+  await expect(page.getByRole("checkbox", { name: "Find a quiet viewpoint", exact: true })).toBeVisible();
   await page.screenshot({ path: `test-results/bucket-detail-${testInfo.project.name}.png`, fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth)).toBe(false);
-  await page.getByRole("link", { name: "Plan this", exact: true }).click();
+  await page.getByRole("link", { name: "Make it a plan", exact: true }).click();
   await expect(page.getByLabel("What are you planning?")).toHaveValue("Watch the sunrise together");
-  await page.getByLabel("Starts", { exact: true }).fill("2027-08-14T05:00");
-  await page.getByRole("button", { name: "Save this plan", exact: true }).click();
+  await page.getByLabel("Date", { exact: true }).fill("2027-08-14");
+  await page.getByLabel("Time", { exact: true }).fill("05:00");
+  await page.getByRole("button", { name: "Save plan", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
   await page.goto(ideaUrl);
-  await page.getByRole("button", { name: "Mark complete", exact: true }).click();
+  await page.getByRole("button", { name: "We lived it", exact: true }).click();
+  await page.getByRole("button", { name: "Mark it lived", exact: true }).click();
   await expect(page.getByRole("heading", { name: "One more dream lived." })).toBeVisible();
   await page.getByRole("link", { name: "Save this as a memory" }).click();
   await page.getByRole("button", { name: "Save the memory" }).click();
@@ -97,29 +106,30 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await expect(page.getByRole("status")).toContainText("Connection interrupted");
   await page.unroute("**/bucket/lists/*");
   await page.getByRole("button", { name: "Apply filters" }).click();
-  await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
+  // Ideas are ruled rows now: the title leads the link's name.
+  await expect(page.getByRole("link", { name: /^Watch the sunrise together/ })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.screenshot({ path: `test-results/bucket-list-${testInfo.project.name}.png`, fullPage: true });
   await page.getByRole("button", { name: "Options", exact: true }).click();
   await page.getByLabel("Status", { exact: true }).selectOption("idea");
   await page.getByRole("button", { name: "Apply filters" }).click();
-  await expect(page.getByText("Room for your next idea.")).toBeVisible();
+  await expect(page.getByText("Nothing in this view.")).toBeVisible();
   await page.goto(ideaUrl);
-  await page.getByRole("button", { name: "Delete idea", exact: true }).click();
+  await page.getByRole("button", { name: "More options", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Delete idea", exact: true }).click();
   await page.getByRole("dialog", { name: "Delete this idea?" }).getByRole("button", { name: "Delete idea", exact: true }).click();
   await expect(page).toHaveURL(listUrl);
   await page.goto("/memories");
   await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
   await expect(page.getByRole("link", { name: "From your bucket list" })).toHaveCount(0);
   await page.goto(listUrl);
-  await page.getByRole("button", { name: "Options", exact: true }).click();
-  await page.getByText("Manage this list", { exact: true }).click();
+  await page.getByRole("button", { name: "More options", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Rename list", exact: true }).click();
   await page.getByLabel("List name", { exact: true }).last().fill("Small adventures");
   await page.getByRole("button", { name: "Rename list", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Small adventures", exact: true }).first()).toBeVisible();
-  await page.getByRole("button", { name: "Options", exact: true }).click();
-  await page.getByRole("button", { name: "Manage this list", exact: true }).click();
-  await page.getByRole("button", { name: "Delete list", exact: true }).click();
+  await page.getByRole("button", { name: "More options", exact: true }).click();
+  await page.getByRole("menuitem", { name: "Delete list", exact: true }).click();
   await page.getByRole("dialog", { name: "Delete this list?" }).getByRole("button", { name: "Delete list", exact: true }).click();
   await expect(page).toHaveURL(/\/bucket$/);
   await expect(page.getByRole("heading", { name: "What would you love to do together?" })).toBeVisible();
@@ -131,20 +141,16 @@ test("bucket options preserve drafts on failure and support keyboard, narrow scr
   await page.getByRole("button", { name: "Enter paired preview" }).click();
   await expect(page).toHaveURL(/\/home$/);
   await page.goto("/bucket");
-  await page.getByRole("button", { name: "Add list", exact: true }).click();
+  await page.getByRole("button", { name: "New list", exact: true }).click();
   await page.getByLabel("List name", { exact: true }).fill("Quiet weekends");
-  await page.getByRole("button", { name: "Create list", exact: true }).click();
-  await page.getByRole("link", { name: "Quiet weekends Open ideas" }).click();
+  await page.getByRole("button", { name: "Make the list", exact: true }).click();
+  await expect(page).toHaveURL(/\/bucket\/lists\/[^/]+$/);
   const options = page.getByRole("button", { name: "Options", exact: true });
   await options.click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toHaveCount(1);
   await page.getByLabel("Status", { exact: true }).selectOption("completed");
   await page.screenshot({ path: `test-results/bucket-options-${testInfo.project.name}.png` });
-  await page.getByRole("button", { name: "Manage this list", exact: true }).click();
-  await expect(dialog).toHaveCount(1);
-  await expect(page.getByLabel("List name", { exact: true })).toBeFocused();
-  await page.getByRole("button", { name: "Back to options", exact: true }).click();
   await expect(page.getByLabel("Status", { exact: true })).toHaveValue("completed");
   await page.getByRole("button", { name: "Close dialog", exact: true }).focus();
   await page.keyboard.press("Tab");

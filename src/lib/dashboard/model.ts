@@ -28,6 +28,29 @@ export function relationshipDayCount(startedOn: string, timeZone: string, now = 
   return Math.max(0, dateOrdinal(localDateKey(now, timeZone)) - dateOrdinal(startedOn));
 }
 
+/** Whole calendar days from today to the plan's day, both read in the viewer's zone. */
+export function daysUntil(startsAt: string, timeZone: string, now = new Date()) {
+  const when = new Date(startsAt);
+  if (Number.isNaN(when.getTime())) return null;
+  return Math.max(0, dateOrdinal(localDateKey(when, timeZone)) - dateOrdinal(localDateKey(now, timeZone)));
+}
+
+export function planLead(days: number | null) {
+  if (days === null) return "Coming up";
+  if (days === 0) return "Coming up today";
+  if (days === 1) return "Coming up tomorrow";
+  return `Coming up in ${days} days`;
+}
+
+/** The month and day printed on a plan's date tile, in the viewer's zone. */
+export function datePlate(iso: string, timeZone: string) {
+  const parts = new Intl.DateTimeFormat("en", { timeZone, month: "short", day: "numeric" }).formatToParts(new Date(iso));
+  return {
+    month: (parts.find((part) => part.type === "month")?.value ?? "").toUpperCase(),
+    day: parts.find((part) => part.type === "day")?.value ?? "",
+  };
+}
+
 export function privacySafeCandidates(candidates: DashboardCandidate[]) {
   return candidates.filter((candidate) => candidate.visibility === "shared");
 }

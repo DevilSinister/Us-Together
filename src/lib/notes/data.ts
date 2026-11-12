@@ -2,6 +2,7 @@ import "server-only";
 import { coupleContext, partnerName } from "@/lib/couple/context";
 import { decodeCursor, encodeCursor, keysetFilter } from "@/lib/pagination/cursor";
 import type { Note, NotesView } from "./schema";
+import { sampleNotes, seededPreview } from "@/lib/preview/samples";
 
 const PAGE = 25;
 const noteColumns = "id,type,title,body,author_id,created_at,updated_at" as const;
@@ -18,7 +19,11 @@ const unpaired: NotesView = { paired: false, notes: [], next: null, partner: nul
 export async function loadNotes(after?: string): Promise<NotesView> {
   try {
     const context = await coupleContext();
-    if (context.kind === "preview" || !context.coupleId) return unpaired;
+    if (context.kind === "preview") {
+      const seed = await seededPreview();
+      return seed ? { paired: true, notes: sampleNotes, next: null, partner: seed.partner } : unpaired;
+    }
+    if (!context.coupleId) return unpaired;
 
     let query = context.db.from("notes").select(noteColumns).eq("couple_id", context.coupleId)
       .order("updated_at", { ascending: false }).order("id", { ascending: false }).limit(PAGE + 1);
@@ -52,7 +57,12 @@ export async function loadNotes(after?: string): Promise<NotesView> {
 
 export async function loadNote(id: string) {
   const context = await coupleContext();
-  if (context.kind === "preview" || !context.coupleId) return null;
+  if (context.kind === "preview") {
+    const seed = await seededPreview();
+    const sample = seed ? sampleNotes.find((item) => item.id === id) : undefined;
+    return sample && seed ? { ...sample, read: true, partner: seed.partner } : null;
+  }
+  if (!context.coupleId) return null;
   const [{ data }, partner] = await Promise.all([
     context.db.from("notes").select(noteColumns).eq("id", id).maybeSingle(),
     partnerName(context),

@@ -14,9 +14,13 @@ export async function loadGallery(input:unknown):Promise<GalleryPage>{
  if(f.entry)q=q.eq("entry_id",f.entry);
  if(f.kind!=="all")q=q.eq("kind",f.kind);if(f.media!=="all")q=q.eq("media_type",f.media);if(f.date)q=q.eq("entry_date",f.date);
  if(f.cursor)q=q.or("entry_date.lt."+f.cursor.date+",and(entry_date.eq."+f.cursor.date+",sort_key.gt."+f.cursor.key+")");
- const {data,error}=await q;if(error)throw error;
+ // The cover states how much is kept in all, so the first page also counts the
+ // whole gallery (or the whole entry), whatever the filters are showing.
+ const whole=()=>{const t=c.db.from("shared_gallery").select("id",{count:"exact",head:true}).eq("couple_id",c.coupleId!);return f.entry?t.eq("entry_id",f.entry):t;};
+ const [{data,error},all,videos]=await Promise.all([q,f.cursor?null:whole(),f.cursor?null:whole().eq("media_type","video")]);if(error)throw error;
+ const totals=all&&videos&&!all.error&&!videos.error&&all.count!==null&&videos.count!==null?{photos:all.count-videos.count,videos:videos.count}:undefined;
  const rows=data.slice(0,48),last=rows.at(-1);
- return {paired:true,items:rows.map(r=>({id:r.id!,caption:r.caption??"",media_type:r.media_type!,mime_type:r.mime_type!,state:r.state!,size_bytes:r.size_bytes!,duration_seconds:r.duration_seconds,access:{kind:r.kind==="memory"?"memory":"moment",id:r.entry_id!},entryTitle:r.entry_title!,entryDate:r.entry_date!,sortKey:r.sort_key!})),next:data.length>48&&last?{date:last.entry_date!,key:last.sort_key!}:null};
+ return {paired:true,totals,items:rows.map(r=>({id:r.id!,caption:r.caption??"",media_type:r.media_type!,mime_type:r.mime_type!,state:r.state!,size_bytes:r.size_bytes!,duration_seconds:r.duration_seconds,access:{kind:r.kind==="memory"?"memory":"moment",id:r.entry_id!},entryTitle:r.entry_title!,entryDate:r.entry_date!,sortKey:r.sort_key!})),next:data.length>48&&last?{date:last.entry_date!,key:last.sort_key!}:null};
  }catch{return {...empty,error:"Could not open the gallery. Check your connection and try again."};}
 }
 const target=z.object({kind:z.enum(["memory","moment"]),id:z.uuid(),mediaId:z.uuid()});

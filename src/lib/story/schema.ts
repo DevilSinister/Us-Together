@@ -28,8 +28,11 @@ export type StoryItem = StoryEntry & {
 
 export type StoryCounts = Record<StoryKind, number>;
 
-/** How the story opens and ends: what it holds, and the day it began. */
-export type StoryOverview = { counts: StoryCounts; startedOn: string | null };
+/** How many entries each calendar year holds, newest year first. */
+export type StoryYear = { year: string; count: number };
+
+/** How the story opens and ends: what it holds, the day it began, and its chapters. */
+export type StoryOverview = { counts: StoryCounts; startedOn: string | null; years?: StoryYear[] };
 
 export type StoryView = {
   paired: boolean;
@@ -120,4 +123,25 @@ export function chapterLabel(year: string, startedOn: string | null | undefined)
   const number = Number(year) - Number(startedOn.slice(0, 4)) + 1;
   if (!Number.isInteger(number) || number < 1) return null;
   return "Chapter " + (ordinals[number - 1] ?? String(number));
+}
+
+/** Counts entries by calendar year from their dates, newest year first. */
+export function yearsFromDates(dates: string[]): StoryYear[] {
+  const counts = new Map<string, number>();
+  for (const date of dates) {
+    if (!datePattern.test(date)) continue;
+    const year = date.slice(0, 4);
+    counts.set(year, (counts.get(year) ?? 0) + 1);
+  }
+  return [...counts].map(([year, count]) => ({ year, count })).sort((a, b) => b.year.localeCompare(a.year));
+}
+
+/**
+ * The cursor that opens the story at the newest entry of a year: everything
+ * strictly before the first of January after it. The zero id sorts below every
+ * real id, so nothing dated that first of January slips in.
+ */
+export function yearCursor(year: string): StoryCursor | null {
+  if (!/^\d{4}$/.test(year)) return null;
+  return { occurredOn: String(Number(year) + 1).padStart(4, "0") + "-01-01", id: "00000000-0000-0000-0000-000000000000" };
 }

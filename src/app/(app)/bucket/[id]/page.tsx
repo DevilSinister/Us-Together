@@ -1,70 +1,45 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { loadBucketCategories, loadBucketItem, loadBucketLists } from "@/lib/bucket/data";
+import { Cover, CoverSheet } from "@/components/app/cover";
 import { ItemDetail } from "@/components/bucket/item-detail";
+import { IdeaMenu } from "@/components/bucket/idea-menu";
+import { loadBucketCategories, loadBucketItem, loadBucketLists } from "@/lib/bucket/data";
+import { priorityLevel } from "@/lib/bucket/grouping";
+import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Your bucket idea" };
 
+const statusWords: Record<string, string> = { idea: "Idea", planned: "Planned", in_progress: "In progress", completed: "Lived" };
+// A server component cannot call a function exported from a client module, so the label is spelled here.
+const bucketLabel = (value: string) => { const words = value.replaceAll("_", " "); return words.charAt(0).toUpperCase() + words.slice(1); };
+
+/**
+ * One bucket idea as a Cover screen (ADR-053): the band names the list it
+ * belongs to and leads back to it, says where the idea stands, its title, and
+ * how much you want it as the same four-dot meter the list uses.
+ */
 export default async function BucketItemPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [detail, lists, categories] = await Promise.all([
-    loadBucketItem(id),
-    loadBucketLists(),
-    loadBucketCategories(),
-  ]);
-
+  const [detail, lists, categories] = await Promise.all([loadBucketItem(id), loadBucketLists(), loadBucketCategories()]);
   if (!detail) notFound();
   const { item, subtasks } = detail;
+  const list = lists.find((candidate) => candidate.id === item.list_id);
+  const level = priorityLevel(item.priority);
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <Link href={`/bucket/lists/${item.list_id}`} className="inline-flex min-h-11 items-center font-semibold text-primary hover:underline">
-        Back to list
-      </Link>
-      <header className="mt-5">
-        <p className="text-sm text-primary">
-          {item.status.replaceAll("_", " ")} · {item.priority} priority
+    <>
+      <Cover labelledBy="idea-title" height="band" back={{ href: `/bucket/lists/${item.list_id}`, label: list ? `Back to ${list.title}` : "Back to the list" }} menu={<IdeaMenu item={item} lists={lists} categories={categories} />}>
+        <p className="text-[0.8125rem] font-semibold text-primary">{[list?.title, statusWords[item.status] ?? bucketLabel(item.status)].filter(Boolean).join(" · ")}</p>
+        <h1 id="idea-title" className="mt-1.5 text-balance break-words font-display text-[2.125rem] leading-[1.1] tracking-[-0.02em]">{item.title}</h1>
+        <p className="mt-3 flex items-center gap-2 text-[0.9375rem] text-muted-foreground">
+          <span className="flex gap-[3px]" aria-hidden="true">
+            {[1, 2, 3, 4].map((mark) => <span key={mark} className={cn("size-1.5 rounded-full", mark <= level ? "bg-rose" : "bg-border")} />)}
+          </span>
+          {bucketLabel(item.priority)}<span className="sr-only"> priority</span>
         </p>
-        <h1 className="mt-2 break-words font-display text-page-title">{item.title}</h1>
-        {item.description ? (
-          <p className="mt-5 whitespace-pre-wrap break-words leading-8 text-muted-foreground">
-            {item.description}
-          </p>
-        ) : null}
-        <dl className="mt-5 flex flex-wrap gap-x-7 gap-y-3 text-sm">
-          {item.category ? (
-            <div>
-              <dt className="font-semibold">Category</dt>
-              <dd>{item.category}</dd>
-            </div>
-          ) : null}
-          {item.location ? (
-            <div>
-              <dt className="font-semibold">Location</dt>
-              <dd className="break-words">{item.location}</dd>
-            </div>
-          ) : null}
-          {item.target_date ? (
-            <div>
-              <dt className="font-semibold">Target date</dt>
-              <dd>
-                {new Intl.DateTimeFormat("en", { dateStyle: "medium", timeZone: "UTC" }).format(
-                  new Date(`${item.target_date}T12:00:00Z`)
-                )}
-              </dd>
-            </div>
-          ) : null}
-          {item.estimated_cost_minor !== null ? (
-            <div>
-              <dt className="font-semibold">Estimated cost</dt>
-              <dd>
-                {item.currency} {(item.estimated_cost_minor / 100).toFixed(2)}
-              </dd>
-            </div>
-          ) : null}
-        </dl>
-      </header>
-      <ItemDetail item={item} subtasks={subtasks} lists={lists} categories={categories} />
-    </div>
+      </Cover>
+      <CoverSheet className="max-w-2xl">
+        <ItemDetail item={item} subtasks={subtasks} />
+      </CoverSheet>
+    </>
   );
 }

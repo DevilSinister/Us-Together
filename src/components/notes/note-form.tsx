@@ -1,7 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
+import { useEffect, useId, useState, useTransition } from "react";
 import { CircleAlert, Lock, Users } from "lucide-react";
 import { saveNote } from "@/app/actions/notes";
 import { noteTypes, type Note, type NoteType } from "@/lib/notes/schema";
@@ -10,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-const fieldClass = "w-full rounded-control border border-border bg-field px-4 py-3 text-base leading-8 text-foreground outline-none transition-[border-color,box-shadow] focus:border-primary focus:ring-2 focus:ring-ring/25";
+const fieldClass = "w-full rounded-control border border-border bg-field px-4 py-3 text-base leading-7 text-foreground outline-none transition-[border-color,box-shadow] focus:border-primary focus:ring-2 focus:ring-ring/25";
 const TITLE_MAX = 160;
 const BODY_MAX = 20000;
 
@@ -29,8 +28,16 @@ function Counter({ value, max }: { value: number; max: number }) {
   );
 }
 
+/**
+ * The note form, in the Cover form pattern: one column of labelled fields on
+ * the sheet and one full-width action. Who can read it is a two-way choice, so
+ * it is a pair of equal controls with the chosen one's consequence spelled out
+ * beneath, rather than two cards of explanation. The way out is the round back
+ * button on the page's band, so there is no Cancel here.
+ */
 export function NoteForm({ note }: { note?: Note }) {
   const router = useRouter();
+  const hintId = useId();
   const [pending, start] = useTransition();
   const initialType = (note?.type as NoteType) ?? "shared";
   const [type, setType] = useState<NoteType>(initialType);
@@ -53,7 +60,7 @@ export function NoteForm({ note }: { note?: Note }) {
 
   return (
     <form method="post"
-      className="space-y-6"
+      className="flex flex-col gap-4"
       noValidate
       onSubmit={(event) => {
         event.preventDefault();
@@ -68,9 +75,10 @@ export function NoteForm({ note }: { note?: Note }) {
         });
       }}
     >
-      <fieldset className="space-y-3">
+      {/* min-w-0: a fieldset's default min-content width would otherwise widen the whole form on a phone. */}
+      <fieldset className="min-w-0" aria-describedby={hintId}>
         <legend className="text-sm font-semibold">Who can read it</legend>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="mt-1.5 grid grid-cols-2 gap-2">
           {noteTypes.map((value) => {
             const Icon = copy[value].icon;
             const active = type === value;
@@ -78,25 +86,23 @@ export function NoteForm({ note }: { note?: Note }) {
               <label
                 key={value}
                 className={cn(
-                  "flex cursor-pointer gap-3 rounded-panel border p-4 text-sm",
-                  active ? "border-primary bg-secondary" : "border-border hover:bg-secondary/60",
+                  "flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-control border px-3 text-sm font-semibold transition-colors duration-200 has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring motion-reduce:transition-none",
+                  active ? "border-primary bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <input type="radio" name="type" value={value} checked={active} onChange={() => setType(value)} className="mt-1 size-4 accent-[var(--primary)]" />
-                <span>
-                  <span className="flex items-center gap-2 font-semibold"><Icon className="size-4 text-primary" aria-hidden="true" />{copy[value].label}</span>
-                  <span className="mt-1 block leading-6 text-muted-foreground">{copy[value].hint}</span>
-                  {value === "private" && editingShared ? (
-                    <span className="mt-2 block leading-6 text-foreground">Switching to private withdraws the inbox line your partner already received.</span>
-                  ) : null}
-                </span>
+                <input type="radio" name="type" value={value} checked={active} onChange={() => setType(value)} className="sr-only" />
+                <Icon className="size-4" aria-hidden="true" />{copy[value].label}
               </label>
             );
           })}
         </div>
+        <p id={hintId} className="mt-2 text-[0.8125rem] leading-5 text-muted-foreground">
+          {copy[type].hint}
+          {type === "private" && editingShared ? <span className="text-foreground"> Switching to private withdraws the inbox line your partner already received.</span> : null}
+        </p>
       </fieldset>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
           <Label htmlFor="title">Title</Label>
           <Counter value={title.length} max={TITLE_MAX} />
@@ -105,22 +111,21 @@ export function NoteForm({ note }: { note?: Note }) {
         {fields.title ? <p className="field-error">{fields.title[0]}</p> : null}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <div className="flex items-baseline justify-between gap-3">
           <Label htmlFor="body">The note</Label>
           <Counter value={body.length} max={BODY_MAX} />
         </div>
-        <textarea id="body" name="body" rows={14} className={fieldClass} value={body} onChange={(event) => setBody(event.target.value)} required aria-invalid={Boolean(fields.body)} />
+        <textarea id="body" name="body" rows={10} className={fieldClass} value={body} onChange={(event) => setBody(event.target.value)} required aria-invalid={Boolean(fields.body)} />
         {fields.body ? <p className="field-error">{fields.body[0]}</p> : null}
-        <p className="text-sm text-muted-foreground">Saved and shown as plain text, exactly as you typed it.</p>
+        <p className="text-[0.8125rem] leading-5 text-muted-foreground">Saved and shown as plain text, exactly as you typed it.</p>
       </div>
 
       {message ? <div role="alert" className="status-message status-error"><CircleAlert className="size-5 shrink-0" aria-hidden="true" />{message}</div> : null}
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button disabled={pending}>{pending ? "Saving..." : note ? "Save changes" : "Keep this note"}</Button>
-        <Button asChild variant="ghost"><Link href={note ? "/notes/" + note.id : "/notes"}>Cancel</Link></Button>
-        {dirty && !pending ? <span className="text-xs text-muted-foreground" aria-live="polite">Unsaved changes</span> : null}
+      <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
+        <Button size="lg" disabled={pending} className="w-full sm:w-auto">{pending ? "Saving..." : note ? "Save changes" : "Keep this note"}</Button>
+        {dirty && !pending ? <span className="text-center text-xs text-muted-foreground sm:text-left" aria-live="polite">Unsaved changes</span> : null}
       </div>
     </form>
   );

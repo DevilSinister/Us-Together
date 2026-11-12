@@ -67,7 +67,7 @@ test.describe("preview lane", () => {
 
     // Review hides the workspace but never unmounts the canvas.
     const handle = await canvas.elementHandle();
-    await page.getByRole("button", { name: /review drawing/i }).click();
+    await page.getByRole("button", { name: "Send", exact: true }).click();
     await expect(page.getByRole("heading", { name: /ready for/i })).toBeVisible();
     expect(await handle!.evaluate((element) => element.isConnected)).toBe(true);
     await expect(page.getByRole("button", { name: /send to/i })).toBeDisabled();

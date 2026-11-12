@@ -1,42 +1,384 @@
 "use client";
 import Link from "next/link";
-import {SavedLocation} from "@/components/entries/location-field";
-import { useActionState,useState,useTransition } from "react";
+import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowUp,ArrowDown,Pencil,Trash2 } from "lucide-react";
-import { mutatePlan,deletePlanAttachment,uploadPlanAttachment } from "@/app/actions/plans";
-import type { PlanDetail } from "@/lib/plans/types";
+import {
+  ArrowDown, ArrowUp, Ban, Bell, CalendarDays, Check, ChevronRight, FileText, ListChecks, Map as MapIcon, MapPin,
+  Paperclip, Pencil, Plus, Sparkles, Trash2, Wallet, X,
+} from "lucide-react";
+import { mutatePlan, deletePlanAttachment, uploadPlanAttachment } from "@/app/actions/plans";
+import type { ChecklistItem, PlanDetail, Reminder } from "@/lib/plans/types";
 import { initialActionState } from "@/lib/auth/types";
+import { planPhase, planWhen, reminderLabel, reminderWhen, whenNext } from "@/lib/plans/list";
+import { Cover, CoverSheet } from "@/components/app/cover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { SubmitButton } from "@/components/auth/submit-button";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
-import { EntryActions } from "@/components/app/entry-actions";
-import { planTypeLabel } from "@/lib/dream/schema";
+import { EntryMenu } from "@/components/app/entry-menu";
+import { cn } from "@/lib/utils";
 
-const capitalise=(value:string)=>value.charAt(0).toUpperCase()+value.slice(1);
-export function PlanDetailView({detail,timezone,preview}:{detail:PlanDetail;timezone:string;preview:boolean}){
- const {plan:p,checklist,reminders,attachments,memoryId}=detail;
- const router=useRouter(),[pending,start]=useTransition(),[message,setMessage]=useState(""),[newStep,setNewStep]=useState("");
- const [uploadState,uploadAction]=useActionState(uploadPlanAttachment,initialActionState);
- async function change(input:Record<string,unknown>){setMessage("");start(async()=>{try{const r=await mutatePlan({planId:p.id,version:p.version,...input});if(!r.ok){setMessage(r.message);return;}if(input.operation==="delete"){router.push("/plans");return;}setNewStep("");router.refresh();}catch{setMessage("Connection interrupted. Your changes were not confirmed. Try again.");}});}
- function reorder(index:number,delta:number){const ids=checklist.map(t=>t.id);[ids[index],ids[index+delta]]=[ids[index+delta],ids[index]];void change({operation:"checklist",kind:"reorder",ids});}
- const time=new Intl.DateTimeFormat("en",{timeZone:timezone,dateStyle:"medium",timeStyle:"short"});
- return <div className="mx-auto max-w-4xl reveal-on-load"><Link href="/plans" className="inline-flex min-h-11 items-center font-semibold text-primary hover:underline">Back to plans</Link>
- <header className="mt-5 border-b pb-7"><p className="text-sm font-semibold text-primary">{planTypeLabel(p.type)} · {capitalise(p.status)}</p><h1 className="mt-2 break-words font-display text-page-title">{p.title}</h1><p className="mt-4 text-lg">{time.format(new Date(p.starts_at))}{p.ends_at?" – "+time.format(new Date(p.ends_at)):""}</p><p className="mt-1 text-sm text-muted-foreground">Shown in {timezone}{p.originating_timezone!==timezone?" · Planned in "+p.originating_timezone:""}</p>{p.location?<p className="mt-4 break-words font-semibold"><SavedLocation value={p.location}/></p>:null}{p.external_map_url?<a href={p.external_map_url} target="_blank" rel="noreferrer" className="mt-2 inline-flex min-h-11 items-center font-semibold text-primary hover:underline">Open map</a>:null}{p.description?<p className="mt-4 max-w-[65ch] whitespace-pre-wrap break-words leading-7 text-muted-foreground">{p.description}</p>:null}{p.budget_minor!=null?<p className="mt-4">Budget: {p.currency} {(p.budget_minor/100).toLocaleString("en",{minimumFractionDigits:2,maximumFractionDigits:2})}</p>:null}
- <div className="mt-5 flex flex-wrap gap-3 empty:hidden">{p.status==="planned"?<Button disabled={pending} onClick={()=>change({operation:"status",status:"completed"})}>Mark complete</Button>:null}{p.status==="cancelled"?<Button disabled={pending} onClick={()=>change({operation:"status",status:"planned"})}>Restore plan</Button>:null}{p.source_bucket_item_id?<Link href={"/bucket/"+p.source_bucket_item_id} className="inline-flex min-h-11 items-center font-semibold text-primary hover:underline">From your bucket list</Link>:null}</div></header>
- {message?<p role="alert" className="status-message status-error my-5">{message}</p>:null}
- {p.status==="completed"?<section className="my-8 rounded-panel bg-secondary p-6"><h2 className="font-display text-section-title">Keep a little of this moment.</h2><p className="mt-2 leading-7 text-muted-foreground">The experience stays connected when you save it as a memory.</p><Button asChild className="mt-4"><Link href={memoryId?"/memories/"+memoryId:"/memories/new?plan="+p.id}>{memoryId?"Open saved memory":"Save this memory"}</Link></Button></section>:null}
- <section className="mt-9" aria-labelledby="checklist-title"><div className="flex items-baseline justify-between gap-3"><h2 id="checklist-title" className="font-display text-section-title">The little details</h2><span className="text-sm text-muted-foreground">{checklist.filter(t=>t.is_completed).length} of {checklist.length} done</span></div><p className="mt-2 text-muted-foreground">A short checklist to help you arrive relaxed.</p>
- <div className="mt-5 divide-y">{checklist.map((task,i)=><form method="post" key={task.id+task.label} className="py-4" onSubmit={e=>{e.preventDefault();const form=new FormData(e.currentTarget);void change({operation:"checklist",kind:"update",id:task.id,label:form.get("label")});}}><div className="flex items-center gap-3"><label className="grid size-11 shrink-0 place-items-center"><input type="checkbox" checked={task.is_completed} disabled={pending} aria-label={"Complete "+task.label} onChange={e=>change({operation:"checklist",kind:"update",id:task.id,completed:e.target.checked})} className="size-5 accent-primary"/></label><Input name="label" aria-label={"Step "+(i+1)} defaultValue={task.label} maxLength={240} required/><Button variant="outline" disabled={pending}>Save</Button></div><div className="mt-2 flex justify-end gap-2"><Button type="button" variant="ghost" disabled={pending||i===0} aria-label={"Move "+task.label+" up"} onClick={()=>reorder(i,-1)}><ArrowUp className="size-4"/></Button><Button type="button" variant="ghost" disabled={pending||i===checklist.length-1} aria-label={"Move "+task.label+" down"} onClick={()=>reorder(i,1)}><ArrowDown className="size-4"/></Button><Button type="button" variant="ghost" disabled={pending} aria-label={"Remove "+task.label} onClick={()=>change({operation:"checklist",kind:"delete",id:task.id})}><Trash2 className="size-4"/></Button></div></form>)}</div>
- <form method="post" className="mt-4" onSubmit={e=>{e.preventDefault();void change({operation:"checklist",kind:"add",label:newStep});}}><Label htmlFor="new-step">Next little step</Label><div className="mt-2 flex flex-col gap-3 sm:flex-row"><Input id="new-step" value={newStep} onChange={e=>setNewStep(e.target.value)} maxLength={240} required placeholder="Book a table, pack a picnic…"/><Button className="shrink-0 whitespace-nowrap" disabled={pending||checklist.length>=50}>Add step</Button></div></form></section>
- <section className="mt-10 border-t pt-8" aria-labelledby="reminders-title"><h2 id="reminders-title" className="font-display text-section-title">A gentle reminder</h2><p className="mt-2 max-w-[65ch] leading-7 text-muted-foreground">{preview?"Reminder editing is available in this preview. Delivery runs only for connected accounts.":"Reminders appear in each partner’s inbox if their plan notifications are on. Delivery is checked every minute."}</p><ul className="mt-4 divide-y">{reminders.map(r=><li key={r.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><p>{r.offset_minutes===0?"At the start":r.offset_minutes+" minutes before"}</p><p className="mt-1 text-sm text-muted-foreground">{time.format(new Date(r.due_at))} · {r.state}</p></div>{["pending","cancelled"].includes(r.state)?<Button variant="ghost" disabled={pending} onClick={()=>change({operation:"reminder",kind:"delete",id:r.id})}>Remove reminder</Button>:null}</li>)}</ul>
- {p.status==="planned"?<form method="post" className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end" onSubmit={e=>{e.preventDefault();void change({operation:"reminder",kind:"add",minutes:Number(new FormData(e.currentTarget).get("minutes"))});}}><div className="flex-1"><Label htmlFor="reminder-time">Remind us</Label><select id="reminder-time" name="minutes" defaultValue="60" className="mt-2 min-h-12 w-full rounded-lg border bg-field px-4"><option value="0">At the start</option><option value="15">15 minutes before</option><option value="60">1 hour before</option><option value="1440">1 day before</option><option value="10080">1 week before</option></select></div><Button disabled={pending||reminders.length>=5}>Add reminder</Button></form>:null}</section>
- <section className="mt-10 border-t pt-8" aria-labelledby="attachments-title"><h2 id="attachments-title" className="font-display text-section-title">Keep it handy</h2><p className="mt-2 leading-7 text-muted-foreground">Tickets, a reservation, or a map. Private PDF, PNG, or JPEG files, up to 2 MB each.</p>{preview?<p className="mt-4 rounded-control bg-secondary p-4 text-sm">Sign in with your connected account to add and download attachments.</p>:<><ul className="mt-4 divide-y">{attachments.map(a=><li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="min-w-0">{a.ready?<a className="inline-flex min-h-11 items-center break-all font-semibold text-primary hover:underline" href={"/api/plan-attachments/"+a.id}>{a.filename}</a>:<p className="break-all">{a.filename} · Unfinished upload</p>}<p className="text-sm text-muted-foreground">{Math.ceil(a.size_bytes/1024)} KB</p></div><ConfirmDelete variant="ghost" size="sm" label="Remove attachment" title="Remove this attachment?" description={<><strong className="font-semibold text-foreground">“{a.filename}”</strong> is deleted from this plan for both of you.</>} onConfirm={async()=>{const r=await deletePlanAttachment({id:a.id,planId:p.id});if(!r.ok)return r.message;router.refresh();}}/></li>)}</ul><form action={uploadAction} className="mt-5 space-y-3"><input type="hidden" name="planId" value={p.id}/><Label htmlFor="attachment">Choose a file</Label><Input id="attachment" name="file" type="file" accept="application/pdf,image/png,image/jpeg" required/><SubmitButton>Add attachment</SubmitButton>{uploadState.message?<p role="status" className={uploadState.status==="error"?"field-error":"text-success"}>{uploadState.message}</p>:null}</form></>}</section>
- {p.status==="planned"?<section className="mt-12 border-t pt-8"><h2 className="font-display text-section-title">When plans change</h2><div className="mt-3"><p className="mb-3 text-sm text-muted-foreground">Cancelling keeps the details and stops pending reminders.</p><Button variant="outline" disabled={pending} onClick={()=>change({operation:"status",status:"cancelled"})}>Cancel plan</Button></div></section>:null}
- <EntryActions label="Change this plan" hint="Deleting removes the checklist and reminders. Saved memories stay.">
-  <Button asChild variant="outline"><Link href={"/plans/"+p.id+"/edit"}><Pencil className="size-4" aria-hidden="true"/>Edit plan</Link></Button>
-  <ConfirmDelete label="Delete plan" title="Delete this plan?" description={<><strong className="font-semibold text-foreground">“{p.title}”</strong>, its checklist and its reminders are removed for both of you. A memory saved from it stays.</>} blocked={attachments.length?"Remove its "+attachments.length+" "+(attachments.length===1?"attachment":"attachments")+" under Keep it handy first.":null} leavesPage onConfirm={async()=>{const r=await mutatePlan({planId:p.id,version:p.version,operation:"delete",confirmation:"DELETE"});if(!r.ok)return r.message;router.push("/plans");router.refresh();}}/>
- </EntryActions></div>;
+const heading = "font-display text-[1.375rem] leading-[1.3]";
+const quiet = "inline-flex min-h-11 items-center gap-2 self-start rounded-control text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50";
+const reminderChoices = [0, 15, 60, 1440, 10080];
+
+type Change = (input: Record<string, unknown>) => void;
+
+/**
+ * One plan as a Cover screen (ADR-053). The band says where the plan stands
+ * ("Coming up in 3 days", "Did this happen?", "Kept"), its title, and when
+ * and where as quiet icon lines. The sheet holds the story, then the to-do
+ * list as tick rows, the reminders, the bucket idea it began as, and its
+ * files, each as ruled rows. A plan whose day has come asks once, near the
+ * top, whether to keep it as a memory; a kept plan ends on that memory.
+ * Edit, Cancel plan and Delete live in the corner's More options.
+ */
+export function PlanDetailView({ detail, timezone, preview, now, origin }: {
+  detail: PlanDetail;
+  timezone: string;
+  preview: boolean;
+  /** The server's clock, so first paint and hydration agree on the plan's state. */
+  now: string;
+  origin: { id: string; title: string; list: string | null } | null;
+}) {
+  const { plan: p, checklist, reminders, attachments, memoryId } = detail;
+  const router = useRouter();
+  const [pending, start] = useTransition();
+  const [message, setMessage] = useState("");
+  const [newStep, setNewStep] = useState("");
+  const clock = new Date(now);
+  const phase = p.status === "planned" ? planPhase(p, timezone, clock) : null;
+
+  function change(input: Record<string, unknown>, then?: () => void) {
+    setMessage("");
+    start(async () => {
+      try {
+        const result = await mutatePlan({ planId: p.id, version: p.version, ...input });
+        if (!result.ok) { setMessage(result.message); return; }
+        if (then) { then(); return; }
+        if (input.operation === "checklist" && input.kind === "add") setNewStep("");
+        router.refresh();
+      } catch {
+        setMessage("Connection interrupted. Your change was not confirmed. Try again.");
+      }
+    });
+  }
+
+  const kicker = p.status === "cancelled" ? "Cancelled"
+    : p.status === "completed" ? (memoryId ? "Kept · saved as a memory" : "Kept")
+    : phase === "past" ? "Did this happen?"
+    : phase === "now" ? "Happening now"
+    : "Coming up " + whenNext(p, timezone, clock);
+  const keepAsMemory = () => change({ operation: "status", status: "completed" }, () => router.push("/memories/new?plan=" + p.id));
+  const budget = p.budget_minor != null ? `${p.currency ?? ""} ${(p.budget_minor / 100).toLocaleString("en", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`.trim() : null;
+
+  return (
+    <>
+      <Cover
+        labelledBy="plan-title"
+        height="band"
+        back={{ href: "/plans", label: "Back to plans" }}
+        menu={<EntryMenu
+          label="Plan options"
+          items={[
+            { kind: "link", label: "Edit plan", href: "/plans/" + p.id + "/edit", icon: Pencil },
+            ...(p.status === "planned" ? [{ kind: "action" as const, label: "Cancel plan", icon: Ban, disabled: pending, onSelect: () => change({ operation: "status", status: "cancelled" }) }] : []),
+          ]}
+          deletion={{
+            label: "Delete plan",
+            title: "Delete this plan?",
+            description: <><strong className="font-semibold text-foreground">“{p.title}”</strong>, its to-do list and its reminders are removed for both of you. A memory saved from it stays.</>,
+            blocked: attachments.length ? "Remove its " + attachments.length + " " + (attachments.length === 1 ? "file" : "files") + " under Attachments first." : null,
+            leavesPage: true,
+            onConfirm: async () => {
+              const result = await mutatePlan({ planId: p.id, version: p.version, operation: "delete", confirmation: "DELETE" });
+              if (!result.ok) return result.message;
+              router.push("/plans");
+              router.refresh();
+            },
+          }}
+        />}
+      >
+        <p className={cn("text-[0.8125rem] font-semibold", p.status === "cancelled" ? "text-muted-foreground" : "text-primary")}>{kicker}</p>
+        <h1 id="plan-title" className="mt-1.5 text-balance break-words font-display text-[2.125rem] leading-[1.1] tracking-[-0.02em]">{p.title}</h1>
+        <ul className="mt-3.5 flex flex-col gap-2 text-[0.9375rem]">
+          <Fact icon={CalendarDays}>
+            {planWhen(p, timezone, clock)}
+            {p.originating_timezone !== timezone ? <span className="block text-[0.8125rem] text-muted-foreground">Shown in {timezone} · planned in {p.originating_timezone}</span> : null}
+          </Fact>
+          {p.location ? <Fact icon={MapPin}>{p.location}</Fact> : null}
+          {budget ? <Fact icon={Wallet}>Budget · {budget}</Fact> : null}
+        </ul>
+      </Cover>
+
+      <CoverSheet className="max-w-2xl">
+        <div className="flex flex-col gap-7">
+          {p.description || p.external_map_url ? (
+            <div className="flex flex-col gap-2">
+              {p.description ? <p className="max-w-prose whitespace-pre-wrap break-words text-base leading-[1.7] text-foreground/90">{p.description}</p> : null}
+              {p.external_map_url ? (
+                <a href={p.external_map_url} target="_blank" rel="noreferrer noopener" className={quiet}>
+                  <MapIcon className="size-4" aria-hidden="true" />Open the map
+                </a>
+              ) : null}
+            </div>
+          ) : null}
+
+          {phase === "past" || phase === "now" ? (
+            <div className="flex flex-col gap-2 rounded-panel bg-secondary p-4">
+              <p className="text-sm leading-6 text-muted-foreground">
+                {phase === "past" ? "The day has passed and this is still planned. If it happened, keep it." : "Enjoy it. When it is over, keep a little of it."}
+              </p>
+              <Button disabled={pending} onClick={keepAsMemory}><Sparkles className="size-4" aria-hidden="true" />Keep it as a memory</Button>
+              <Button variant="outline" disabled={pending} onClick={() => change({ operation: "status", status: "completed" })}>Mark it kept, no memory</Button>
+            </div>
+          ) : null}
+
+          {p.status === "cancelled" ? (
+            <div className="flex flex-col gap-2 rounded-panel bg-secondary p-4">
+              <p className="text-sm leading-6 text-muted-foreground">Cancelled plans keep their details. Restoring brings it back to Plans.</p>
+              <Button disabled={pending} onClick={() => change({ operation: "status", status: "planned" })}>Restore plan</Button>
+            </div>
+          ) : null}
+
+          {(p.status === "planned" && phase !== "past") || checklist.length ? (
+            <Steps steps={checklist} pending={pending} change={change} newStep={newStep} setNewStep={setNewStep} />
+          ) : null}
+
+          {(p.status === "planned" && phase !== "past") || reminders.length ? (
+            <Reminders planStarts={p.starts_at} planned={p.status === "planned"} reminders={reminders} timezone={timezone} now={clock} pending={pending} change={change} preview={preview} />
+          ) : null}
+
+          {origin ? (
+            <section aria-labelledby="origin-title" className="flex flex-col">
+              <h2 id="origin-title" className={heading}>Where it began</h2>
+              <Link href={"/bucket/" + origin.id} className="group flex min-h-[4.25rem] items-center gap-3 py-3 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                <Dot icon={ListChecks} />
+                <span className="flex min-w-0 flex-1 flex-col-reverse gap-px">
+                  <span className="break-words text-[1.0625rem] font-semibold leading-[1.35] transition-colors duration-150 group-hover:text-primary motion-reduce:transition-none">{origin.title}</span>
+                  <span className="text-[0.8125rem] leading-5 text-muted-foreground">Bucket list{origin.list ? " · " + origin.list : ""}</span>
+                </span>
+                <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              </Link>
+            </section>
+          ) : null}
+
+          <Attachments planId={p.id} attachments={attachments} preview={preview} />
+
+          {p.status === "completed" ? (
+            <Button asChild size="lg" className="w-full">
+              <Link href={memoryId ? "/memories/" + memoryId : "/memories/new?plan=" + p.id}>
+                <Sparkles className="size-4" aria-hidden="true" />{memoryId ? "Open the memory" : "Keep it as a memory"}
+              </Link>
+            </Button>
+          ) : null}
+
+        </div>
+      </CoverSheet>
+
+      {message ? (
+        <div role="alert" className="fixed inset-x-4 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-40 mx-auto flex max-w-md items-start gap-3 rounded-panel bg-foreground p-4 text-sm leading-6 text-background shadow-[0_14px_30px_-14px_rgb(0_0_0/0.7)] md:bottom-6">
+          <span className="flex-1">{message}</span>
+          <button type="button" aria-label="Dismiss" onClick={() => setMessage("")} className="-m-2 grid size-11 shrink-0 place-items-center rounded-control focus-visible:outline-2 focus-visible:outline-ring"><X className="size-4" aria-hidden="true" /></button>
+        </div>
+      ) : null}
+    </>
+  );
+}
+
+function Fact({ icon: Icon, children }: { icon: typeof MapPin; children: React.ReactNode }) {
+  return (
+    <li className="flex items-start gap-2.5">
+      <Icon className="mt-[0.1875rem] size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <span className="min-w-0 break-words">{children}</span>
+    </li>
+  );
+}
+
+function Dot({ icon: Icon }: { icon: typeof MapPin }) {
+  return <span className="grid size-11 shrink-0 place-items-center rounded-full bg-secondary"><Icon className="size-5" aria-hidden="true" /></span>;
+}
+
+/** The to-do list: tick rows, with renaming, reordering and removal behind "Edit steps". */
+function Steps({ steps, pending, change, newStep, setNewStep }: {
+  steps: ChecklistItem[]; pending: boolean; change: Change; newStep: string; setNewStep: (value: string) => void;
+}) {
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const done = steps.filter((step) => step.is_completed).length;
+  function reorder(index: number, delta: number) {
+    const ids = steps.map((step) => step.id);
+    [ids[index], ids[index + delta]] = [ids[index + delta], ids[index]];
+    change({ operation: "checklist", kind: "reorder", ids });
+  }
+
+  return (
+    <section aria-labelledby="steps-title" className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between gap-3">
+        <h2 id="steps-title" className={heading}>To do</h2>
+        {steps.length ? <span className="text-[0.8125rem] text-muted-foreground">{done} of {steps.length} done</span> : null}
+      </div>
+
+      {steps.length ? (
+        <ul className="flex flex-col">
+          {steps.map((step, index) => editing ? (
+            <li key={step.id + step.label} className="border-b border-border py-2.5 last:border-0">
+              <form method="post" className="flex items-center gap-2" onSubmit={(event) => { event.preventDefault(); change({ operation: "checklist", kind: "update", id: step.id, label: new FormData(event.currentTarget).get("label") }); }}>
+                <Input name="label" aria-label={"Step " + (index + 1)} defaultValue={step.label} maxLength={240} required className="min-w-0 flex-1" />
+                <Button variant="outline" disabled={pending}>Save</Button>
+              </form>
+              <div className="mt-1 flex justify-end">
+                <Button type="button" variant="ghost" size="sm" disabled={pending || index === 0} aria-label={"Move " + step.label + " up"} onClick={() => reorder(index, -1)}><ArrowUp className="size-4" /></Button>
+                <Button type="button" variant="ghost" size="sm" disabled={pending || index === steps.length - 1} aria-label={"Move " + step.label + " down"} onClick={() => reorder(index, 1)}><ArrowDown className="size-4" /></Button>
+                <Button type="button" variant="ghost" size="sm" disabled={pending} aria-label={"Remove " + step.label} onClick={() => change({ operation: "checklist", kind: "delete", id: step.id })}><Trash2 className="size-4" /></Button>
+              </div>
+            </li>
+          ) : (
+            <li key={step.id}>
+              <label className="flex min-h-11 cursor-pointer items-center gap-3 py-1.5 text-[0.9375rem] leading-6">
+                <input
+                  type="checkbox"
+                  className="peer sr-only"
+                  checked={step.is_completed}
+                  disabled={pending}
+                  onChange={(event) => change({ operation: "checklist", kind: "update", id: step.id, completed: event.target.checked })}
+                />
+                <span aria-hidden="true" className={cn(
+                  "grid size-[1.375rem] shrink-0 place-items-center rounded-[0.375rem] border transition-colors duration-150 motion-reduce:transition-none",
+                  "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring",
+                  step.is_completed ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/60",
+                )}>
+                  {step.is_completed ? <Check className="size-3.5" strokeWidth={3} /> : null}
+                </span>
+                <span className={cn("min-w-0 break-words", step.is_completed && "text-muted-foreground line-through decoration-muted-foreground/60")}>{step.label}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="py-1 text-[0.9375rem] leading-6 text-muted-foreground">Nothing to do yet. A short list helps you arrive relaxed.</p>
+      )}
+
+      {adding ? (
+        <form method="post" className="mt-1 flex gap-2" onSubmit={(event) => { event.preventDefault(); change({ operation: "checklist", kind: "add", label: newStep }); }}>
+          <label htmlFor="new-step" className="sr-only">Next little step</label>
+          <Input id="new-step" autoFocus value={newStep} onChange={(event) => setNewStep(event.target.value)} maxLength={240} required placeholder="Book a table, pack a picnic…" className="min-w-0 flex-1" />
+          <Button className="shrink-0" disabled={pending || steps.length >= 50}>Add step</Button>
+        </form>
+      ) : null}
+
+      <div className="flex flex-wrap gap-x-5">
+        <button type="button" className={quiet} onClick={() => setAdding((value) => !value)} aria-expanded={adding}>
+          {adding ? <X className="size-4" aria-hidden="true" /> : <Plus className="size-4" aria-hidden="true" />}{adding ? "Close" : "Add a step"}
+        </button>
+        {steps.length ? (
+          <button type="button" className={cn(quiet, "text-muted-foreground hover:text-foreground")} onClick={() => setEditing((value) => !value)} aria-pressed={editing}>
+            {editing ? "Done editing" : "Edit steps"}
+          </button>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function Reminders({ planStarts, planned, reminders, timezone, now, pending, change, preview }: {
+  planStarts: string; planned: boolean; reminders: Reminder[]; timezone: string; now: Date; pending: boolean; change: Change; preview: boolean;
+}) {
+  const choices = reminderChoices.filter((minutes) => !reminders.some((reminder) => reminder.offset_minutes === minutes) && Date.parse(planStarts) - minutes * 60_000 > now.getTime());
+  const states: Record<string, string> = { sent: " · Sent", cancelled: " · Off" };
+  return (
+    <section aria-labelledby="reminders-title" className="flex flex-col">
+      <h2 id="reminders-title" className={heading}>{reminders.length > 1 ? "Reminders" : "Reminder"}</h2>
+      {reminders.length ? (
+        <ul className="flex flex-col">
+          {reminders.map((reminder) => (
+            <li key={reminder.id} className="flex min-h-[4.25rem] items-center gap-3 border-b border-border py-3 last:border-0">
+              <Dot icon={Bell} />
+              <span className="flex min-w-0 flex-1 flex-col-reverse gap-px">
+                <span className="text-[1.0625rem] font-semibold leading-[1.35]">{reminderWhen(reminder.due_at, timezone, now)}</span>
+                <span className="text-[0.8125rem] leading-5 text-muted-foreground">{reminderLabel(reminder.offset_minutes)}{states[reminder.state] ?? ""}</span>
+              </span>
+              {["pending", "cancelled"].includes(reminder.state) ? (
+                <Button type="button" variant="ghost" size="sm" disabled={pending} aria-label={"Remove reminder, " + reminderLabel(reminder.offset_minutes)} onClick={() => change({ operation: "reminder", kind: "delete", id: reminder.id })}>
+                  <X className="size-4" aria-hidden="true" />
+                </Button>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="py-1 text-[0.9375rem] leading-6 text-muted-foreground">No reminder yet.</p>
+      )}
+      {planned && choices.length && reminders.length < 5 ? (
+        <form method="post" className="mt-2 flex gap-2" onSubmit={(event) => { event.preventDefault(); change({ operation: "reminder", kind: "add", minutes: Number(new FormData(event.currentTarget).get("minutes")) }); }}>
+          <label htmlFor="reminder-time" className="sr-only">Remind us</label>
+          <select id="reminder-time" name="minutes" defaultValue={choices.includes(1440) ? 1440 : choices[0]} className="min-h-11 min-w-0 flex-1 rounded-control border border-border bg-field px-3 text-[0.9375rem] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+            {choices.map((minutes) => <option key={minutes} value={minutes}>{reminderLabel(minutes)}</option>)}
+          </select>
+          <Button variant="outline" className="shrink-0" disabled={pending}>Add reminder</Button>
+        </form>
+      ) : null}
+      <p className="mt-2 text-[0.8125rem] leading-5 text-muted-foreground">
+        {preview ? "Reminders are delivered only for connected accounts." : "Each of you with plan notifications on gets them in your inbox."}
+      </p>
+    </section>
+  );
+}
+
+function Attachments({ planId, attachments, preview }: { planId: string; attachments: PlanDetail["attachments"]; preview: boolean }) {
+  const router = useRouter();
+  const [state, action, uploading] = useActionState(uploadPlanAttachment, initialActionState);
+  const kinds: Record<string, string> = { "application/pdf": "PDF", "image/png": "PNG", "image/jpeg": "JPEG" };
+  const size = (bytes: number) => bytes >= 1024 * 1024 ? (bytes / 1024 / 1024).toFixed(1) + " MB" : Math.ceil(bytes / 1024) + " KB";
+
+  return (
+    <section aria-labelledby="attachments-title" className="flex flex-col">
+      <h2 id="attachments-title" className={heading}>Attachments</h2>
+      {attachments.length ? (
+        <ul className="flex flex-col">
+          {attachments.map((file) => {
+            const words = (
+              <span className="flex min-w-0 flex-1 flex-col-reverse gap-px">
+                <span className="break-all text-[1.0625rem] font-semibold leading-[1.35] transition-colors duration-150 group-hover:text-primary motion-reduce:transition-none">{file.filename}</span>
+                <span className="text-[0.8125rem] leading-5 text-muted-foreground">{file.ready ? "" : "Unfinished upload · "}{kinds[file.mime_type] ?? "File"} · {size(file.size_bytes)}</span>
+              </span>
+            );
+            return (
+              <li key={file.id} className="flex min-h-[4.25rem] items-center gap-2 border-b border-border py-3 last:border-0">
+                {file.ready ? (
+                  <a href={"/api/plan-attachments/" + file.id} className="group flex min-w-0 flex-1 items-center gap-3 rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                    <Dot icon={FileText} />{words}
+                  </a>
+                ) : <span className="flex min-w-0 flex-1 items-center gap-3"><Dot icon={FileText} />{words}</span>}
+                <ConfirmDelete
+                  variant="ghost"
+                  size="sm"
+                  label="Remove"
+                  title="Remove this file?"
+                  description={<><strong className="font-semibold text-foreground">“{file.filename}”</strong> is deleted from this plan for both of you.</>}
+                  onConfirm={async () => {
+                    const result = await deletePlanAttachment({ id: file.id, planId });
+                    if (!result.ok) return result.message;
+                    router.refresh();
+                  }}
+                />
+              </li>
+            );
+          })}
+        </ul>
+      ) : null}
+      {preview ? (
+        <p className="py-1 text-[0.9375rem] leading-6 text-muted-foreground">Tickets and bookings can be attached with your connected account.</p>
+      ) : attachments.length < 20 ? (
+        <form action={action} className="mt-1 flex flex-col gap-1">
+          <input type="hidden" name="planId" value={planId} />
+          <label className={cn(quiet, "cursor-pointer has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring", uploading && "pointer-events-none opacity-60")}>
+            <Paperclip className="size-4" aria-hidden="true" />{uploading ? "Adding…" : "Add a file"}
+            <input name="file" type="file" accept="application/pdf,image/png,image/jpeg" required className="sr-only" onChange={(event) => event.currentTarget.form?.requestSubmit()} />
+          </label>
+          <span className="text-[0.8125rem] leading-5 text-muted-foreground">PDF, PNG or JPEG up to 2 MB. Only the two of you can open them.</span>
+          {state.message ? <p role="status" className={state.status === "error" ? "field-error" : "text-sm text-success"}>{state.message}</p> : null}
+        </form>
+      ) : null}
+    </section>
+  );
 }

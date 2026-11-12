@@ -105,7 +105,7 @@ export function ConnectStepForms() {
  * It also works before the partner has an account, which is the point: you can
  * name them while you are still waiting for them to join.
  */
-export function PartnerStepForm({ partnerName, partnerAvatarStyle, partnerAvatarSrc = null, returnTo = "onboarding" }: { partnerName: string; partnerAvatarStyle: string; partnerAvatarSrc?: string | null; returnTo?: "onboarding" | "profile" }) {
+export function PartnerStepForm({ partnerName, partnerAvatarStyle, partnerAvatarSrc = null, returnTo = "onboarding" }: { partnerName: string; partnerAvatarStyle: string; partnerAvatarSrc?: string | null; returnTo?: "onboarding" | "profile" | "pairing" }) {
   const [state, action] = useActionState(savePartnerPresentationAction, initialActionState);
   const [name, setName] = useState(partnerName);
   const initial = initials(name) || "?";
@@ -132,7 +132,7 @@ export function PartnerStepForm({ partnerName, partnerAvatarStyle, partnerAvatar
       <FormMessage state={state} />
 
       <div className="flex flex-wrap items-center gap-4">
-        <SubmitButton>{returnTo === "profile" ? "Save" : "Save and continue"}</SubmitButton>
+        <SubmitButton>{returnTo === "onboarding" ? "Save and continue" : "Save"}</SubmitButton>
         {returnTo === "onboarding" ? <Button asChild variant="ghost"><Link href="/onboarding?step=connect">I&rsquo;ll add this later</Link></Button> : null}
       </div>
     </form>

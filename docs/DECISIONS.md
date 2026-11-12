@@ -488,3 +488,43 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 **Decision:** The web app and the media service are released separately, so the client must not depend on their order. It uses whatever allocation ID the service returns. For a service that assigns its own ID it never asks twice for the same file: the row is reused while its upload window lasts and removed before a fresh one is reserved (`heldAllocation`/`prepareAllocation`). For a current service it still asks on every attempt, which is how the row is renewed and reconciled. When an entry is opened, this person's reservations whose upload window closed more than an hour ago, and which no local file is sending to, are each asked to finish once: a stored original is published, and only the service's "Upload has not finished" answer removes a row (`staleUploads`/`settleStaleUploads`). Connection wording is reserved for an offline device or a request that got no answer; storage 403 is no longer described as a sign-out, and server-to-server failures no longer tell the person to check their connection.
 
 **Consequences:** A web deploy alone restores uploads against the currently hosted function. Against an older service a lost prepare response can still leave one unused row, which the sweep releases an hour after its window closes. Idempotent recovery, lease renewal and charge-on-new-work still need the ADR-050/051 Edge Function and migration, which should be deployed; until then the 60-per-hour allocation budget applies, one charge per file. The sweep removes only rows the service itself reports as holding no stored original, and never a partner's rows or one still inside its upload window. This supersedes the "client refuses a replacement UUID" statements in ADR-050's rollout notes.
+
+## ADR-053 — Cover design language and the Ink and rose dark palette
+
+**Status:** Accepted, 2026-11-11, by owner direction; Home implemented on `redesign`, other screens to follow.
+
+**Context:** The owner asked for a sleeker, more minimal and modern Home that keeps everything it showed, chose the "Cover" direction from three mockups as the language for every screen, and rejected the warm-plum dark palette, choosing a near-black ground with ivory type and rose buttons. The owner explicitly allowed departing from DESIGN.md.
+
+**Decision:** A Cover screen opens on a cover: the newest relevant photograph with a scrim, or a deep field (`--cover-field`: wine in light mode, near-black in dark) when there is none, carrying the serif title. A sheet with a rounded top overlaps it and holds one highlighted next step and ruled rows with a 44px leading mark. Create actions sit behind one button that opens a single sheet (floating on phones, inline beside the greeting from tablet width). On a page with a cover, the phone header turns transparent over it; the page signals this with `data-cover-page`, and CSS `:has()` re-points the header's tokens through `.on-cover`, so no component needs cover variants. Dark mode becomes Ink and rose: `#0e0d0c` ground, `#181716` cards, `#f4f0e9` type, `#f07a8c` for primary actions, labels and progress. Light mode keeps its palette.
+
+**Consequences:** Every dark-mode screen changes colour at once, because the tokens are global; the other screens keep their layouts until each is redesigned. Home now reads ready image media (memory and moment) to fill the cover and four gallery tiles; the restrictive section-lock policies still hide that media whenever Gallery, Memories or Moments is locked. Memory and moment dates on Home are formatted in UTC, fixing a one-day-early date for viewers west of Greenwich. The Android `values-night` tokens still mirror the previous palette. This supersedes DESIGN.md's Warm Dark rule.
+
+## ADR-054 — Search matches in the app server; settings leave the top bar
+
+**Status:** Accepted, 2026-11-11, by owner direction; on `redesign`.
+
+**Context:** The owner asked for a search icon in the top bar that searches the current screen with that screen's own filters, with a check box to search everything instead, and for the theme toggle and sign-out to move out of the top bar into settings. AGENTS.md keeps private content out of URLs, logs and search; the memories tag RPC already exists so tag text never enters a PostgREST URL.
+
+**Decision:** One search sheet opens from the phone top bar and the desktop sidebar. It searches the section of the screen it was opened from (Memories, Moments, Plans and Calendar, Bucket lists, Notes, Wishlists), with section filters behind a Filters button, and "Search everywhere" searches all of them. Home, Gallery and settings screens always search everywhere. The query travels in a Server Action body and is matched in Node, with accents and case folded and every word required, against the newest 400 rows per section read under RLS. No SQL or PostgREST filter is built from it and nothing is logged. Appearance (light, dark or device) and Sign out move to Profile; the top bar keeps only search and notifications.
+
+**Consequences:** No migration is needed and the database never sees the search text. Very old entries beyond the newest 400 of a section are not searched; a server-side function with a body-only parameter would be needed if that ever matters. Each search reads up to six tables, so input is debounced. Two browser specs now set the theme through storage, and one signs out from Profile.
+
+## ADR-055 — Plans is a list; the shared Calendar is the only month view
+
+**Status:** Accepted, 2026-11-12, by owner direction ("exactly match mock up"); on `redesign`.
+
+**Context:** Plans carried its own Upcoming/Month/Week workspace and a status select, which duplicated the shared Calendar for plans alone. The Cover mockups give Plans a list (next plan, Coming up, Kept) and give months to Calendar.
+
+**Decision:** `/plans` is a server-rendered list: the next plan as a raised card with how far off it is, the rest coming up, "Did these happen?" for planned plans whose days have all passed, Kept (completed, newest first) linking to the memory each became, and cancelled plans behind a `?show=cancelled` link. Months live on `/calendar?month=`; the week view and the `filterPlans` action are removed.
+
+**Consequences:** No schema change. A planned plan left unmarked is no longer hidden in the past. There is no week grid anywhere; the day agenda on Calendar covers a single day. Partner changes still appear through the shared server refresh.
+
+## ADR-056 — Entry actions live in the cover's corner menu
+
+**Status:** Accepted, 2026-11-13, by owner direction ("The edit and delete buttons can be organized somewhere else across the app"); on `redesign`.
+
+**Context:** Every detail page ended with an outline Edit and a danger-outline Delete (`EntryActions`). The Cover mockups instead show a three-dot "More options" in the band's top-right corner on the plan, idea and list screens.
+
+**Decision:** One `EntryMenu` component renders that corner button through `Cover`'s new `menu` slot on the plan, bucket idea, bucket list, memory, own note and own wish pages. It holds Edit and page-specific actions (Cancel plan, Rename list) and a Delete item that opens the existing `ConfirmDelete` in its controlled mode. The list is portalled to the page layer (the cover clips overflow), anchored to the page so it scrolls with it, and repositions on resize because phones resize as the address bar moves. `EntryActions` is deleted.
+
+**Consequences:** Pages end on their content. Edit is one tap further away, in exchange for a quieter page and one consistent place for changes. Delete's confirmation and its preconditions are unchanged. Moments have no edit or delete yet, so they have no menu.

@@ -32,13 +32,11 @@ export function AuthForm({ action, mode }: AuthFormProps) {
 
       {!isForgot ? (
         <div className="space-y-2">
-          <div className="flex items-baseline justify-between gap-4">
-            <Label htmlFor="password">Password</Label>
-            {mode === "sign-in" ? <Link href="/forgot-password" className="text-sm text-primary hover:underline">Forgot password?</Link> : null}
-          </div>
-          <Input id="password" name="password" type="password" autoComplete={isSignUp || isReset ? "new-password" : "current-password"} required aria-invalid={Boolean(state.fields?.password)} aria-describedby={state.fields?.password ? "password-error" : isSignUp || isReset ? "password-help" : undefined} />
+          <Label htmlFor="password">Password</Label>
+          <Input id="password" name="password" type="password" autoComplete={isSignUp || isReset ? "new-password" : "current-password"} required aria-invalid={Boolean(state.fields?.password)} aria-describedby={state.fields?.password ? "password-error" : isSignUp || isReset ? "password-help" : undefined} placeholder={mode === "sign-in" ? "Your password" : undefined} />
           {isSignUp || isReset ? <p id="password-help" className="text-xs leading-5 text-muted-foreground">At least 10 characters with upper- and lowercase letters and a number.</p> : null}
           {state.fields?.password ? <p id="password-error" className="field-error">{state.fields.password[0]}</p> : null}
+          {mode === "sign-in" ? <div className="flex justify-end"><Link href="/forgot-password" className="inline-flex min-h-11 items-center rounded-control text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Forgot your password?</Link></div> : null}
         </div>
       ) : null}
 

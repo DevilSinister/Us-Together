@@ -77,7 +77,9 @@ test("a full device refuses the batch atomically and sign-out clears queued file
   await page.evaluate(() => Object.defineProperty(navigator, "onLine", { configurable: true, get: () => false }));
   await page.locator('input[type="file"]').setInputFiles(photos);
   await expect(page.locator("[data-upload-state]")).toHaveCount(3);
-  await page.getByRole("button", { name: "Sign out", exact: true }).filter({ visible: true }).click();
+  // Signing out lives in Profile now; it still clears this device's waiting uploads.
+  await page.goto("/profile");
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await expect(page).toHaveURL(/\/sign-in$/);
   expect(await stored(page)).toEqual({ jobs: 0, sizes: [] });
 });

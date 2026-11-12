@@ -25,6 +25,8 @@ export const planSchema = z.object({
   mapUrl: z.union([z.literal(""), z.url().max(2000).refine(v => { const u = new URL(v); return u.protocol === "https:" && !u.username && !u.password; }, "Use an HTTPS map link without credentials.")]).optional().transform(v => v || null),
   budget: z.union([z.literal(""), z.string().regex(/^\d{1,9}(?:\.\d{1,2})?$/, "Use a valid amount.")]),
   currency: z.union([z.literal(""), z.string().trim().toUpperCase().regex(/^[A-Z]{3}$/, "Use a three-letter currency code.")]),
+  /** Minutes before the start for a first reminder, chosen while creating; empty for none. */
+  reminder: z.union([z.literal(""), z.enum(["0", "15", "60", "1440", "10080"])]).optional().transform((value) => value ? Number(value) : null),
 }).superRefine((value, context) => {
   if ((value.latitude === null) !== (value.longitude === null)) context.addIssue({code:"custom",path:["latitude"],message:"Add both latitude and longitude."});
   if ((value.budget === "") !== (value.currency === "")) {
