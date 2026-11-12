@@ -87,26 +87,49 @@ export type DevState = {
 };
 
 const previewSamples = {
-  plan: { id: "00000000-0000-4000-8000-000000000401", title: "Coffee, a long walk, and no rush", description: "A slow Saturday for catching up with each other.", type: "date", status: "planned" as const, startsAt: "2026-10-18T13:00:00.000Z", endsAt: null, timezone: "Asia/Karachi", location: "F-6 Markaz" },
+  plans: [
+    { id: "00000000-0000-4000-8000-000000000401", title: "Coffee, a long walk, and no rush", description: "A slow Saturday for catching up with each other.", type: "date", status: "planned" as const, startsAt: "2026-11-22T08:00:00.000Z", endsAt: null, timezone: "Asia/Karachi", location: "F-6 Markaz" },
+    { id: "00000000-0000-4000-8000-000000000406", title: "Pottery class, round two", description: "Evening slot. Bring old clothes.", type: "activity", status: "planned" as const, startsAt: "2026-11-29T13:00:00.000Z", endsAt: "2026-11-29T15:00:00.000Z", timezone: "Asia/Karachi", location: "F-7" },
+    { id: "00000000-0000-4000-8000-000000000407", title: "Weekend in Nathia Gali", description: "Two nights, a fireplace, and no laptops.", type: "trip", status: "planned" as const, startsAt: "2026-12-12T05:00:00.000Z", endsAt: "2026-12-14T12:00:00.000Z", timezone: "Asia/Karachi", location: "Nathia Gali" },
+    { id: "00000000-0000-4000-8000-000000000408", title: "Sunset at Daman-e-Koh", description: "Pack the flask.", type: "date", status: "completed" as const, startsAt: "2026-06-07T13:30:00.000Z", endsAt: null, timezone: "Asia/Karachi", location: "Daman-e-Koh" },
+  ],
   memories: [
     { id: "00000000-0000-4000-8000-000000000402", title: "Rainy chai after work", description: "We stayed out a little longer because neither of us wanted the evening to end.", memoryDate: "2026-10-02", location: "Home", rating: 5, favorite: true, sourcePlanId: null },
     { id: "00000000-0000-4000-8000-000000000403", title: "Sunday breakfast experiment", description: "The pancakes were uneven, the laughter was not.", memoryDate: "2026-09-21", location: "Kitchen", rating: 4, favorite: false, sourcePlanId: null },
+    { id: "00000000-0000-4000-8000-000000000409", title: "Monsoon drive to the lake", description: "Windows down, the wrong road twice, and the best corn on the way back.", memoryDate: "2025-07-20", location: "Rawal Lake", rating: 5, favorite: true, sourcePlanId: null, tags: ["drives", "rain"] },
+    { id: "00000000-0000-4000-8000-000000000410", title: "Birthday picnic in the park", description: "Too much cake for two people, so we shared it with the ducks.", memoryDate: "2024-03-03", location: "Fatima Jinnah Park", rating: 4, favorite: false, sourcePlanId: null, tags: ["birthday"] },
   ],
   milestones: [
     { id: "00000000-0000-4000-8000-000000000404", title: "First little trip together", description: "A whole weekend made from a train ride, too many photos, and one very good view.", type: "travel", milestoneDate: "2025-12-14", location: "Murree", featured: false },
     { id: "00000000-0000-4000-8000-000000000405", title: "The night we made a promise", description: "One quiet conversation that changed the shape of everything after it.", type: "relationship", milestoneDate: "2024-08-14", location: "Islamabad", featured: false },
+    { id: "00000000-0000-4000-8000-000000000411", title: "Moved into our first flat", description: "Twelve boxes, one plant, and a door that stuck for a week.", type: "achievement", milestoneDate: "2025-03-02", location: "Islamabad", featured: true },
+  ],
+  notifications: [
+    { id: "00000000-0000-4000-8000-000000000412", title: "Maya left you a note", category: "note" as const, targetType: "note", targetId: "00000000-0000-4000-8000-000000000501", readAt: null, createdAt: "2026-11-11T18:40:00.000Z" },
+    { id: "00000000-0000-4000-8000-000000000413", title: "Maya sent you a drawing", category: "drawing" as const, targetType: "drawing", targetId: "00000000-0000-4000-8000-000000000701", readAt: null, createdAt: "2026-11-12T09:20:00.000Z" },
+    { id: "00000000-0000-4000-8000-000000000414", title: "Coffee, a long walk, and no rush is in ten days", category: "plan" as const, targetType: "plan", targetId: "00000000-0000-4000-8000-000000000401", readAt: "2026-11-12T08:00:00.000Z", createdAt: "2026-11-12T07:00:00.000Z" },
   ],
 };
+
+/**
+ * Adds any sample whose id is not already present, so a preview that began
+ * before new samples were added still gains them. A sample you delete in the
+ * preview comes back on the next read; it is test data.
+ */
+function withSamples<T extends { id: string }>(current: T[], samples: T[]): T[] {
+  const present = new Set(current.map((item) => item.id));
+  const missing = samples.filter((item) => !present.has(item.id));
+  return missing.length ? [...current, ...missing] : current;
+}
 
 function pairedPreviewSamples(state: DevState): DevState {
   if (process.env.DEV_SEED_CONTENT !== "true" || state.coupleStatus !== "paired") return state;
   return {
     ...state,
-    plans: state.plans.length ? state.plans : [previewSamples.plan],
-    memories: state.memories.length ? state.memories : previewSamples.memories,
-    milestones: state.milestones.some((item) => item.id === previewSamples.milestones[0].id)
-      ? state.milestones
-      : [...state.milestones, ...previewSamples.milestones],
+    plans: withSamples(state.plans, previewSamples.plans),
+    memories: withSamples(state.memories, previewSamples.memories),
+    milestones: withSamples(state.milestones, previewSamples.milestones),
+    notifications: withSamples(state.notifications, previewSamples.notifications),
   };
 }
 

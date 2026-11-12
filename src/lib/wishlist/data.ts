@@ -1,4 +1,5 @@
 import "server-only";
+import { sampleSecrets, sampleWishes, seededPreview } from "@/lib/preview/samples";
 import { coupleContext, partnerName } from "@/lib/couple/context";
 import type { PurchaseSecret, WishlistItem, WishlistView } from "./schema";
 
@@ -15,7 +16,12 @@ export async function loadWishlist(): Promise<WishlistView> {
   const empty: WishlistView = { paired: false, mine: [], partner: [], secrets: {}, partnerName: null };
   try {
     const context = await coupleContext();
-    if (context.kind === "preview") return empty;
+    if (context.kind === "preview") {
+      const seed = await seededPreview();
+      return seed
+        ? { paired: true, mine: sampleWishes.filter((item) => item.mine), partner: sampleWishes.filter((item) => !item.mine), secrets: sampleSecrets, partnerName: seed.partner }
+        : empty;
+    }
     if (!context.coupleId) return empty;
 
     const [{ data: rows, error }, { data: secretRows }, name] = await Promise.all([
@@ -46,7 +52,12 @@ export async function loadWishlist(): Promise<WishlistView> {
 
 export async function loadWishlistItem(id: string) {
   const context = await coupleContext();
-  if (context.kind === "preview" || !context.coupleId) return null;
+  if (context.kind === "preview") {
+    const seed = await seededPreview();
+    const item = seed ? sampleWishes.find((candidate) => candidate.id === id) : undefined;
+    return item && seed ? { item, secret: item.mine ? null : sampleSecrets[item.id] ?? null, partnerName: seed.partner } : null;
+  }
+  if (!context.coupleId) return null;
   const { data } = await context.db.from("wishlist_items").select(itemColumns).eq("id", id).maybeSingle();
   if (!data) return null;
   const mine = data.owner_id === context.userId;

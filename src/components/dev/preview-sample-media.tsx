@@ -10,6 +10,9 @@ const entries = [
   { kind: "memory" as const, id: "00000000-0000-4000-8000-000000000403", palette: ["#d27957", "#ffe1a8"], caption: "Sunday in the kitchen" },
   { kind: "moment" as const, id: "00000000-0000-4000-8000-000000000404", palette: ["#345c70", "#c8e4db"], caption: "A view worth the early train" },
   { kind: "moment" as const, id: "00000000-0000-4000-8000-000000000405", palette: ["#4d2943", "#f3b6b1"], caption: "A quiet night together" },
+  { kind: "memory" as const, id: "00000000-0000-4000-8000-000000000409", palette: ["#2f5d62", "#a7d7c5"], caption: "The lake in the rain" },
+  { kind: "memory" as const, id: "00000000-0000-4000-8000-000000000410", palette: ["#9c4f2e", "#f6d186"], caption: "Cake for the ducks" },
+  { kind: "moment" as const, id: "00000000-0000-4000-8000-000000000411", palette: ["#3e4a61", "#e8c4a0"], caption: "The first key" },
 ];
 
 async function samplePhoto(palette: string[], index: number) {

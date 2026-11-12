@@ -2,6 +2,8 @@ import "server-only";
 import { cookies } from "next/headers";
 import { deflateSync, inflateSync } from "node:zlib";
 import type { BucketItem, BucketList, BucketSubtask } from "./schema";
+import { isDeveloperSeedEnabled } from "@/lib/auth/dev-session";
+import { sampleBucket } from "@/lib/preview/samples";
 type Preview = { lists: BucketList[]; items: BucketItem[]; subtasks: BucketSubtask[] };
 const cookieName = "us_together_bucket_preview";
 function assertPreview() {
@@ -14,7 +16,8 @@ export async function bucketPreview(sessionId: string): Promise<Preview> {
     const saved = JSON.parse(inflateSync(Buffer.from(raw, "base64url"), { maxOutputLength: 262144 }).toString("utf8"));
     if (saved.sessionId === sessionId) return saved.data as Preview;
   } catch { /* An expired or malformed preview starts empty; production never uses it. */ }
-  return { lists: [], items: [], subtasks: [] };
+  // A seeded preview starts with sample lists; the first change saves them like any other.
+  return isDeveloperSeedEnabled() ? sampleBucket(sessionId) : { lists: [], items: [], subtasks: [] };
 }
 export async function saveBucketPreview(sessionId: string, data: Preview) {
   assertPreview();
