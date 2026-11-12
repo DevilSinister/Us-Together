@@ -11,9 +11,7 @@ import {CommentThread} from "@/components/entries/comment-thread";
 import {Cover,CoverSheet} from "@/components/app/cover";
 import {Avatar} from "@/components/app/avatar";
 import {useIdentities} from "@/components/providers/identities";
-import {Button} from "@/components/ui/button";
-import {ConfirmDelete} from "@/components/ui/confirm-delete";
-import {EntryActions} from "@/components/app/entry-actions";
+import {EntryMenu} from "@/components/app/entry-menu";
 import {cn} from "@/lib/utils";
 
 const longDate=new Intl.DateTimeFormat("en",{dateStyle:"long",timeZone:"UTC"});
@@ -41,6 +39,18 @@ export function MemoryDetailView({data}:{data:MemoryDetail}){
   <Cover
    labelledBy="memory-title"
    back={{href:"/memories",label:"All memories"}}
+   menu={<EntryMenu
+    label="Memory options"
+    items={[{kind:"link",label:"Edit memory",href:"/memories/"+m.id+"/edit",icon:Pencil}]}
+    deletion={{
+     label:"Delete memory",
+     title:"Delete this memory?",
+     description:<><strong className="font-semibold text-foreground">“{m.title}”</strong> and its story are removed for both of you. Its source plan or bucket idea stays.</>,
+     blocked:fileCount===null?"Checking this memory’s photos and videos…":fileCount>0?"Remove its "+fileCount+" "+(fileCount===1?"photo or video":"photos and videos")+", including unfinished uploads, first. Then you can delete the story.":null,
+     leavesPage:true,
+     onConfirm:async()=>{const result=await deleteMemory({id:m.id,version:m.version,confirmation:"DELETE"});if(!result.ok)return result.error??"Could not delete this memory.";router.push("/memories");router.refresh();},
+    }}
+   />}
    photo={hero?{id:hero.id,kind:"memory",entryId:m.id}:null}
    previewSession={data.previewSession}
    previewEntry={{kind:"memory",id:m.id}}
@@ -97,17 +107,6 @@ export function MemoryDetailView({data}:{data:MemoryDetail}){
 
    <CommentThread access={access} timezone={data.timezone}/>
 
-   <EntryActions label="Change this memory" hint="Edit changes the story, date, place, tags, or favorite. Deleting keeps the plan or bucket idea it came from.">
-    <Button asChild variant="outline"><Link href={"/memories/"+m.id+"/edit"}><Pencil className="size-4" aria-hidden="true"/>Edit memory</Link></Button>
-    <ConfirmDelete
-     label="Delete memory"
-     title="Delete this memory?"
-     description={<><strong className="font-semibold text-foreground">“{m.title}”</strong> and its story are removed for both of you. Its source plan or bucket idea stays.</>}
-     blocked={fileCount===null?"Checking this memory’s photos and videos…":fileCount>0?"Remove its "+fileCount+" "+(fileCount===1?"photo or video":"photos and videos")+", including unfinished uploads, first. Then you can delete the story.":null}
-     leavesPage
-     onConfirm={async()=>{const result=await deleteMemory({id:m.id,version:m.version,confirmation:"DELETE"});if(!result.ok)return result.error??"Could not delete this memory.";router.push("/memories");router.refresh();}}
-    />
-   </EntryActions>
   </CoverSheet>
  </>;
 }

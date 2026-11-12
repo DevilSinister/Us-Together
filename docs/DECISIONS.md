@@ -519,3 +519,12 @@ Partner activity fans out from database triggers on shared rows, with fixed stri
 
 **Consequences:** No schema change. A planned plan left unmarked is no longer hidden in the past. There is no week grid anywhere; the day agenda on Calendar covers a single day. Partner changes still appear through the shared server refresh.
 
+## ADR-056 — Entry actions live in the cover's corner menu
+
+**Status:** Accepted, 2026-11-13, by owner direction ("The edit and delete buttons can be organized somewhere else across the app"); on `redesign`.
+
+**Context:** Every detail page ended with an outline Edit and a danger-outline Delete (`EntryActions`). The Cover mockups instead show a three-dot "More options" in the band's top-right corner on the plan, idea and list screens.
+
+**Decision:** One `EntryMenu` component renders that corner button through `Cover`'s new `menu` slot on the plan, bucket idea, bucket list, memory, own note and own wish pages. It holds Edit and page-specific actions (Cancel plan, Rename list) and a Delete item that opens the existing `ConfirmDelete` in its controlled mode. The list is portalled to the page layer (the cover clips overflow), anchored to the page so it scrolls with it, and repositions on resize because phones resize as the address bar moves. `EntryActions` is deleted.
+
+**Consequences:** Pages end on their content. Edit is one tap further away, in exchange for a quieter page and one consistent place for changes. Delete's confirmation and its preconditions are unchanged. Moments have no edit or delete yet, so they have no menu.

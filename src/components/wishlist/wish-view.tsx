@@ -1,9 +1,6 @@
-import Link from "next/link";
-import { CreditCard, EyeOff, Heart, Link2, Pencil, Tag } from "lucide-react";
+import { CreditCard, EyeOff, Heart, Link2, Tag } from "lucide-react";
 import { Cover, CoverSheet } from "@/components/app/cover";
-import { EntryActions } from "@/components/app/entry-actions";
-import { Button } from "@/components/ui/button";
-import { DeleteWish } from "@/components/wishlist/delete-wish";
+import { WishMenu } from "@/components/wishlist/delete-wish";
 import { GiftPlan } from "@/components/wishlist/gift-plan";
 import { formatPrice, priorityLabels, productHost, type PurchaseSecret, type WishlistItem } from "@/lib/wishlist/schema";
 
@@ -24,7 +21,7 @@ export function WishView({ item, secret, partnerName }: { item: WishlistItem; se
 
   return (
     <>
-      <Cover labelledBy="wish-title" height="band" back={{ href: item.mine ? "/wishlist?list=mine" : "/wishlist", label: "Back to wishlists" }}>
+      <Cover labelledBy="wish-title" height="band" back={{ href: item.mine ? "/wishlist?list=mine" : "/wishlist", label: "Back to wishlists" }} menu={item.mine ? <WishMenu id={item.id} title={item.title} /> : undefined}>
         <p className="text-[0.8125rem] font-semibold text-primary">{owner} wish</p>
         <h1 id="wish-title" className="mt-1.5 text-balance break-words font-display text-[2.125rem] leading-[1.1] tracking-[-0.02em]">{item.title}</h1>
       </Cover>
@@ -65,10 +62,6 @@ export function WishView({ item, secret, partnerName }: { item: WishlistItem; se
                 <EyeOff className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
                 Anything {partner} plans around this wish is theirs alone. This page never tells you whether a gift is on its way.
               </p>
-              <EntryActions label="Change this wish">
-                <Button asChild variant="outline"><Link href={"/wishlist/" + item.id + "/edit"}><Pencil className="size-4" aria-hidden="true" />Edit wish</Link></Button>
-                <DeleteWish id={item.id} title={item.title} />
-              </EntryActions>
             </>
           ) : (
             <GiftPlan itemId={item.id} secret={secret} ownerName={partner} />

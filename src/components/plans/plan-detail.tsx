@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
-  ArrowDown, ArrowUp, Bell, CalendarDays, Check, ChevronRight, FileText, ListChecks, Map as MapIcon, MapPin,
+  ArrowDown, ArrowUp, Ban, Bell, CalendarDays, Check, ChevronRight, FileText, ListChecks, Map as MapIcon, MapPin,
   Paperclip, Pencil, Plus, Sparkles, Trash2, Wallet, X,
 } from "lucide-react";
 import { mutatePlan, deletePlanAttachment, uploadPlanAttachment } from "@/app/actions/plans";
@@ -14,6 +14,7 @@ import { Cover, CoverSheet } from "@/components/app/cover";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDelete } from "@/components/ui/confirm-delete";
+import { EntryMenu } from "@/components/app/entry-menu";
 import { cn } from "@/lib/utils";
 
 const heading = "font-display text-[1.375rem] leading-[1.3]";
@@ -29,7 +30,7 @@ type Change = (input: Record<string, unknown>) => void;
  * list as tick rows, the reminders, the bucket idea it began as, and its
  * files, each as ruled rows. A plan whose day has come asks once, near the
  * top, whether to keep it as a memory; a kept plan ends on that memory.
- * Edit and Delete close the page, with Cancel plan quietly beneath them.
+ * Edit, Cancel plan and Delete live in the corner's More options.
  */
 export function PlanDetailView({ detail, timezone, preview, now, origin }: {
   detail: PlanDetail;
@@ -72,7 +73,31 @@ export function PlanDetailView({ detail, timezone, preview, now, origin }: {
 
   return (
     <>
-      <Cover labelledBy="plan-title" height="band" back={{ href: "/plans", label: "Back to plans" }}>
+      <Cover
+        labelledBy="plan-title"
+        height="band"
+        back={{ href: "/plans", label: "Back to plans" }}
+        menu={<EntryMenu
+          label="Plan options"
+          items={[
+            { kind: "link", label: "Edit plan", href: "/plans/" + p.id + "/edit", icon: Pencil },
+            ...(p.status === "planned" ? [{ kind: "action" as const, label: "Cancel plan", icon: Ban, disabled: pending, onSelect: () => change({ operation: "status", status: "cancelled" }) }] : []),
+          ]}
+          deletion={{
+            label: "Delete plan",
+            title: "Delete this plan?",
+            description: <><strong className="font-semibold text-foreground">“{p.title}”</strong>, its to-do list and its reminders are removed for both of you. A memory saved from it stays.</>,
+            blocked: attachments.length ? "Remove its " + attachments.length + " " + (attachments.length === 1 ? "file" : "files") + " under Attachments first." : null,
+            leavesPage: true,
+            onConfirm: async () => {
+              const result = await mutatePlan({ planId: p.id, version: p.version, operation: "delete", confirmation: "DELETE" });
+              if (!result.ok) return result.message;
+              router.push("/plans");
+              router.refresh();
+            },
+          }}
+        />}
+      >
         <p className={cn("text-[0.8125rem] font-semibold", p.status === "cancelled" ? "text-muted-foreground" : "text-primary")}>{kicker}</p>
         <h1 id="plan-title" className="mt-1.5 text-balance break-words font-display text-[2.125rem] leading-[1.1] tracking-[-0.02em]">{p.title}</h1>
         <ul className="mt-3.5 flex flex-col gap-2 text-[0.9375rem]">
@@ -147,31 +172,6 @@ export function PlanDetailView({ detail, timezone, preview, now, origin }: {
             </Button>
           ) : null}
 
-          <section aria-label="Change this plan" className="flex flex-col gap-3 border-t border-border pt-5">
-            <div className="grid grid-cols-2 gap-2">
-              <Button asChild variant="outline"><Link href={"/plans/" + p.id + "/edit"}><Pencil className="size-4" aria-hidden="true" />Edit</Link></Button>
-              <ConfirmDelete
-                label="Delete"
-                className="w-full"
-                title="Delete this plan?"
-                description={<><strong className="font-semibold text-foreground">“{p.title}”</strong>, its to-do list and its reminders are removed for both of you. A memory saved from it stays.</>}
-                blocked={attachments.length ? "Remove its " + attachments.length + " " + (attachments.length === 1 ? "file" : "files") + " under Attachments first." : null}
-                leavesPage
-                onConfirm={async () => {
-                  const result = await mutatePlan({ planId: p.id, version: p.version, operation: "delete", confirmation: "DELETE" });
-                  if (!result.ok) return result.message;
-                  router.push("/plans");
-                  router.refresh();
-                }}
-              />
-            </div>
-            {p.status === "planned" ? (
-              <div className="flex flex-wrap items-center gap-x-3">
-                <button type="button" disabled={pending} onClick={() => change({ operation: "status", status: "cancelled" })} className={cn(quiet, "text-muted-foreground hover:text-foreground")}>Cancel plan</button>
-                <span className="text-[0.8125rem] leading-5 text-muted-foreground">Keeps the details and stops its reminders.</span>
-              </div>
-            ) : null}
-          </section>
         </div>
       </CoverSheet>
 

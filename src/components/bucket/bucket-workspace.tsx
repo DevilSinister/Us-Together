@@ -4,10 +4,10 @@ import { usePartnerRefresh } from "@/components/providers/partner-sync";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore, useTransition } from "react";
-import { ArrowLeft, Check, ChevronDown, ChevronRight, ListFilter, Plus, Settings2, SlidersHorizontal, X } from "lucide-react";
+import { Check, ChevronDown, ChevronRight, ListFilter, Pencil, Plus, SlidersHorizontal, X } from "lucide-react";
 import { filterBucketItems, mutateBucket } from "@/app/actions/bucket";
 import { Button } from "@/components/ui/button";
-import { ConfirmDelete } from "@/components/ui/confirm-delete";
+import { EntryMenu } from "@/components/app/entry-menu";
 import { Cover, CoverSheet, FloatingAction } from "@/components/app/cover";
 import { refreshWindow } from "@/lib/partner-sync";
 import { bucketGroupingLabels, bucketGroupings, categoryMark, groupBucketItems, priorityLevel, type BucketGrouping } from "@/lib/bucket/grouping";
@@ -57,8 +57,8 @@ type OptionsView = "options" | "manage";
 
 /**
  * One bucket list as a Cover screen (ADR-053). The band names the list and
- * counts its dreams; under it, Organize (status, category or priority, kept
- * per device) and Options (filters, rename and delete). Ideas are ruled rows
+ * counts its dreams, with Rename and Delete in its corner menu; under it,
+ * Organize (status, category or priority, kept per device) and Options (filters). Ideas are ruled rows
  * in sections - In progress, Planned, Ideas, Lived - each row led by its
  * category mark, or a tick once lived, with a kicker that says only what the
  * section does not: how much you want it, by when, and when you lived it. A
@@ -167,6 +167,23 @@ export function BucketWorkspace({ list, initialPage, summary, categories = DEFAU
         labelledBy="list-title"
         height="band"
         back={{ href: "/bucket", label: "Back to bucket lists" }}
+        menu={<EntryMenu
+          label="List options"
+          items={[{ kind: "action", label: "Rename list", icon: Pencil, onSelect: () => showOptions("manage") }]}
+          deletion={{
+            label: "Delete list",
+            title: "Delete this list?",
+            description: <><strong className="font-semibold text-foreground">“{list.title}”</strong> is removed for both of you. Only an empty list can go.</>,
+            blocked: summary.dreams ? "This list still holds ideas. Move or delete them first." : null,
+            leavesPage: true,
+            onConfirm: async () => {
+              const result = await mutateBucket({ operation: "deleteList", id: list.id, confirmation: "DELETE" });
+              if (!result.ok) return result.message;
+              router.push("/bucket");
+              router.refresh();
+            },
+          }}
+        />}
         action={<Button asChild><Link href={`/bucket/new?list=${list.id}`}><Plus className="size-4" aria-hidden="true" />Add idea</Link></Button>}
       >
         <p className="text-[0.8125rem] font-semibold text-primary">Bucket list</p>
@@ -248,16 +265,14 @@ export function BucketWorkspace({ list, initialPage, summary, categories = DEFAU
       <FloatingAction href={`/bucket/new?list=${list.id}`} label="Add an idea" />
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent title={view === "options" ? "List options" : "Manage this list"} className="max-w-xl" dismissible={!pending}>
-          {view === "manage" ? <Button type="button" variant="ghost" className="-ml-3 mb-2" disabled={pending} onClick={() => { setDialogMessage(""); setView("options"); }}><ArrowLeft className="size-4" />Back to options</Button> : null}
+        <DialogContent title={view === "options" ? "Filter ideas" : "Rename this list"} className="max-w-xl" dismissible={!pending}>
           <DialogHeader>
-            <DialogTitle>{view === "options" ? "List options" : "Manage this list"}</DialogTitle>
-            <DialogDescription>{view === "options" ? "Narrow this list down to the ideas on your mind." : `Rename “${list.title}”, or let it go once it is empty.`}</DialogDescription>
+            <DialogTitle>{view === "options" ? "Filter ideas" : "Rename this list"}</DialogTitle>
+            <DialogDescription>{view === "options" ? "Narrow this list down to the ideas on your mind." : "A new name for both of you."}</DialogDescription>
           </DialogHeader>
 
           {view === "options" ? (
             <form method="post" className="mt-5 space-y-5" onSubmit={(event) => { event.preventDefault(); search({ ...draft, before: null }, true); }}>
-              <Button type="button" variant="ghost" className="-ml-3 text-muted-foreground" disabled={pending} onClick={() => { setDialogMessage(""); setView("manage"); }}><Settings2 className="size-4" />Manage this list</Button>
               <fieldset className="border-t border-border pt-5">
                 <legend className="sr-only">Filter ideas</legend>
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -297,23 +312,6 @@ export function BucketWorkspace({ list, initialPage, summary, categories = DEFAU
                 </label>
                 <Button disabled={pending}>{pending ? "Saving…" : "Rename list"}</Button>
               </form>
-              <div className="space-y-4 border-t border-border pt-5">
-                <div><h3 className="text-sm font-semibold">Delete this list</h3><p className="mt-1 text-sm leading-6 text-muted-foreground">Only empty lists can be deleted. Move or delete their ideas first.</p></div>
-                <ConfirmDelete
-                  label="Delete list"
-                  title="Delete this list?"
-                  description={<><strong className="font-semibold text-foreground">“{list.title}”</strong> is removed for both of you. Only an empty list can go.</>}
-                  blocked={summary.dreams ? "This list still holds ideas. Move or delete them first." : null}
-                  leavesPage
-                  onConfirm={async () => {
-                    const result = await mutateBucket({ operation: "deleteList", id: list.id, confirmation: "DELETE" });
-                    if (!result.ok) return result.message;
-                    setOpen(false);
-                    router.push("/bucket");
-                    router.refresh();
-                  }}
-                />
-              </div>
               <p role="status" className="text-sm leading-6 text-primary">{dialogMessage}</p>
             </div>
           )}

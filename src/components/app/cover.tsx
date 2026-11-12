@@ -27,7 +27,7 @@ const bandWithBack = "min-h-[12rem] pt-[4.75rem] md:min-h-0";
  * a rounded panel in the content column. Everything inside
  * reads the re-pointed cover tokens (`.on-cover`), so it is light in both themes.
  */
-export function Cover({ photo = null, previewSession, previewEntry = null, height = "standard", labelledBy, back, action, className, children }: {
+export function Cover({ photo = null, previewSession, previewEntry = null, height = "standard", labelledBy, back, action, menu, className, children }: {
   photo?: CoverImage | null;
   previewSession?: string;
   previewEntry?: PreviewEntry | null;
@@ -37,6 +37,8 @@ export function Cover({ photo = null, previewSession, previewEntry = null, heigh
   back?: { href: string; label: string };
   /** Shown beside the title from tablet width, where there is no floating button. */
   action?: React.ReactNode;
+  /** The corner "More options" (an `EntryMenu`), opposite the back button: Edit, Delete and their kin. */
+  menu?: React.ReactNode;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -60,6 +62,7 @@ export function Cover({ photo = null, previewSession, previewEntry = null, heigh
           <ChevronLeft className="size-6" aria-hidden="true" />
         </Link>
       ) : null}
+      {menu ? <div className="absolute right-3 top-[max(0.75rem,env(safe-area-inset-top))] md:right-4 md:top-4">{menu}</div> : null}
       <div className="cover-rise relative flex items-end justify-between gap-4">
         <div className="min-w-0 flex-1">{children}</div>
         {action ? <div className="hidden shrink-0 md:block">{action}</div> : null}

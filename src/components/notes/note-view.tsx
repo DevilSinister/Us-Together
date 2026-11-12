@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { Brush, Lock, PenLine, Pencil } from "lucide-react";
+import { Brush, Lock, PenLine } from "lucide-react";
 import { Avatar } from "@/components/app/avatar";
 import { Cover, CoverSheet } from "@/components/app/cover";
-import { EntryActions } from "@/components/app/entry-actions";
 import { Button } from "@/components/ui/button";
-import { DeleteNote } from "@/components/notes/delete-note";
+import { NoteMenu } from "@/components/notes/delete-note";
 import type { ResolvedIdentity } from "@/lib/avatar/resolve";
 import type { Note } from "@/lib/notes/schema";
 import { absoluteTime, relativeTime } from "@/lib/time/relative";
@@ -35,7 +34,7 @@ export function NoteView({ note, me, partner, timeZone }: {
 
   return (
     <>
-      <Cover labelledBy="note-title" height="band" back={{ href: "/notes", label: "Back to notes" }}>
+      <Cover labelledBy="note-title" height="band" back={{ href: "/notes", label: "Back to notes" }} menu={note.mine ? <NoteMenu id={note.id} title={note.title} shared={shared} /> : undefined}>
         <p className="text-[0.8125rem] font-semibold text-primary">
           {shared ? "Shared note" : "Private note"} · <time dateTime={note.updated_at}>{day}</time>
         </p>
@@ -77,12 +76,6 @@ export function NoteView({ note, me, partner, timeZone }: {
           </div>
         ) : null}
 
-        {note.mine ? (
-          <EntryActions label="Change this note">
-            <Button asChild variant="outline"><Link href={"/notes/" + note.id + "/edit"}><Pencil className="size-4" aria-hidden="true" />Edit note</Link></Button>
-            <DeleteNote id={note.id} title={note.title} shared={shared} />
-          </EntryActions>
-        ) : null}
       </CoverSheet>
     </>
   );

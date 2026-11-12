@@ -17,7 +17,7 @@ test("memories preserve stories through editing, tags and deletion",async({page}
  await expect(page.getByLabel("What do you want to remember?")).toHaveValue("The last light on the harbour, and nowhere else to be.");
  await page.getByRole("button",{name:"Save the memory"}).click();
  await expect(page).toHaveURL(/\/memories\/[0-9a-f-]+$/);const detail=page.url();
- await page.getByRole("link",{name:"Edit memory"}).click();
+ await page.getByRole("button",{name:"More options",exact:true}).click();await page.getByRole("menuitem",{name:"Edit memory"}).click();
  await page.getByLabel("Tags").fill("Travel, little moments, travel");await page.getByLabel("How it felt").selectOption("5");
  await page.getByRole("button",{name:"Save changes"}).click();await expect(page.getByRole("img",{name:"How it felt: 5 out of 5"})).toBeVisible();
  // Tags and the place show as chips under the keeper.
@@ -39,6 +39,6 @@ test("memories preserve stories through editing, tags and deletion",async({page}
  await page.screenshot({path:"test-results/memories-gallery-"+testInfo.project.name+".png",fullPage:true});
  expect(await page.evaluate(()=>document.documentElement.scrollWidth>document.documentElement.clientWidth)).toBe(false);
  await page.goto(detail);await page.keyboard.press("Tab");await expect(page.locator(":focus-visible")).toBeVisible();
- await page.getByRole("button",{name:"Delete memory",exact:true}).click();await page.getByRole("dialog",{name:"Delete this memory?"}).getByRole("button",{name:"Delete memory",exact:true}).click();await expect(page).toHaveURL(/\/memories$/);
+ await page.getByRole("button",{name:"More options",exact:true}).click();await page.getByRole("menuitem",{name:"Delete memory",exact:true}).click();await page.getByRole("dialog",{name:"Delete this memory?"}).getByRole("button",{name:"Delete memory",exact:true}).click();await expect(page).toHaveURL(/\/memories$/);
  await expect(page.getByRole("heading",{name:"An evening at the harbour"})).toHaveCount(0);
 });

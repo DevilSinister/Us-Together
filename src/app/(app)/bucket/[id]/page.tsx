@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { Cover, CoverSheet } from "@/components/app/cover";
 import { ItemDetail } from "@/components/bucket/item-detail";
+import { IdeaMenu } from "@/components/bucket/idea-menu";
 import { loadBucketCategories, loadBucketItem, loadBucketLists } from "@/lib/bucket/data";
 import { priorityLevel } from "@/lib/bucket/grouping";
 import { cn } from "@/lib/utils";
@@ -26,7 +27,7 @@ export default async function BucketItemPage({ params }: { params: Promise<{ id:
 
   return (
     <>
-      <Cover labelledBy="idea-title" height="band" back={{ href: `/bucket/lists/${item.list_id}`, label: list ? `Back to ${list.title}` : "Back to the list" }}>
+      <Cover labelledBy="idea-title" height="band" back={{ href: `/bucket/lists/${item.list_id}`, label: list ? `Back to ${list.title}` : "Back to the list" }} menu={<IdeaMenu item={item} lists={lists} categories={categories} />}>
         <p className="text-[0.8125rem] font-semibold text-primary">{[list?.title, statusWords[item.status] ?? bucketLabel(item.status)].filter(Boolean).join(" · ")}</p>
         <h1 id="idea-title" className="mt-1.5 text-balance break-words font-display text-[2.125rem] leading-[1.1] tracking-[-0.02em]">{item.title}</h1>
         <p className="mt-3 flex items-center gap-2 text-[0.9375rem] text-muted-foreground">
@@ -37,7 +38,7 @@ export default async function BucketItemPage({ params }: { params: Promise<{ id:
         </p>
       </Cover>
       <CoverSheet className="max-w-2xl">
-        <ItemDetail item={item} subtasks={subtasks} lists={lists} categories={categories} />
+        <ItemDetail item={item} subtasks={subtasks} />
       </CoverSheet>
     </>
   );

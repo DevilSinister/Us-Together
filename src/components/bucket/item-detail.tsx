@@ -2,16 +2,13 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, useTransition } from "react";
-import { ArrowDown, ArrowUp, CalendarDays, Check, GripVertical, MapPin, Pencil, Plus, Sparkles, Tag, Trash2, Wallet, X } from "lucide-react";
+import { ArrowDown, ArrowUp, CalendarDays, Check, GripVertical, MapPin, Plus, Sparkles, Tag, Trash2, Wallet, X } from "lucide-react";
 
 import { mutateBucket } from "@/app/actions/bucket";
-import { moveSubtask, subtaskProgress, type BucketItem, type BucketList, type BucketSubtask } from "@/lib/bucket/schema";
+import { moveSubtask, subtaskProgress, type BucketItem, type BucketSubtask } from "@/lib/bucket/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { ConfirmDelete } from "@/components/ui/confirm-delete";
 import { cn } from "@/lib/utils";
-import { ItemEditor } from "./item-editor";
 
 // lived_on and target_date are calendar dates, so they are formatted at UTC: a viewer's zone must not move the day.
 const livedFormat = new Intl.DateTimeFormat("en", { timeZone: "UTC", dateStyle: "long" });
@@ -31,22 +28,18 @@ function costLine(minor: number, currency: string | null) {
 /**
  * The sheet of one bucket idea (the band is the page's): its story, quiet
  * fact lines for the category, place, target and cost, the steps as tick
- * rows, then "Make it a plan" with "We lived it" beneath, and Edit and
- * Delete at the foot. Renaming, reordering (arrows, a drag handle, or hold and
+ * rows, then "Make it a plan" with "We lived it" beneath. Edit and Delete
+ * are in the corner menu (`IdeaMenu`). Renaming, reordering (arrows, a drag handle, or hold and
  * drag on a phone) and removing steps live behind "Edit steps". Once lived, a
  * raised panel keeps the day you lived it and leads to the memory.
  */
-export function ItemDetail({ item, subtasks, lists = [], categories = [] }: {
+export function ItemDetail({ item, subtasks }: {
   item: BucketItem;
   subtasks: BucketSubtask[];
-  lists?: BucketList[];
-  categories?: readonly string[] | string[];
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
-  const [editOpen, setEditOpen] = useState(false);
-  const [editPending, setEditPending] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [editingSteps, setEditingSteps] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -282,41 +275,6 @@ export function ItemDetail({ item, subtasks, lists = [], categories = [] }: {
           <Button variant="outline" className="w-full" disabled={pending} onClick={() => setCompleting(true)}><Check className="size-4" aria-hidden="true" />We lived it</Button>
         </div>
       )}
-
-      <section aria-label="Change this idea" className="flex flex-col gap-3 border-t border-border pt-5">
-        <div className="grid grid-cols-2 gap-2">
-          <Dialog open={editOpen} onOpenChange={setEditOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline"><Pencil className="size-4" aria-hidden="true" />Edit</Button>
-            </DialogTrigger>
-            <DialogContent title="Edit bucket idea" className="max-w-2xl" dismissible={!editPending}>
-              <DialogHeader>
-                <DialogTitle>Edit the idea</DialogTitle>
-                <DialogDescription>Refine your shared plans, timing, location, or details.</DialogDescription>
-              </DialogHeader>
-              <div className="mt-4">
-                <ItemEditor lists={lists} item={item} categories={categories} key={item.version} onSaved={() => setEditOpen(false)} onCancel={() => setEditOpen(false)} onPendingChange={setEditPending} />
-              </div>
-            </DialogContent>
-          </Dialog>
-          <ConfirmDelete
-            label="Delete"
-            className="w-full"
-            title="Delete this idea?"
-            description={<>
-              <strong className="font-semibold text-foreground">&ldquo;{item.title}&rdquo;</strong> and its steps leave your shared bucket list for good.
-              Plans and memories made from it stay, without the link back.
-            </>}
-            leavesPage
-            onConfirm={async () => {
-              const result = await mutateBucket({ operation: "deleteItem", id: item.id, version: item.version, confirmation: "DELETE" });
-              if (!result.ok) return result.message;
-              router.push(`/bucket/lists/${item.list_id}`);
-              router.refresh();
-            }}
-          />
-        </div>
-      </section>
 
       {/* Saving is announced politely; a failure also shows above the navigation, wherever it happened. */}
       <p role="status" className="sr-only">{pending ? "Saving…" : message && !message.error ? message.text : ""}</p>
