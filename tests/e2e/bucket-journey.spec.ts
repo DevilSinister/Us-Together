@@ -96,13 +96,14 @@ test("bucket lists support steps, filters, conversion, completion and memory", a
   await expect(page.getByRole("status")).toContainText("Connection interrupted");
   await page.unroute("**/bucket/lists/*");
   await page.getByRole("button", { name: "Apply filters" }).click();
-  await expect(page.getByRole("heading", { name: "Watch the sunrise together" })).toBeVisible();
+  // Ideas are ruled rows now: the title leads the link's name.
+  await expect(page.getByRole("link", { name: /^Watch the sunrise together/ })).toBeVisible();
   await expect(page.getByRole("dialog")).toHaveCount(0);
   await page.screenshot({ path: `test-results/bucket-list-${testInfo.project.name}.png`, fullPage: true });
   await page.getByRole("button", { name: "Options", exact: true }).click();
   await page.getByLabel("Status", { exact: true }).selectOption("idea");
   await page.getByRole("button", { name: "Apply filters" }).click();
-  await expect(page.getByText("Room for your next idea.")).toBeVisible();
+  await expect(page.getByText("Nothing in this view.")).toBeVisible();
   await page.goto(ideaUrl);
   await page.getByRole("button", { name: "Delete idea", exact: true }).click();
   await page.getByRole("dialog", { name: "Delete this idea?" }).getByRole("button", { name: "Delete idea", exact: true }).click();

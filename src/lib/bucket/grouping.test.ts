@@ -18,7 +18,7 @@ describe("groupBucketItems", () => {
 
   it("reads forward by status, with completed last", () => {
     const groups = groupBucketItems(items, "status");
-    expect(groups.map((g) => g.label)).toEqual(["In progress", "Planned", "Ideas", "Completed"]);
+    expect(groups.map((g) => g.label)).toEqual(["In progress", "Planned", "Ideas", "Lived"]);
     expect(groups.at(-1)!.items.map((i) => i.id)).toEqual(["a", "d"]);
   });
 
