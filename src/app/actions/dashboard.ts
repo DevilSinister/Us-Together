@@ -2,14 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { z } from "zod";
 import type { ActionState } from "@/lib/auth/types";
 import { getCurrentIdentity } from "@/lib/auth/current-user";
 import { readDeveloperState, writeDeveloperState } from "@/lib/auth/dev-session";
 import { milestoneSchema } from "@/lib/dashboard/schema";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-const notificationIdSchema = z.string().uuid();
 
 async function activePairedCoupleId(userId: string) {
   const supabase = await createServerSupabaseClient();
@@ -58,17 +56,17 @@ export async function createMilestoneAction(_previous: ActionState, formData: Fo
   redirect(`/milestones/${data.id}`);
 }
 
-export async function markNotificationReadAction(formData: FormData) {
-  const parsed = notificationIdSchema.safeParse(formData.get("notificationId"));
-  if (!parsed.success) return;
+/** Marks every unread notification of the signed-in recipient as read. */
+export async function markAllNotificationsReadAction() {
   const identity = await getCurrentIdentity();
   if (!identity) redirect("/sign-in");
+  const now = new Date().toISOString();
   if (identity.kind === "developer") {
     const state = await readDeveloperState();
-    await writeDeveloperState({ ...state, notifications: state.notifications.map((notification) => notification.id === parsed.data ? { ...notification, readAt: new Date().toISOString() } : notification) });
+    await writeDeveloperState({ ...state, notifications: state.notifications.map((notification) => notification.readAt ? notification : { ...notification, readAt: now }) });
   } else {
     const supabase = await createServerSupabaseClient();
-    await supabase.from("notifications").update({ read_at: new Date().toISOString() }).eq("id", parsed.data).eq("recipient_id", identity.userId);
+    await supabase.from("notifications").update({ read_at: now }).eq("recipient_id", identity.userId).is("read_at", null);
   }
   revalidatePath("/home");
   revalidatePath("/notifications");

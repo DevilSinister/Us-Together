@@ -32,7 +32,7 @@ test("mobile Home keeps unread notifications in the header", async ({ page }, te
 
   await bell.click();
   await expect(page).toHaveURL(/\/notifications$/);
-  await page.getByRole("button", { name: "Mark read" }).click();
+  await page.getByRole("button", { name: "Mark all read" }).click();
   await expect(page.getByRole("link", { name: "Notifications", exact: true }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Notifications, .* unread/ })).toHaveCount(0);
 });
@@ -74,8 +74,9 @@ test("paired fixture exposes a named partner and completes the plan-to-memory lo
   await expect(page.getByRole("heading", { name: "Our first brave leap" })).toBeVisible();
 
   await page.goto("/notifications");
-  await page.getByRole("button", { name: "Mark read" }).click();
-  await expect(page.getByText("0 unread")).toBeVisible();
+  await page.getByRole("button", { name: "Mark all read" }).click();
+  await expect(page.getByText("All caught up")).toBeVisible();
+  await page.getByText("Notification settings", { exact: true }).click();
   await page.getByLabel("Moments").uncheck();
   await page.getByRole("button", { name: "Save preferences" }).click();
   await expect(page.getByText("Notification preferences saved.")).toBeVisible();
