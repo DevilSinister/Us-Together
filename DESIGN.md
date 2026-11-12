@@ -408,3 +408,7 @@ Notifications opens on a band with a 36px serif "Notifications" and "2 unread" (
 ## Corner menu for entry actions — 2026-11-13
 
 On the owner's direction the Edit and Delete row left the foot of every detail page for the mockups' "More options" (three dots) in the cover's top-right corner: a 44px round button on the cover scrim, mirroring the back button. Plan: Edit plan, Cancel plan, Delete plan. Idea: Edit idea (the editor dialog), Delete idea. Bucket list: Rename list, Delete list (the toolbar's Options is now filters only, "Filter ideas"). Memory: Edit memory, Delete memory. Your own note: Edit note, Delete note. Your own wish: Edit wish, Remove wish. Earlier sections that place Edit and Delete at the foot are superseded.
+
+## Profile as a Cover screen — 2026-11-13
+
+Profile opens on a band with your 64px avatar (ringed in the cover field) beside your name at 34px serif and "Your account". The sheet is one ruled list of 44px-led rows: Name and picture (opens in place to the profile form), Your local time · taken from this device (shown, not a link), Appearance (opens in place to the three appearance choices; the row names the current one after hydration), Notifications and Privacy locks ("2 sections locked", "Off", or "Needs a connected account" in the preview) leading to their pages, and Partner with their avatar leading to the partner page. A full-width outline Sign out closes the page, with the waiting-uploads line beneath. How your partner appears to you moved to the partner page (`/pairing`).

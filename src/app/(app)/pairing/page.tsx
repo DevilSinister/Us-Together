@@ -6,7 +6,9 @@ import { readDeveloperState } from "@/lib/auth/dev-session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { loadIdentities } from "@/lib/avatar/identities";
 import { Avatar } from "@/components/app/avatar";
-import { InlineLink } from "@/components/ui/inline-link";
+import { PartnerStepForm } from "@/components/onboarding/onboarding-forms";
+import { Button } from "@/components/ui/button";
+import { forgetPartnerPresentationAction } from "@/app/actions/partner";
 
 export const metadata: Metadata = { title: "Partner connection" };
 
@@ -18,14 +20,21 @@ export default async function PairingPage() {
   // matches every other place they appear. Only the timezone is read here.
   const identities = await loadIdentities();
   let partner: { timezone: string } | null = null;
+  // How your partner appears to you: your own record, never shown to them.
+  let chosen = { name: "", avatarStyle: "rose" };
   if (identity?.kind === "developer") {
     const state = await readDeveloperState();
     status = state.coupleStatus;
     if (state.partnerProfile) partner = { timezone: state.partnerProfile.timezone };
+    chosen = { name: state.partnerProfile?.displayName ?? "", avatarStyle: state.partnerProfile?.avatarStyle ?? "rose" };
   }
   if (identity?.kind === "supabase") {
     const supabase = await createServerSupabaseClient();
-    const { data: membership } = await supabase.from("couple_memberships").select("couple_id").eq("user_id", identity.userId).is("left_at", null).maybeSingle();
+    const [{ data: membership }, { data: presentation }] = await Promise.all([
+      supabase.from("couple_memberships").select("couple_id").eq("user_id", identity.userId).is("left_at", null).maybeSingle(),
+      supabase.from("partner_presentations").select("display_name, avatar_style").eq("owner_id", identity.userId).maybeSingle(),
+    ]);
+    chosen = { name: presentation?.display_name ?? "", avatarStyle: presentation?.avatar_style ?? "rose" };
     if (membership) {
       const { data: memberships } = await supabase.from("couple_memberships").select("user_id").eq("couple_id", membership.couple_id).is("left_at", null);
       const partnerId = memberships?.find((item) => item.user_id !== identity.userId)?.user_id;
@@ -56,8 +65,22 @@ export default async function PairingPage() {
               </div>
             </div>
             <p className="mt-4 leading-7 text-muted-foreground">Timezone: {partner?.timezone ?? "Not provided"}. Shared access is granted only while both memberships are active.</p>
-            <InlineLink href="/profile#partner" className="mt-2">Change their name or photo</InlineLink>
           </div>
+          <section aria-labelledby="partner-presentation" id="partner" className="mt-8">
+            <h2 id="partner-presentation" className="font-display text-section-title">How they appear to you</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              {chosen.name ? "Yours, not theirs: they never see the name or picture you chose." : `Right now they appear as “${identities.partner.name}”, the name they chose.`}
+            </p>
+            <div className="mt-5">
+              <PartnerStepForm partnerName={chosen.name} partnerAvatarStyle={chosen.avatarStyle} partnerAvatarSrc={identities.partner.src} returnTo="pairing" />
+            </div>
+            {chosen.name || identities.partner.src ? (
+              <form action={forgetPartnerPresentationAction} className="mt-6 border-t pt-5">
+                <Button type="submit" variant="ghost" size="sm" className="text-danger hover:bg-danger/10 hover:text-danger">Forget these details</Button>
+                <p className="mt-1 text-xs text-muted-foreground">Leaving a couple never erases this on its own; forgetting is always something you choose.</p>
+              </form>
+            ) : null}
+          </section>
           <div className="mt-8"><PairedConnectionActions /></div>
         </div>
       ) : waiting ? (
