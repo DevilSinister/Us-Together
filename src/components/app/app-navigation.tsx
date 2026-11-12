@@ -16,17 +16,17 @@ const items: Destination[] = [
   { href: "/calendar", label: "Calendar", icon: CalendarDays, group: "plan" },
   { href: "/plans", label: "Plans", icon: CalendarClock, group: "plan" },
   { href: "/bucket", label: "Bucket lists", short: "Lists", icon: ListChecks, group: "plan" },
-  { href: "/story", label: "Our Story", short: "Story", icon: ScrollText, group: "keep" },
   { href: "/memories", label: "Memories", icon: Images, group: "keep" },
   { href: "/gallery", label: "Gallery", icon: Camera, group: "keep" },
   { href: "/milestones", label: "Moments", icon: Flag, group: "keep" },
   { href: "/notes", label: "Notes", icon: NotebookPen, group: "keep" },
   { href: "/drawings", label: "Drawings", icon: Brush, group: "keep" },
   { href: "/wishlist", label: "Wishlists", short: "Wishes", icon: Gift, group: "keep" },
+  { href: "/story", label: "Our Story", short: "Story", icon: ScrollText, group: "keep" },
   { href: "/notifications", label: "Notifications", icon: Bell, group: "account" },
   { href: "/profile", label: "Profile", icon: UserRound, group: "account" },
-  { href: "/privacy", label: "Privacy locks", icon: ShieldCheck, group: "account" },
   { href: "/pairing", label: "Partner", icon: HeartHandshake, group: "account" },
+  { href: "/privacy", label: "Privacy locks", icon: ShieldCheck, group: "account" },
 ];
 
 const groups: Array<{ key: Group; label: string }> = [
@@ -70,7 +70,7 @@ export function AppNavigation({ mobile = false }: { mobile?: boolean }) {
     <>
       <nav
         aria-label="Mobile navigation"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-0.5 border-t bg-card pl-[max(.25rem,env(safe-area-inset-left))] pr-[max(.25rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-0.5 border-t bg-card pl-[max(.25rem,env(safe-area-inset-left))] pr-[max(.25rem,env(safe-area-inset-right))] pb-[env(safe-area-inset-bottom)]"
       >
         {mobilePaths.map((href) => {
           const item = items.find((candidate) => candidate.href === href);
@@ -95,17 +95,24 @@ export function AppNavigation({ mobile = false }: { mobile?: boolean }) {
           <span>More</span>
         </button>
       </nav>
+      {/* A bottom sheet over the navigation (ADR-053): a grab mark, the heading, and each
+          group's destinations as a two-column grid of outlined tiles. */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent title="More destinations" className="max-w-sm">
-          <DialogHeader><DialogTitle>More together.</DialogTitle></DialogHeader>
-          <nav aria-label="More navigation" className="mt-5">
+        <DialogContent
+          title="More destinations"
+          className="viewer-sheet inset-x-0 bottom-0 top-auto mx-auto mb-0 w-full max-w-lg rounded-b-none rounded-t-[1.25rem] border-x-0 border-b-0 pb-[env(safe-area-inset-bottom)]"
+        >
+          <span aria-hidden="true" className="mx-auto -mt-2 mb-3 block h-1 w-10 rounded-full bg-border" />
+          <DialogHeader className="border-b-0 pb-0"><DialogTitle className="text-[1.375rem] leading-[1.3]">More together.</DialogTitle></DialogHeader>
+          <nav aria-label="More navigation" className="mt-4 flex flex-col gap-4">
             {groups.map((group) => {
-              const groupItems = moreItems.filter((item) => item.group === group.key);
+              // Every destination but Home, the bottom bar's four included, so the sheet is the whole map.
+              const groupItems = items.filter((item) => item.group === group.key);
               if (!groupItems.length) return null;
               return (
-                <div key={group.key} className="mt-5 first:mt-0">
-                  <p className="text-xs font-semibold text-muted-foreground">{group.label}</p>
-                  <div className="mt-2 space-y-1">
+                <div key={group.key} className="flex flex-col gap-2">
+                  <p className="text-[0.8125rem] font-semibold text-primary">{group.label}</p>
+                  <div className="grid grid-cols-2 gap-2">
                     {groupItems.map(({ href, label, icon: Icon }) => (
                       <Link
                         key={href}
@@ -113,12 +120,12 @@ export function AppNavigation({ mobile = false }: { mobile?: boolean }) {
                         onClick={() => setOpen(false)}
                         aria-current={isActive(href) ? "page" : undefined}
                         className={cn(
-                          "flex min-h-12 items-center gap-3 rounded-control px-3 text-base focus-visible:outline-2 focus-visible:outline-ring",
-                          isActive(href) ? activeTone : "hover:bg-secondary",
+                          "flex min-h-12 min-w-0 items-center gap-2.5 rounded-control border px-3.5 text-[0.9375rem] font-semibold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring motion-reduce:transition-none",
+                          isActive(href) ? "border-primary bg-secondary" : "border-border hover:bg-secondary",
                         )}
                       >
-                        <Icon aria-hidden="true" className="size-5" />
-                        {label}
+                        <Icon aria-hidden="true" className={cn("size-5 shrink-0", isActive(href) ? "text-primary" : "text-muted-foreground")} />
+                        <span className="truncate">{label}</span>
                       </Link>
                     ))}
                   </div>
